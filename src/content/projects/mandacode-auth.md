@@ -1,11 +1,11 @@
 ---
 title: Mandacode Auth
 title_en: Mandacode Auth
-description: '통합 인증 및 권한 관리 시스템으로, 다양한 플랫폼에서 안전하고 일관된 사용자 인증을 제공합니다.'
+description: "통합 인증 및 권한 관리 시스템으로, 다양한 플랫폼에서 안전하고 일관된 사용자 인증을 제공합니다."
 description_en: >-
   A unified authentication and authorization system providing secure and
   consistent user authentication across platforms.
-url: 'https://auth.mandacode.dev'
+url: "https://auth.mandacode.dev"
 status: production
 techStack:
   - TypeScript

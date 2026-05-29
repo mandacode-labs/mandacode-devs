@@ -23,11 +23,13 @@ projects.sort((a, b) => a.data.order - b.data.order);
       </h1>
       <p class="text-lg text-text-secondary">{t("projects.subtitle")}</p>
     </div>
-    
+
     <div class="flex flex-col gap-6">
-      {projects.map((project) => (
-        <ProjectCard project={project} lang={lang as Lang} />
-      ))}
+      {
+        projects.map((project) => (
+          <ProjectCard project={project} lang={lang as Lang} />
+        ))
+      }
     </div>
   </div>
 </Layout>

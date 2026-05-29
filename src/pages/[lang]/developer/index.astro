@@ -11,7 +11,7 @@ export async function getStaticPaths() {
 const { lang } = Astro.params;
 const t = useTranslations(lang as Lang);
 
-  const developers = await getCollection("developers");
+const developers = await getCollection("developers");
 ---
 
 <Layout title={t("developer.title")} description={t("developer.subtitle")}>
@@ -22,11 +22,13 @@ const t = useTranslations(lang as Lang);
       </h1>
       <p class="text-lg text-text-secondary">{t("developer.subtitle")}</p>
     </div>
-    
+
     <div class="max-w-2xl">
-      {developers.map((developer) => (
-        <DeveloperCard developer={developer} lang={lang as Lang} />
-      ))}
+      {
+        developers.map((developer) => (
+          <DeveloperCard developer={developer} lang={lang as Lang} />
+        ))
+      }
     </div>
   </div>
 </Layout>

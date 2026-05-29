@@ -1,15 +1,18 @@
 import { ui, type Lang, type UIKey } from "./ui";
 
 export function useTranslations(lang: Lang) {
-  return function t(key: UIKey, vars?: Record<string, string | number>): string {
+  return function t(
+    key: UIKey,
+    vars?: Record<string, string | number>,
+  ): string {
     let text = ui[lang][key] || ui["ko"][key] || key;
-    
+
     if (vars) {
       Object.entries(vars).forEach(([k, v]) => {
         text = text.replace(`{${k}}`, String(v));
       });
     }
-    
+
     return text;
   };
 }

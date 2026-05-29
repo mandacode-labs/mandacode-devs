@@ -23,21 +23,50 @@ const currentUrl = new URL(Astro.url.pathname, site).toString();
 <meta property="og:title" content={title} />
 {description && <meta property="og:description" content={description} />}
 <meta property="og:url" content={canonical || currentUrl} />
-{ogImage && <meta property="og:image" content={new URL(ogImage, site).toString()} />}
+{
+  ogImage && (
+    <meta property="og:image" content={new URL(ogImage, site).toString()} />
+  )
+}
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={title} />
 {description && <meta name="twitter:description" content={description} />}
-{ogImage && <meta name="twitter:image" content={new URL(ogImage, site).toString()} />}
+{
+  ogImage && (
+    <meta name="twitter:image" content={new URL(ogImage, site).toString()} />
+  )
+}
 
 <!-- Canonical -->
 <link rel="canonical" href={canonical || currentUrl} />
 
 <!-- Alternate languages -->
-<link rel="alternate" hreflang="ko" href={new URL(Astro.url.pathname.replace(/^\/(en)\//, '/ko/'), site).toString()} />
-<link rel="alternate" hreflang="en" href={new URL(Astro.url.pathname.replace(/^\/(ko)\//, '/en/'), site).toString()} />
-<link rel="alternate" hreflang="x-default" href={new URL(Astro.url.pathname.replace(/^\/(ko|en)\//, '/ko/'), site).toString()} />
+<link
+  rel="alternate"
+  hreflang="ko"
+  href={new URL(
+    Astro.url.pathname.replace(/^\/(en)\//, "/ko/"),
+    site,
+  ).toString()}
+/>
+<link
+  rel="alternate"
+  hreflang="en"
+  href={new URL(
+    Astro.url.pathname.replace(/^\/(ko)\//, "/en/"),
+    site,
+  ).toString()}
+/>
+<link
+  rel="alternate"
+  hreflang="x-default"
+  href={new URL(
+    Astro.url.pathname.replace(/^\/(ko|en)\//, "/ko/"),
+    site,
+  ).toString()}
+/>
 
 <!-- Favicon -->
 <link rel="icon" type="image/svg+xml" href="/favicon.ico" />

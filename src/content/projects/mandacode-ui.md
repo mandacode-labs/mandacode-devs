@@ -3,7 +3,7 @@ title: Mandacode UI
 title_en: Mandacode UI
 description: Mandacode 디자인 시스템 기반의 재사용 가능한 UI 컴포넌트 라이브러리입니다.
 description_en: A reusable UI component library based on the Mandacode design system.
-url: 'https://ui.mandacode.dev'
+url: "https://ui.mandacode.dev"
 status: development
 techStack:
   - TypeScript

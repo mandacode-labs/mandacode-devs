@@ -15,19 +15,25 @@ const { title, description, href, icon, linkText } = Astro.props;
 
 <Card href={href} class="group h-full">
   <div class="p-6 h-full flex flex-col">
-    <div class="w-12 h-12 rounded-lg bg-accent-subtle flex items-center justify-center mb-4 group-hover:bg-accent group-hover:text-white transition-colors text-accent">
+    <div
+      class="w-12 h-12 rounded-lg bg-accent-subtle flex items-center justify-center mb-4 group-hover:bg-accent group-hover:text-white transition-colors text-accent"
+    >
       <Icon name={icon} size={24} />
     </div>
-    
-    <h3 class="text-xl font-semibold text-text-primary mb-2 group-hover:text-accent transition-colors">
+
+    <h3
+      class="text-xl font-semibold text-text-primary mb-2 group-hover:text-accent transition-colors"
+    >
       {title}
     </h3>
-    
+
     <p class="text-sm text-text-secondary mb-4 flex-1">
       {description}
     </p>
-    
-    <div class="flex items-center gap-1 text-sm font-medium text-accent group-hover:text-accent-hover transition-colors">
+
+    <div
+      class="flex items-center gap-1 text-sm font-medium text-accent group-hover:text-accent-hover transition-colors"
+    >
       <span>{linkText}</span>
       <Icon name="arrowRight" size={14} />
     </div>
