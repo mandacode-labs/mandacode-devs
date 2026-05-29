@@ -1,0 +1,47 @@
+---
+import type { CollectionEntry } from "astro:content";
+import Card from "../ui/Card.astro";
+import Badge from "../ui/Badge.astro";
+import { useTranslations, type Lang } from "@/i18n/utils";
+
+interface Props {
+  post: CollectionEntry<"blog">;
+  lang: Lang;
+}
+
+const { post, lang } = Astro.props;
+const t = useTranslations(lang);
+
+const title = lang === "ko" ? post.data.title : post.data.title_en;
+const description = lang === "ko" ? post.data.description : post.data.description_en;
+
+const formatDate = (date: Date) => {
+  return new Intl.DateTimeFormat(lang === "ko" ? "ko-KR" : "en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(date);
+};
+---
+
+<Card href={`/${lang}/blog/${post.slug}`} class="group">
+  <div class="p-5">
+    <div class="flex items-center gap-2 mb-3">
+      <time class="text-xs text-text-muted">{formatDate(post.data.pubDate)}</time>
+      <span class="text-text-muted">·</span>
+      <div class="flex items-center gap-1.5">
+        {post.data.tags.slice(0, 3).map((tag) => (
+          <Badge variant="default">{tag}</Badge>
+        ))}
+      </div>
+    </div>
+    
+    <h3 class="text-lg font-semibold text-text-primary group-hover:text-accent transition-colors mb-2">
+      {title}
+    </h3>
+    
+    <p class="text-sm text-text-secondary line-clamp-2">
+      {description}
+    </p>
+  </div>
+</Card>

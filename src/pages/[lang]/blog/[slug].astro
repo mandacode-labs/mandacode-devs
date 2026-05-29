@@ -1,0 +1,73 @@
+---
+import Layout from "@/components/layouts/Layout.astro";
+import Badge from "@/components/ui/Badge.astro";
+import { getCollection, getEntry, render } from "astro:content";
+import { useTranslations, type Lang } from "@/i18n/utils";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog");
+  const paths = [];
+  for (const post of posts) {
+    paths.push({ params: { lang: "ko", slug: post.id } });
+    paths.push({ params: { lang: "en", slug: post.id } });
+  }
+  return paths;
+}
+
+const { lang, slug } = Astro.params;
+const t = useTranslations(lang as Lang);
+
+const post = await getEntry("blog", slug);
+
+if (!post) {
+  return Astro.redirect(`/${lang}/blog`);
+}
+
+const title = lang === "ko" ? post.data.title : post.data.title_en;
+const description = lang === "ko" ? post.data.description : post.data.description_en;
+
+const formatDate = (date: Date) => {
+  return new Intl.DateTimeFormat(lang === "ko" ? "ko-KR" : "en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(date);
+};
+
+const { Content } = await render(post);
+---
+
+<Layout title={title} description={description}>
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+    <!-- Back link -->
+    <a 
+      href={`/${lang}/blog`}
+      class="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors mb-8"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="rotate-180"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      <span>{t("blog.title")}</span>
+    </a>
+    
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center gap-2 mb-4">
+        <time class="text-sm text-text-muted">{formatDate(post.data.pubDate)}</time>
+        <span class="text-text-muted">·</span>
+        <div class="flex items-center gap-1.5">
+          {post.data.tags.map((tag) => (
+            <Badge variant="default">{tag}</Badge>
+          ))}
+        </div>
+      </div>
+      
+      <h1 class="text-3xl sm:text-4xl font-bold text-text-primary mb-4">{title}</h1>
+      
+      <p class="text-lg text-text-secondary">{description}</p>
+    </div>
+    
+    <!-- Content -->
+    <div class="prose prose-neutral max-w-none">
+      <Content />
+    </div>
+  </div>
+</Layout>
