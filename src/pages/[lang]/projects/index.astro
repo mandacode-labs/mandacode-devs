@@ -1,0 +1,38 @@
+---
+import Layout from "@/components/layouts/Layout.astro";
+import ProjectCard from "@/components/content/ProjectCard.astro";
+import { getCollection } from "astro:content";
+import { useTranslations, type Lang } from "@/i18n/utils";
+
+export async function getStaticPaths() {
+  return [{ params: { lang: "ko" } }, { params: { lang: "en" } }];
+}
+
+const { lang } = Astro.params;
+const t = useTranslations(lang as Lang);
+
+const projects = await getCollection(
+  "projects",
+  (project) => project.data.lang === lang,
+);
+projects.sort((a, b) => a.data.order - b.data.order);
+---
+
+<Layout title={t("projects.title")} description={t("projects.subtitle")}>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+    <div class="mb-10">
+      <h1 class="text-3xl sm:text-4xl font-bold text-text-primary mb-3">
+        {t("projects.title")}
+      </h1>
+      <p class="text-lg text-text-secondary">{t("projects.subtitle")}</p>
+    </div>
+
+    <div class="flex flex-col gap-6">
+      {
+        projects.map((project) => (
+          <ProjectCard project={project} lang={lang as Lang} />
+        ))
+      }
+    </div>
+  </div>
+</Layout>

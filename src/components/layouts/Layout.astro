@@ -1,0 +1,39 @@
+---
+import SEO from "@/components/shared/SEO.astro";
+import Header from "@/components/layout/Header.astro";
+import Footer from "@/components/layout/Footer.astro";
+import "@/styles/global.css";
+import { getLocaleFromPath, type Lang } from "@/i18n/utils";
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+}
+
+const { title, description, ogImage } = Astro.props;
+const currentLang = getLocaleFromPath(Astro.url.pathname);
+const siteTitle = "Mandacode Developer";
+const pageTitle = title ? `${title} | ${siteTitle}` : siteTitle;
+---
+
+<!doctype html>
+<html lang={currentLang}>
+  <head>
+    <SEO title={pageTitle} description={description} ogImage={ogImage} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>{pageTitle}</title>
+  </head>
+  <body class="min-h-screen flex flex-col bg-bg-primary">
+    <Header currentLang={currentLang} />
+    <main class="flex-1">
+      <slot />
+    </main>
+    <Footer currentLang={currentLang} />
+  </body>
+</html>

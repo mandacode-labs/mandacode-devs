@@ -1,0 +1,48 @@
+---
+import { useTranslations, type Lang } from "@/i18n/utils";
+
+interface Props {
+  currentLang: Lang;
+}
+
+const { currentLang } = Astro.props;
+const t = useTranslations(currentLang);
+
+const currentPath = Astro.url.pathname;
+const otherLang = currentLang === "ko" ? "en" : "ko";
+const otherUrl = currentPath.replace(/^\/(ko|en)/, `/${otherLang}`);
+---
+
+<div class="relative group">
+  <button
+    type="button"
+    class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors rounded-md hover:bg-bg-secondary"
+    aria-label="Change language"
+  >
+    <span>{currentLang.toUpperCase()}</span>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="transition-transform group-hover:rotate-180"
+      ><path d="m6 9 6 6 6-6"></path></svg
+    >
+  </button>
+
+  <div
+    class="absolute right-0 top-full mt-1 py-1 bg-white border border-border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all min-w-[120px]"
+  >
+    <a
+      href={otherUrl}
+      class="block px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-secondary transition-colors"
+    >
+      {t(otherLang === "ko" ? "lang.ko" : "lang.en")}
+    </a>
+  </div>
+</div>
