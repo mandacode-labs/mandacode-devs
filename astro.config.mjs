@@ -10,7 +10,7 @@ export default defineConfig({
   site: "https://dev.mandacode.com",
   base: "/",
   trailingSlash: "ignore",
-  adapter: cloudflare(),
+  adapter: cloudflare({ sessions: false }),
   vite: {
     plugins: [tailwindcss()],
     resolve: {
