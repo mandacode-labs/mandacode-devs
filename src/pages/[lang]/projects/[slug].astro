@@ -1,0 +1,122 @@
+---
+import Layout from "@/components/layouts/Layout.astro";
+import Badge from "@/components/ui/Badge.astro";
+import Button from "@/components/ui/Button.astro";
+import { getCollection, getEntry, render } from "astro:content";
+import { useTranslations, type Lang } from "@/i18n/utils";
+
+export async function getStaticPaths() {
+  const projects = await getCollection("projects");
+  const paths = [];
+  for (const project of projects) {
+    const slug = project.id.split("/").pop();
+    paths.push({ params: { lang: project.data.lang, slug } });
+  }
+  return paths;
+}
+
+const { lang, slug } = Astro.params;
+const t = useTranslations(lang as Lang);
+
+const projects = await getCollection(
+  "projects",
+  (p) => p.data.lang === lang && p.id.endsWith(`/${slug}`),
+);
+const project = projects[0];
+
+if (!project) {
+  return Astro.redirect(`/${lang}/projects`);
+}
+
+const title = project.data.title;
+const description = project.data.description;
+const image =
+  project.data.coverImage || project.data.ogImage || "/og-cache/fallback.jpg";
+const statusKey = `status.${project.data.status}` as const;
+
+const { Content } = await render(project);
+---
+
+<Layout title={title} description={description} ogImage={image}>
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+    <a
+      href={`/${lang}/projects`}
+      class="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors mb-8"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="rotate-180"
+        ><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg
+      >
+      <span>{t("projects.title")}</span>
+    </a>
+
+    <div
+      class="w-full aspect-video rounded-lg overflow-hidden bg-bg-secondary mb-8"
+    >
+      <img src={image} alt={title} class="w-full h-full object-cover" />
+    </div>
+
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-3">
+        <h1 class="text-3xl sm:text-4xl font-bold text-text-primary">
+          {title}
+        </h1>
+        <Badge variant="status" status={project.data.status}
+          >{t(statusKey)}</Badge
+        >
+      </div>
+      <p class="text-lg text-text-secondary">{description}</p>
+    </div>
+
+    <div class="mb-8">
+      <h2
+        class="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3"
+      >
+        {t("techStack")}
+      </h2>
+      <div class="flex flex-wrap gap-2">
+        {
+          project.data.techStack.map((tech) => (
+            <Badge variant="tech">{tech}</Badge>
+          ))
+        }
+      </div>
+    </div>
+
+    <div class="prose prose-neutral max-w-none mb-8">
+      <Content />
+    </div>
+
+    {
+      project.data.url && (
+        <Button href={project.data.url} variant="primary">
+          <span>{t("projects.visitSite")}</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M15 3h6v6" />
+            <path d="M10 14 21 3" />
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+          </svg>
+        </Button>
+      )
+    }
+  </div>
+</Layout>

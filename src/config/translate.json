@@ -1,0 +1,11 @@
+{
+  "sourceLang": "ko",
+  "targetLangs": ["en"],
+  "deepl": {
+    "sourceLang": "KO",
+    "targetLang": "EN-US"
+  },
+  "contentDir": "src/content",
+  "uiFile": "src/i18n/ui.ts",
+  "cacheFile": ".translate-cache.json"
+}

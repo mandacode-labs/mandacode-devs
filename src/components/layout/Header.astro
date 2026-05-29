@@ -1,0 +1,122 @@
+---
+import LanguageSwitcher from "../shared/LanguageSwitcher.astro";
+import { useTranslations, getRelativeLocaleUrl, type Lang } from "@/i18n/utils";
+
+interface Props {
+  currentLang: Lang;
+}
+
+const { currentLang } = Astro.props;
+const t = useTranslations(currentLang);
+
+const navItems = [
+  { key: "nav.projects" as const, href: "/projects" },
+  { key: "nav.developer" as const, href: "/developer" },
+  { key: "nav.blog" as const, href: "/blog" },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<header
+  class="sticky top-0 z-50 border-b border-border bg-white/80 backdrop-blur-md"
+>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-14">
+      <!-- Logo -->
+      <a
+        href={getRelativeLocaleUrl(currentLang, "/")}
+        class="flex items-center gap-2"
+      >
+        <img src="/mandacode.webp" alt="Mandacode" class="h-7 w-7" />
+        mandacode
+      </a>
+
+      <!-- Navigation -->
+      <nav class="hidden md:flex items-center gap-1">
+        {
+          navItems.map((item) => {
+            const href = getRelativeLocaleUrl(currentLang, item.href);
+            const isActive = currentPath.startsWith(href);
+            return (
+              <a
+                href={href}
+                class={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  isActive
+                    ? "text-accent bg-accent-subtle"
+                    : "text-text-secondary hover:text-text-primary hover:bg-bg-secondary"
+                }`}
+              >
+                {t(item.key)}
+              </a>
+            );
+          })
+        }
+      </nav>
+
+      <!-- Right side -->
+      <div class="flex items-center gap-2">
+        <slot name="actions" />
+        <LanguageSwitcher currentLang={currentLang} />
+
+        <!-- Mobile menu button -->
+        <button
+          type="button"
+          class="md:hidden p-2 text-text-secondary hover:text-text-primary"
+          aria-label="Open menu"
+          id="mobile-menu-btn"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            ><line x1="4" x2="20" y1="12" y2="12"></line><line
+              x1="4"
+              x2="20"
+              y1="6"
+              y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg
+          >
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <div id="mobile-menu" class="hidden md:hidden pb-4">
+      <nav class="flex flex-col gap-1">
+        {
+          navItems.map((item) => {
+            const href = getRelativeLocaleUrl(currentLang, item.href);
+            const isActive = currentPath.startsWith(href);
+            return (
+              <a
+                href={href}
+                class={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  isActive
+                    ? "text-accent bg-accent-subtle"
+                    : "text-text-secondary hover:text-text-primary hover:bg-bg-secondary"
+                }`}
+              >
+                {t(item.key)}
+              </a>
+            );
+          })
+        }
+      </nav>
+    </div>
+  </div>
+</header>
+
+<script>
+  const btn = document.getElementById("mobile-menu-btn");
+  const menu = document.getElementById("mobile-menu");
+
+  btn?.addEventListener("click", () => {
+    menu?.classList.toggle("hidden");
+  });
+</script>
