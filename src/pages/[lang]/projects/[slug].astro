@@ -9,8 +9,8 @@ export async function getStaticPaths() {
   const projects = await getCollection("projects");
   const paths = [];
   for (const project of projects) {
-    paths.push({ params: { lang: "ko", slug: project.id } });
-    paths.push({ params: { lang: "en", slug: project.id } });
+    const slug = project.id.split("/").pop();
+    paths.push({ params: { lang: project.data.lang, slug } });
   }
   return paths;
 }
@@ -18,15 +18,18 @@ export async function getStaticPaths() {
 const { lang, slug } = Astro.params;
 const t = useTranslations(lang as Lang);
 
-const project = await getEntry("projects", slug);
+const projects = await getCollection(
+  "projects",
+  (p) => p.data.lang === lang && p.id.endsWith(`/${slug}`),
+);
+const project = projects[0];
 
 if (!project) {
   return Astro.redirect(`/${lang}/projects`);
 }
 
-const title = lang === "ko" ? project.data.title : project.data.title_en;
-const description =
-  lang === "ko" ? project.data.description : project.data.description_en;
+const title = project.data.title;
+const description = project.data.description;
 const image =
   project.data.coverImage || project.data.ogImage || "/og-cache/fallback.jpg";
 const statusKey = `status.${project.data.status}` as const;
@@ -36,7 +39,6 @@ const { Content } = await render(project);
 
 <Layout title={title} description={description} ogImage={image}>
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-    <!-- Back link -->
     <a
       href={`/${lang}/projects`}
       class="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors mb-8"
@@ -57,25 +59,24 @@ const { Content } = await render(project);
       <span>{t("projects.title")}</span>
     </a>
 
-    <!-- Cover Image -->
     <div
-      class="max-w-2xl aspect-video rounded-xl overflow-hidden bg-bg-secondary mb-8"
+      class="w-full aspect-video rounded-lg overflow-hidden bg-bg-secondary mb-8"
     >
       <img src={image} alt={title} class="w-full h-full object-cover" />
     </div>
 
-    <!-- Header -->
-    <div class="flex items-start justify-between gap-4 mb-6">
-      <div>
-        <h1 class="text-3xl sm:text-4xl font-bold text-text-primary mb-3">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-3">
+        <h1 class="text-3xl sm:text-4xl font-bold text-text-primary">
           {title}
         </h1>
-        <p class="text-lg text-text-secondary">{description}</p>
+        <Badge variant="status" status={project.data.status}
+          >{t(statusKey)}</Badge
+        >
       </div>
-      <Badge variant="status">{t(statusKey)}</Badge>
+      <p class="text-lg text-text-secondary">{description}</p>
     </div>
 
-    <!-- Tech Stack -->
     <div class="mb-8">
       <h2
         class="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3"
@@ -91,12 +92,10 @@ const { Content } = await render(project);
       </div>
     </div>
 
-    <!-- Content -->
     <div class="prose prose-neutral max-w-none mb-8">
       <Content />
     </div>
 
-    <!-- External Link -->
     {
       project.data.url && (
         <Button href={project.data.url} variant="primary">
@@ -112,11 +111,9 @@ const { Content } = await render(project);
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <>
-              <path d="M15 3h6v6" />
-              <path d="M10 14 21 3" />
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-            </>
+            <path d="M15 3h6v6" />
+            <path d="M10 14 21 3" />
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
           </svg>
         </Button>
       )

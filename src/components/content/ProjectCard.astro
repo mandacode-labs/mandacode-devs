@@ -2,7 +2,6 @@
 import type { CollectionEntry } from "astro:content";
 import Card from "../ui/Card.astro";
 import Badge from "../ui/Badge.astro";
-import Icon from "../ui/Icon.astro";
 import { useTranslations, type Lang } from "@/i18n/utils";
 
 interface Props {
@@ -13,17 +12,15 @@ interface Props {
 const { project, lang } = Astro.props;
 const t = useTranslations(lang);
 
-const title = lang === "ko" ? project.data.title : project.data.title_en;
-const description =
-  lang === "ko" ? project.data.description : project.data.description_en;
+const title = project.data.title;
+const description = project.data.description;
 const image =
   project.data.coverImage || project.data.ogImage || "/og-cache/fallback.jpg";
 const statusKey = `status.${project.data.status}` as const;
 ---
 
-<Card href={`/${lang}/projects/${project.slug}`} class="group">
+<Card href={`/${lang}/projects/${project.id.split("/").pop()}`} class="group">
   <div class="flex flex-col sm:flex-row">
-    <!-- Thumbnail -->
     <div class="sm:w-48 md:w-56 flex-shrink-0">
       <div
         class="aspect-video sm:aspect-square overflow-hidden rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none bg-bg-secondary"
@@ -37,7 +34,6 @@ const statusKey = `status.${project.data.status}` as const;
       </div>
     </div>
 
-    <!-- Content -->
     <div class="flex-1 p-4 sm:p-5 flex flex-col">
       <div class="flex items-start justify-between gap-2 mb-2">
         <h3
@@ -45,7 +41,9 @@ const statusKey = `status.${project.data.status}` as const;
         >
           {title}
         </h3>
-        <Badge variant="status">{t(statusKey)}</Badge>
+        <Badge variant="status" status={project.data.status}
+          >{t(statusKey)}</Badge
+        >
       </div>
 
       <p class="text-sm text-text-secondary line-clamp-2 mb-3">

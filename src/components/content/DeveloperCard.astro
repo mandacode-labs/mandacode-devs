@@ -13,15 +13,14 @@ interface Props {
 const { developer, lang } = Astro.props;
 const t = useTranslations(lang);
 
-const name = lang === "ko" ? developer.data.name : developer.data.name_en;
-const role = lang === "ko" ? developer.data.role : developer.data.role_en;
-const bio = lang === "ko" ? developer.data.bio : developer.data.bio_en;
+const name = developer.data.name;
+const role = developer.data.role;
+const bio = developer.data.bio;
 const avatar = developer.data.avatar || "https://github.com/github.png";
 ---
 
-<Card href={`/${lang}/developers/${developer.slug}`} class="group">
+<Card href={`/${lang}/developer`} class="group">
   <div class="p-5 flex items-start gap-4">
-    <!-- Avatar -->
     <div class="flex-shrink-0">
       <img
         src={avatar}
@@ -31,7 +30,6 @@ const avatar = developer.data.avatar || "https://github.com/github.png";
       />
     </div>
 
-    <!-- Info -->
     <div class="flex-1 min-w-0">
       <h3
         class="text-lg font-semibold text-text-primary group-hover:text-accent transition-colors"

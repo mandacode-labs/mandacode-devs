@@ -11,7 +11,10 @@ export async function getStaticPaths() {
 const { lang } = Astro.params;
 const t = useTranslations(lang as Lang);
 
-const projects = await getCollection("projects");
+const projects = await getCollection(
+  "projects",
+  (project) => project.data.lang === lang,
+);
 projects.sort((a, b) => a.data.order - b.data.order);
 ---
 
