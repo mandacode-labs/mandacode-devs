@@ -29,7 +29,7 @@ export const onRequest = defineMiddleware((context, next) => {
   if (pathname === "/") {
     const acceptLang = context.request.headers.get("accept-language");
     const lang = parseAcceptLanguage(acceptLang);
-    return context.redirect(`/${lang}/`, 302);
+    return context.redirect(`/${lang}/`, 301);
   }
 
   return next();
