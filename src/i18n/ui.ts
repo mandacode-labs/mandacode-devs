@@ -48,9 +48,7 @@ export const ui = {
     "status.production": "Operational",
     "status.development": "In Development",
     "status.planning": "Planning",
-    "status.completed": "Completed",
-    techStack: "Tech Stack",
-    certifications: "Certifications",
+    "status.completed": "已完成",
   },
 } as const;
 

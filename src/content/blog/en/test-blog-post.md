@@ -45,12 +45,11 @@ const post: BlogPost = {
 #### quote
 
 > "An image is worth a thousand words."
->
 > - Proverb
 
 #### List
 
-**Ordered list:** \*\*See also
+**Ordered list:** **See also
 
 1. check the cover image
 2. check body image
@@ -66,12 +65,12 @@ const post: BlogPost = {
 
 ### Tables
 
-| Feature      | Status | Remarks                |
-| ------------ | ------ | ---------------------- |
-| Cover images | ✅     | Cards and detail pages |
-| OG Images    | ✅     | Social sharing         |
-| Body Images  | ✅     | Markdown Syntax        |
-| Responsive   | ✅     | Mobile/Desktop         |
+| Feature | Status | Remarks |
+| ----------- | ---- | ------------------ |
+| Cover images | ✅ | Cards and detail pages |
+| OG Images | ✅ | Social sharing |
+| Body Images | ✅ | Markdown Syntax |
+| Responsive | ✅ | Mobile/Desktop |
 
 ### Conclusion
 
@@ -79,4 +78,4 @@ This test post should help you verify that your images and markdown are renderin
 
 ---]
 
-\_This article was written for testing purposes only.
+_This article was written for testing purposes only.

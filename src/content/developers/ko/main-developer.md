@@ -1,25 +1,25 @@
 ---
 name: "이현우"
 role: "풀스택 개발자"
-bio: "Mandacode 프로젝트를 이끄는 개발자입니다. 백엔드부터 프론트엔드까지 폭넓은 경험을 가지고 있으며, 깔끔하고 효율적인 코드를 지향합니다."
-avatar: ""
+bio: "백엔드부터 프론트엔드까지 폭넓은 경험을 가지고 있으며, 깔끔하고 효율적인 코드를 지향합니다."
+avatar: "/images/developers/avatar.webp"
 github: "https://github.com/sauce-git"
 email: "sauce@mandacode.com"
 website: "https://dev.mandacode.com"
 lang: ko
 techStack:
+  - Kubernetes
   - TypeScript
-  - Node.js
-  - Astro
+  - Go
   - React
-  - Python
+  - Astro
 certifications:
-  - name: "AWS Solutions Architect Associate"
-    issuer: "Amazon Web Services"
-    date: "2024-06"
-    url: "https://www.credly.com/badges/example"
   - name: "CKA (Certified Kubernetes Administrator)"
-    issuer: "Cloud Native Computing Foundation"
+    issuer: "Linux Foundation"
+    date: "2026-03"
+    badge: "/images/certifications/cka.png"
+  - name: "정보처리기사"
+    issuer: "한국산업인력공단"
     date: "2023-11"
 ---
 

@@ -3,7 +3,7 @@ title: Mandacode Auth
 description: >-
   A unified authentication and entitlement management system that provides
   secure and consistent user authentication across platforms.
-url: "https://auth.mandacode.dev"
+url: 'https://auth.mandacode.dev'
 status: completed
 techStack:
   - TypeScript
