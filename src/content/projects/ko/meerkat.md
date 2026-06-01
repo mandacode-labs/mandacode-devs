@@ -1,14 +1,14 @@
 ---
-title: Mandacode Auth
-description: "통합 인증 및 권한 관리 시스템으로, 다양한 플랫폼에서 안전하고 일관된 사용자 인증을 제공합니다."
+title: Meerkat
+description: "AI Agent 기반 로그 분석 및 모니터링 시스템"
 url: "https://auth.mandacode.dev"
-status: completed
+status: production
 techStack:
   - TypeScript
   - Node.js
   - PostgreSQL
   - JWT
-order: 1
+order: 2
 lang: ko
 ---
 

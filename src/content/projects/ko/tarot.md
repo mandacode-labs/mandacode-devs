@@ -1,13 +1,13 @@
 ---
-title: Mandacode CLI
-description: Mandacode 프로젝트 개발을 위한 커맨드 라인 인터페이스 도구입니다.
+title: 타로카드
+description: "타로 카드 서비스"
 url: "https://cli.mandacode.dev"
-status: planning
+status: production
 techStack:
   - TypeScript
   - Node.js
   - Commander.js
-order: 4
+order: 3
 lang: ko
 ---
 

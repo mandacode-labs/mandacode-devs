@@ -1,8 +1,8 @@
 ---
-title: Mandacode UI
-description: Mandacode 디자인 시스템 기반의 재사용 가능한 UI 컴포넌트 라이브러리입니다.
+title: 한국어 자동차 번호판 검출기
+description: "한국어 자동차 번호판을 검출하는 딥러닝 모델입니다. YOLOv5를 기반으로 하며, 다양한 조명과 각도에서 높은 정확도를 자랑합니다."
 url: "https://ui.mandacode.dev"
-status: development
+status: production
 techStack:
   - TypeScript
   - React

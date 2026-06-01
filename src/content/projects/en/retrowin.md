@@ -2,6 +2,8 @@
 title: Retrowin
 description: A file management system that works with external storage.
 url: 'https://retrowin.mandacode.com'
+sourceUrl: 'https://github.com/mandacode/retrowin'
+blogUrl: '/en/blog/retrowin-architecture'
 status: production
 techStack:
   - Go
