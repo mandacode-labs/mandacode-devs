@@ -24,7 +24,7 @@ lang: ko
 #### 코드 블록
 
 ```typescript
-// TypeScript 예제
+// TypeScript example
 interface BlogPost {
   title: string;
   coverImage?: string;
