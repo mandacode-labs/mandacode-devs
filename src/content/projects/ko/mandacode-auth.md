@@ -9,7 +9,6 @@ techStack:
   - PostgreSQL
   - JWT
 order: 1
-ogImage: /og-cache/fallback.jpg
 lang: ko
 ---
 

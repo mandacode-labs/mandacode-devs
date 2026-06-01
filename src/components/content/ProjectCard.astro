@@ -14,8 +14,7 @@ const t = useTranslations(lang);
 
 const title = project.data.title;
 const description = project.data.description;
-const image =
-  project.data.coverImage || project.data.ogImage || "/og-cache/fallback.jpg";
+const coverImage = project.data.coverImage;
 const statusKey = `status.${project.data.status}` as const;
 ---
 
@@ -23,14 +22,22 @@ const statusKey = `status.${project.data.status}` as const;
   <div class="flex flex-col sm:flex-row">
     <div class="sm:w-48 md:w-56 flex-shrink-0">
       <div
-        class="aspect-video sm:aspect-square overflow-hidden rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none bg-bg-secondary"
+        class="aspect-video sm:aspect-square overflow-hidden rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none bg-bg-secondary flex items-center justify-center"
       >
-        <img
-          src={image}
-          alt={title}
-          class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          loading="lazy"
-        />
+        {
+          coverImage ? (
+            <img
+              src={coverImage}
+              alt={title}
+              class="w-full h-full! object-cover transition-transform duration-300 group-hover:scale-105"
+              loading="lazy"
+            />
+          ) : (
+            <div class="w-full h-full bg-gradient-to-br from-surface to-border flex items-center justify-center">
+              <span class="text-text-muted text-sm font-medium">{title}</span>
+            </div>
+          )
+        }
       </div>
     </div>
 

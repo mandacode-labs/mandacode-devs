@@ -9,7 +9,6 @@ techStack:
   - Tailwind CSS
   - Storybook
 order: 3
-ogImage: /og-cache/fallback.jpg
 lang: en
 ---
 
