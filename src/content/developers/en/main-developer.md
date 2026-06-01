@@ -1,9 +1,9 @@
 ---
 name: Hyunwoo Lee
-role: Full-stack developers
+role: DevOps
 bio: >-
-  Hyunwoo is a developer who understands services from the front end to the
-  infrastructure.
+  Developers who understand the service as a whole, with hands-on experience
+  from front-end to back-end to infrastructure.
 avatar: /images/developers/avatar.webp
 github: 'https://github.com/sauce-git'
 email: sauce@mandacode.com
@@ -11,8 +11,8 @@ website: 'https://dev.mandacode.com'
 lang: en
 techStack:
   - Kubernetes
-  - TypeScript
   - Go
+  - TypeScript
   - React
   - Astro
 certifications:
@@ -26,7 +26,7 @@ certifications:
     badge: /images/certifications/q-net.png
 education:
   - period: 2015.03 - 2018.01
-    institution: Guri High School
+    institution: Guriga High School
     department: ''
     status: Graduation
   - period: 2018.03 - 2025.08
@@ -35,21 +35,29 @@ education:
     status: Graduation
 ---
 
-## Developers who understand and develop across services
+### Introduce yourself
 
 <br>
-I'm a development nerd. Starting in middle school, when I made mods for my favorite games to play with my friends, I've found fulfillment in creating and sharing services.
 
-As I built more and more things, I naturally needed a variety of skills. Hands-on experience with the backend for functionality, the UI for the user, and the infrastructure to run the service gave me an understanding of the overall flow of a service.
+hello. I'm Hyunwoo, a developer who understands services from front-end to infrastructure with hands-on experience.
 
-In particular, we used cloud platforms like AWS for development convenience and service operation, and to reduce costs, we moved to on-premises servers and operated them using Talos, Proxmox, Terraform, etc.
+I grew up making mods for my favorite games and sharing them with my friends, and when I wanted to make something, I found a way to make it happen.
 
-During this process, I became interested in Kubernetes cluster management and worked on various tasks such as automating backups, operating GitOps, enhancing security using TLS, operating a secret management system, and connecting authentication between AWS and on-premises, and was able to expand my knowledge by obtaining the CKA certification.
+<br>
 
-In service development, I also have experience in automating code management and deployment by configuring CI/CD pipelines, and in maximizing operational convenience by developing an AI-based automatic log monitoring and analysis system.
+From building log analytics systems, file management services, AI-powered services, and more,
+and running them on-premises and in the cloud, my hands-on experience has helped me grow into a developer who understands services from the front end, back end, and infrastructure.
 
-My experience in creating and operating multiple services from scratch has also been utilized in team projects. In a project like BreadPare, I was in charge of the frontend, but I was able to find rendering performance issues and security issues in the backend API calls and suggest improvements to my colleagues to make the service better.
+In particular, I am interested in running Kubernetes clusters, automating cluster configuration using terraform and configuring on-premises servers,
+Github Action Runner Controller to reduce costs,
+I was able to expand my knowledge by acquiring CKA certification.
 
-In Alibaba's OpenSandbox open source project, I found security issues with the existing configuration file-based method in real-world deployments such as Kubernetes, and changed to an environment variable-based method to improve operability and security.
+In service development, he has experience in organizing CI/CD pipelines to automate code management and deployment,
+I also developed an AI-based automatic log monitoring and analysis system to maximize operational convenience.
 
-These experiences have helped me develop with a holistic understanding of services, and seeing outside of my assigned role has given me a broader perspective, which is a strength of mine.
+In Alibaba's OpenSandbox open source project, he discovered security issues with traditional configuration file-based methods in real-world deployments such as Kubernetes,
+and changed to an environment variable-based approach to improve operability and security.
+
+<br>
+
+These experiences have helped me to develop with a holistic understanding of services and have helped me to grow as a developer with a holistic understanding of services.
