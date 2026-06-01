@@ -7,6 +7,20 @@ github: "https://github.com/sauce-git"
 email: "sauce@mandacode.com"
 website: "https://dev.mandacode.com"
 lang: ko
+techStack:
+  - TypeScript
+  - Node.js
+  - Astro
+  - React
+  - Python
+certifications:
+  - name: "AWS Solutions Architect Associate"
+    issuer: "Amazon Web Services"
+    date: "2024-06"
+    url: "https://www.credly.com/badges/example"
+  - name: "CKA (Certified Kubernetes Administrator)"
+    issuer: "Cloud Native Computing Foundation"
+    date: "2023-11"
 ---
 
 Kim Dev는 5년차 풀스택 개발자로, 다양한 스타트업과 오픈소스 프로젝트에 참여해왔습니다. TypeScript와 Node.js를 주력으로 사용하며, 최근에는 Astro와 React를 활용한 웹 개발에 집중하고 있습니다.

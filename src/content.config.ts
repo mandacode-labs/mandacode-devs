@@ -28,6 +28,18 @@ const developers = defineCollection({
     email: z.email().optional(),
     website: z.url().optional(),
     lang: z.string(),
+    techStack: z.array(z.string()).optional(),
+    certifications: z
+      .array(
+        z.object({
+          name: z.string(),
+          issuer: z.string(),
+          date: z.string(),
+          url: z.url().optional(),
+          badge: z.string().optional(),
+        }),
+      )
+      .optional(),
   }),
 });
 

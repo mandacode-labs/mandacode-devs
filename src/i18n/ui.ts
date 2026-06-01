@@ -22,6 +22,7 @@ export const ui = {
     "status.planning": "기획중",
     "status.completed": "완료됨",
     techStack: "기술 스택",
+    certifications: "자격증",
     notFound: "페이지를 찾을 수 없습니다",
     goHome: "홈으로 돌아가기",
     viewDetail: "자세히 보기",
@@ -47,7 +48,9 @@ export const ui = {
     "status.production": "Operational",
     "status.development": "In Development",
     "status.planning": "Planning",
-    "status.completed": "已完成",
+    "status.completed": "Completed",
+    techStack: "Tech Stack",
+    certifications: "Certifications",
   },
 } as const;
 
