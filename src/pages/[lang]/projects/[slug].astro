@@ -76,24 +76,20 @@ const { Content } = await render(project);
       }
     </div>
 
-    <div class="mb-6">
+    <header class="mb-6">
       <div class="flex items-center gap-3 mb-3">
-        <h1 class="text-3xl sm:text-4xl font-bold text-text-primary">
-          {title}
-        </h1>
+        <h2>{title}</h2>
         <Badge variant="status" status={project.data.status}
           >{t(statusKey)}</Badge
         >
       </div>
       <p class="text-lg text-text-secondary">{description}</p>
-    </div>
+    </header>
 
-    <div class="mb-8">
-      <h2
-        class="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3"
-      >
+    <section class="mb-8">
+      <h6 class="text-text-muted uppercase tracking-wider mb-3">
         {t("techStack")}
-      </h2>
+      </h6>
       <div class="flex flex-wrap gap-2">
         {
           project.data.techStack.map((tech) => (
@@ -101,7 +97,7 @@ const { Content } = await render(project);
           ))
         }
       </div>
-    </div>
+    </section>
 
     <div class="prose prose-neutral max-w-none mb-8">
       <Content />

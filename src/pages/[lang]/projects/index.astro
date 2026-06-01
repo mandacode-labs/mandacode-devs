@@ -19,20 +19,20 @@ projects.sort((a, b) => a.data.order - b.data.order);
 ---
 
 <Layout title={t("projects.title")} description={t("projects.subtitle")}>
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-    <div class="mb-10">
-      <h1 class="text-3xl sm:text-4xl font-bold text-text-primary mb-3">
-        {t("projects.title")}
-      </h1>
+  <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+    <header class="mb-10">
+      <h2 class="mb-3">{t("projects.title")}</h2>
       <p class="text-lg text-text-secondary">{t("projects.subtitle")}</p>
-    </div>
+    </header>
 
-    <div class="flex flex-col gap-6">
+    <ul class="flex flex-col gap-6">
       {
         projects.map((project) => (
-          <ProjectCard project={project} lang={lang as Lang} />
+          <li>
+            <ProjectCard project={project} lang={lang as Lang} />
+          </li>
         ))
       }
-    </div>
-  </div>
+    </ul>
+  </section>
 </Layout>

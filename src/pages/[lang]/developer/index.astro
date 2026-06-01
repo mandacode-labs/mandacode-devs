@@ -31,7 +31,7 @@ const { Content } = await render(developer);
 
 <Layout title={name} description={bio}>
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-    <div class="flex flex-row items-start gap-4 sm:gap-6 mb-6">
+    <header class="flex flex-row items-start gap-4 sm:gap-6 mb-6">
       <div class="flex-shrink-0">
         <img
           src={avatar}
@@ -41,9 +41,9 @@ const { Content } = await render(developer);
       </div>
 
       <div class="flex flex-col items-start gap-2 sm:gap-4">
-        <h1 class="text-2xl sm:text-4xl font-bold text-text-primary">
+        <h2 class="text-2xl sm:text-4xl">
           {name}
-        </h1>
+        </h2>
         <div class="flex flex-col items-start gap-2 ml-1">
           <p class="text-base sm:text-lg text-accent font-medium">
             {role}
@@ -51,7 +51,7 @@ const { Content } = await render(developer);
           <p class="text-sm sm:text-base text-text-secondary">{bio}</p>
         </div>
       </div>
-    </div>
+    </header>
 
     <div class="flex items-center gap-3 mb-10">
       {
@@ -81,31 +81,31 @@ const { Content } = await render(developer);
 
     {
       developer.data.techStack && developer.data.techStack.length > 0 && (
-        <div class="mb-10">
-          <h2 class="text-xl font-semibold text-text-primary mb-4">
+        <section class="mb-10">
+          <h3 class="mb-4">
             {t("techStack")}
-          </h2>
-          <div class="flex flex-wrap gap-2">
+          </h3>
+          <ul class="flex flex-wrap gap-2">
             {developer.data.techStack.map((tech) => (
-              <span class="px-3 py-1.5 bg-surface border border-border rounded-lg text-sm text-text-secondary">
+              <li class="px-3 py-1.5 bg-surface border border-border rounded-lg text-sm text-text-secondary">
                 {tech}
-              </span>
+              </li>
             ))}
-          </div>
-        </div>
+          </ul>
+        </section>
       )
     }
 
     {
       developer.data.certifications &&
         developer.data.certifications.length > 0 && (
-          <div class="mb-10">
-            <h2 class="text-xl font-semibold text-text-primary mb-4">
+          <section class="mb-10">
+            <h3 class="mb-4">
               {t("certifications")}
-            </h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            </h3>
+            <ul class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {developer.data.certifications.map((cert) => (
-                <div class="flex items-start gap-4 p-4 bg-surface border border-border rounded-xl">
+                <li class="flex items-start gap-4 p-4 bg-surface border border-border rounded-xl">
                   {cert.badge && (
                     <img
                       src={cert.badge}
@@ -115,7 +115,7 @@ const { Content } = await render(developer);
                     />
                   )}
                   <div class="flex-1 min-w-0">
-                    <h3 class="font-medium text-text-primary text-sm mb-1">
+                    <h6 class="mb-1">
                       {cert.url ? (
                         <a
                           href={cert.url}
@@ -128,31 +128,31 @@ const { Content } = await render(developer);
                       ) : (
                         cert.name
                       )}
-                    </h3>
+                    </h6>
                     <p class="text-xs text-text-muted mb-1">{cert.issuer}</p>
                     <p class="text-xs text-text-secondary">{cert.date}</p>
                   </div>
-                </div>
+                </li>
               ))}
-            </div>
-          </div>
+            </ul>
+          </section>
         )
     }
 
     {
       developer.data.education && developer.data.education.length > 0 && (
-        <div class="mb-10">
-          <h2 class="text-xl font-semibold text-text-primary mb-4">
+        <section class="mb-10">
+          <h3 class="mb-4">
             {t("education")}
-          </h2>
-          <div class="space-y-4">
+          </h3>
+          <ul class="space-y-4">
             {developer.data.education.map((edu) => (
-              <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-4 bg-surface border border-border rounded-xl">
+              <li class="flex flex-col sm:flex-row sm:items-center gap-2 p-4 bg-surface border border-border rounded-xl">
                 <div class="flex-1">
                   <div class="flex items-center gap-2 mb-1">
-                    <h3 class="font-medium text-text-primary">
+                    <h5>
                       {edu.institution}
-                    </h3>
+                    </h5>
                     <span class="px-2 py-0.5 text-xs bg-accent/10 text-accent rounded-full">
                       {edu.status}
                     </span>
@@ -162,10 +162,10 @@ const { Content } = await render(developer);
                 <p class="text-sm text-text-muted whitespace-nowrap">
                   {edu.period}
                 </p>
-              </div>
+              </li>
             ))}
-          </div>
-        </div>
+          </ul>
+        </section>
       )
     }
 
