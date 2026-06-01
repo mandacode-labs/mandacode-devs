@@ -16,19 +16,19 @@ techStack:
   - React
   - Astro
 certifications:
-  - name: CKA (Certified Kubernetes Administrator)
+  - name: Certified Kubernetes Administrator (CKA)
     issuer: Linux Foundation
     date: 2026-03
     badge: /images/certifications/cka.png
-  - name: 정보처리기사
-    issuer: 한국산업인력공단
+  - name: Information Processor
+    issuer: Korea Industrial Workforce Agency
     date: 2023-11
     badge: /images/certifications/q-net.png
 education:
   - period: 2018.03 - 2025.08
-    institution: 강원대학교
-    department: 컴퓨터공학과
-    status: 졸업
+    institution: Kangwon National University
+    department: Computer Science
+    status: Graduation
 ---
 
 ## Developers who understand and develop across services
@@ -43,8 +43,8 @@ During this process, I became interested in Kubernetes cluster management and wo
 
 In service development, I also have experience in automating code management and deployment by configuring CI/CD pipelines, and in maximizing operational convenience by developing an AI-based automatic log monitoring and analysis system.
 
-My experience in creating and operating multiple services from scratch has also been utilized in team projects. In a project like BreadPare, I was in charge of the frontend, but I was able to find rendering performance issues and security issues in the backend API calls and suggest improvements to my colleagues to make the service better.
+My experience in creating and operating multiple services from scratch has also been useful in team projects. In a project like BreadPare, I was in charge of the front-end, but I was able to find rendering performance issues and security issues in the way the back-end API calls were made, and suggest improvements to my colleagues to make the service better.
 
 In Alibaba's OpenSandbox open source project, I found security issues with the existing configuration file-based method in real-world deployments such as Kubernetes, and changed to an environment variable-based method to improve operability and security.
 
-These experiences have helped me develop with a holistic understanding of services, and seeing outside of my assigned role has given me a broader perspective, which is a strength of mine.
+These experiences have helped me develop with a holistic understanding of services, and seeing outside of my assigned role has given me a broader perspective. Having a broad view and working towards a goal is my strength.

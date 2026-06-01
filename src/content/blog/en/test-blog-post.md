@@ -24,7 +24,7 @@ Below is an image inserted into the body:
 
 ![body test image](/images/blog/test-body-image.webp)
 
-### Various markdown elements
+### Various Markdown Elements
 
 #### code block
 
@@ -68,7 +68,7 @@ const post: BlogPost = {
 | Feature | Status | Remarks |
 | ----------- | ---- | ------------------ |
 | Cover images | ✅ | Cards and detail pages |
-| OG Images | ✅ | Social sharing |
+| OG images | ✅ | Social sharing |
 | Body Images | ✅ | Markdown Syntax |
 | Responsive | ✅ | Mobile/Desktop |
 
