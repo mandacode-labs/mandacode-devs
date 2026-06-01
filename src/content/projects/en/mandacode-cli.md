@@ -8,7 +8,6 @@ techStack:
   - Node.js
   - Commander.js
 order: 4
-ogImage: /og-cache/fallback.jpg
 lang: en
 ---
 

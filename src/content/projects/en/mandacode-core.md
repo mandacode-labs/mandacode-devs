@@ -10,7 +10,6 @@ techStack:
   - Rollup
   - Vitest
 order: 2
-ogImage: /og-cache/fallback.jpg
 lang: en
 ---
 

@@ -30,14 +30,13 @@ if (!project) {
 
 const title = project.data.title;
 const description = project.data.description;
-const image =
-  project.data.coverImage || project.data.ogImage || "/og-cache/fallback.jpg";
+const coverImage = project.data.coverImage;
 const statusKey = `status.${project.data.status}` as const;
 
 const { Content } = await render(project);
 ---
 
-<Layout title={title} description={description} ogImage={image}>
+<Layout title={title} description={description} ogImage={coverImage}>
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
     <a
       href={`/${lang}/projects`}
@@ -62,7 +61,13 @@ const { Content } = await render(project);
     <div
       class="w-full aspect-video rounded-lg overflow-hidden bg-bg-secondary mb-8"
     >
-      <img src={image} alt={title} class="w-full h-full object-cover" />
+      {coverImage ? (
+        <img src={coverImage} alt={title} class="w-full h-full object-cover" />
+      ) : (
+        <div class="w-full h-full bg-gradient-to-br from-surface to-border flex items-center justify-center">
+          <span class="text-text-muted text-xl font-medium">{title}</span>
+        </div>
+      )}
     </div>
 
     <div class="mb-6">

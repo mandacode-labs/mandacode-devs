@@ -6,7 +6,6 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "prebuild": "node scripts/fetch-og-images.mjs",
     "translate:ui": "node scripts/translate-ui.mjs",
     "translate:content": "node scripts/translate-content.mjs",
     "translate": "npm run translate:ui && npm run translate:content",
