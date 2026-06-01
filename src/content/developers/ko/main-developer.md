@@ -1,7 +1,7 @@
 ---
 name: "이현우"
 role: "풀스택 개발자"
-bio: "프론트엔드부터 인프라까지 직접 경험하며 서비스 전반을 이해하는 개발자입니다."
+bio: "프론트엔드부터 인프라까지 직접 경험하며 서비스 전반을 이해하는 개발자 이현우입니다."
 avatar: "/images/developers/avatar.webp"
 github: "https://github.com/sauce-git"
 email: "sauce@mandacode.com"
@@ -22,10 +22,15 @@ certifications:
     issuer: "한국산업인력공단"
     date: "2023-11"
     badge: "/images/certifications/q-net.png"
+education:
+  - period: "2019.03 - 2023.02"
+    institution: "한국대학교"
+    department: "컴퓨터공학과"
+    status: "졸업"
 ---
 
 ## 서비스 전반을 이해하며 개발하는 개발자
-
+<br>
 저는 개발 덕후입니다. 중학생 때부터 좋아하는 게임의 모드를 만들어 친구들과 즐긴 것을 시작으로, 여러 서비스를 만들고 공유하며 성취감을 느꼈습니다.
 
 이것저것 만들다 보니 자연스럽게 다양한 기술이 필요해졌습니다. 기능을 위한 백엔드, 사용자에게 보여줄 UI, 서비스를 운영할 인프라까지 직접 경험하면서 서비스 전반의 흐름을 이해하게 됐습니다.

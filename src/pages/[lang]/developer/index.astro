@@ -177,6 +177,32 @@ const { Content } = await render(developer);
       )
     }
 
+    {
+      developer.data.education && developer.data.education.length > 0 && (
+        <div class="mb-10">
+          <h2 class="text-xl font-semibold text-text-primary mb-4">
+            {t("education")}
+          </h2>
+          <div class="space-y-4">
+            {developer.data.education.map((edu) => (
+              <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-4 bg-surface border border-border rounded-xl">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-1">
+                    <h3 class="font-medium text-text-primary">{edu.institution}</h3>
+                    <span class="px-2 py-0.5 text-xs bg-accent/10 text-accent rounded-full">
+                      {edu.status}
+                    </span>
+                  </div>
+                  <p class="text-sm text-text-secondary">{edu.department}</p>
+                </div>
+                <p class="text-sm text-text-muted whitespace-nowrap">{edu.period}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
     <div class="prose prose-neutral max-w-none">
       <Content />
     </div>

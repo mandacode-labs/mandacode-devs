@@ -23,6 +23,7 @@ export const ui = {
     "status.completed": "완료됨",
     techStack: "기술 스택",
     certifications: "자격증",
+    education: "학력",
     notFound: "페이지를 찾을 수 없습니다",
     goHome: "홈으로 돌아가기",
     viewDetail: "자세히 보기",

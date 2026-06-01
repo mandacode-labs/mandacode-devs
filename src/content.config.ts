@@ -10,7 +10,7 @@ const projects = defineCollection({
     url: z.url(),
     ogImage: z.string().optional(),
     coverImage: z.string().optional(),
-    status: z.enum(["production", "development", "planning", "completed"]),
+    status: z.string(),
     techStack: z.array(z.string()),
     order: z.number(),
     lang: z.string(),
@@ -37,6 +37,16 @@ const developers = defineCollection({
           date: z.string(),
           url: z.url().optional(),
           badge: z.string().optional(),
+        }),
+      )
+      .optional(),
+    education: z
+      .array(
+        z.object({
+          period: z.string(),
+          institution: z.string(),
+          department: z.string(),
+          status: z.string(),
         }),
       )
       .optional(),
