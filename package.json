@@ -8,6 +8,7 @@
   "scripts": {
     "translate:ui": "node scripts/translate-ui.mjs",
     "translate:content": "node scripts/translate-content.mjs",
+    "content:sync": "node scripts/sync-content.mjs",
     "translate": "npm run translate:ui && npm run translate:content",
     "build": "astro build",
     "dev": "astro dev",
