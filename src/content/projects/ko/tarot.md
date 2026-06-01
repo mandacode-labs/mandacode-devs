@@ -1,14 +1,16 @@
 ---
 title: 타로카드
 description: "타로 카드 서비스"
-url: "https://cli.mandacode.dev"
+url: "https://tarot.mandacode.com"
 status: production
 techStack:
   - TypeScript
-  - Node.js
-  - Commander.js
+  - NestJS
+  - React
+  - Next.js
+  - OpenAI API
 order: 3
 lang: ko
 ---
 
-Mandacode CLI는 프로젝트 스캐폴드 생성, 배포 자동화, 개발 서버 관리 등의 기능을 제공하는 CLI 도구입니다.
+타로카드는 OpenAI API를 활용하여 타로 카드 리딩을 제공하는 서비스입니다. 사용자가 카드를 선택하면, AI가 해당 카드의 의미와 조합에 따른 해석을 제공합니다. React와 Next.js로 프론트엔드를 개발하였으며, NestJS로 백엔드를 구현하여 안정적인 서비스 제공이 가능합니다.

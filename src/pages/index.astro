@@ -1,4 +1,80 @@
 ---
-// Root path is handled by src/middleware.ts
-// which detects language from Accept-Language header
+import Layout from "@/components/layouts/Layout.astro";
+import NavigationCard from "@/components/content/NavigationCard.astro";
+import { useTranslations } from "@/i18n/utils";
+
+const t = useTranslations("ko");
+
+const cards = [
+  {
+    title: t("projects.title"),
+    description: t("projects.subtitle"),
+    href: `/ko/projects`,
+    icon: "folder",
+  },
+  {
+    title: t("developer.title"),
+    description: t("developer.subtitle"),
+    href: `/ko/developer`,
+    icon: "user",
+  },
+  {
+    title: t("blog.title"),
+    description: t("blog.subtitle"),
+    href: `/ko/blog`,
+    icon: "bookOpen",
+  },
+];
 ---
+
+<Layout>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+    <!-- Hero -->
+    <div class="text-center mb-16">
+      <div class="flex justify-center mb-6">
+        <img
+          src="/mandacode.webp"
+          alt="Mandacode"
+          width="200"
+          height="auto"
+          class="opacity-90"
+        />
+      </div>
+
+      <h1 class="text-3xl sm:text-4xl font-bold text-text-primary mb-4">
+        {t("hero.title")}
+      </h1>
+
+      <p class="text-lg text-text-secondary max-w-xl mx-auto">
+        {t("hero.subtitle")}
+      </p>
+    </div>
+
+    <!-- Navigation Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {
+        cards.map((card) => (
+          <NavigationCard
+            title={card.title}
+            description={card.description}
+            href={card.href}
+            icon={card.icon}
+            linkText={t("viewDetail")}
+          />
+        ))
+      }
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Detect browser language and redirect English users to /en/
+  (function() {
+    const userLang = navigator.language || navigator.languages?.[0] || 'ko';
+    const primaryLang = userLang.split('-')[0].toLowerCase();
+    
+    if (primaryLang === 'en') {
+      window.location.replace('/en/');
+    }
+  })();
+</script>
