@@ -33,7 +33,7 @@ education:
 
 ## Developers who understand and develop across services
 <br>
-I'm a development geek. Starting in middle school, when I made mods for my favorite games to play with my friends, I've found a sense of accomplishment in creating and sharing services.
+I'm a development geek. Starting in middle school, when I made mods for my favorite games to play with my friends, I've found fulfillment in creating and sharing services.
 
 As I built more and more, I naturally needed a variety of skills. Hands-on experience with the backend for functionality, the UI for the user, and the infrastructure to run the service gave me an understanding of the overall flow of a service.
 

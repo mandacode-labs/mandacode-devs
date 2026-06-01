@@ -10,7 +10,7 @@ const projects = defineCollection({
     url: z.url(),
     ogImage: z.string().optional(),
     coverImage: z.string().optional(),
-    status: z.string(),
+    status: z.enum(["production", "development", "planning", "completed"]),
     techStack: z.array(z.string()),
     order: z.number(),
     lang: z.string(),
