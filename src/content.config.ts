@@ -7,7 +7,9 @@ const projects = defineCollection({
   schema: z.object({
     title: z.string(),
     description: z.string(),
-    url: z.url(),
+    url: z.url().optional(),
+    sourceUrl: z.url().optional(),
+    blogUrl: z.url().optional(),
     coverImage: z.string().optional(),
     status: z.enum(["production", "development", "planning", "completed"]),
     techStack: z.array(z.string()),

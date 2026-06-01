@@ -1,7 +1,8 @@
 ---
 title: Retrowin
-description: 외부 스토리지 연동 파일 관리 시스템입니다.
+description: "외부 스토리지 연동 파일 관리 및 저장 서비스"
 url: "https://retrowin.mandacode.com"
+sourceUrl: "https://github.com/mandacode-labs/retrowin-go"
 status: production
 techStack:
   - Go
@@ -11,7 +12,7 @@ techStack:
   - Next.js
   - Keycloak
   - PostgreSQL
-order: 3
+order: 1
 lang: ko
 coverImage: "/images/projects/retrowin/cover.png"
 ---

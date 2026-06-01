@@ -1,13 +1,13 @@
 ---
-title: Mandacode CLI
-description: A command-line interface tool for developing Mandacode projects.
+title: Tarot cards
+description: Tarot Card Services
 url: 'https://cli.mandacode.dev'
-status: planning
+status: production
 techStack:
   - TypeScript
   - Node.js
   - Commander.js
-order: 4
+order: 3
 lang: en
 ---
 
