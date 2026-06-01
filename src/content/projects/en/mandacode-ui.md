@@ -1,7 +1,7 @@
 ---
 title: Mandacode UI
 description: A library of reusable UI components based on the Mandacode design system.
-url: "https://ui.mandacode.dev"
+url: 'https://ui.mandacode.dev'
 status: development
 techStack:
   - TypeScript
