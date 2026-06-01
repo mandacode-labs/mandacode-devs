@@ -69,18 +69,42 @@ async function translateText(text, targetLang) {
   }
 }
 
-async function translateFrontmatter(data, fields, targetLang) {
+async function translateFrontmatter(data, fields, nestedFields, targetLang) {
   const translated = { ...data };
+
+  // Translate top-level fields
   for (const field of fields) {
     if (data[field] && typeof data[field] === "string") {
       translated[field] = await translateText(data[field], targetLang);
     }
   }
+
+  // Translate nested fields (arrays of objects)
+  for (const [nestedKey, nestedFieldList] of Object.entries(nestedFields || {})) {
+    if (!Array.isArray(data[nestedKey])) continue;
+
+    translated[nestedKey] = await Promise.all(
+      data[nestedKey].map(async (item) => {
+        const translatedItem = { ...item };
+        for (const field of nestedFieldList) {
+          if (item[field] && typeof item[field] === "string") {
+            translatedItem[field] = await translateText(item[field], targetLang);
+          }
+        }
+        return translatedItem;
+      })
+    );
+  }
+
   return translated;
 }
 
 function getTranslatableFields(collection) {
-  return config.collections[collection]?.fields || [];
+  const collectionConfig = config.collections[collection] || {};
+  return {
+    fields: collectionConfig.fields || [],
+    nestedFields: collectionConfig.nestedFields || {},
+  };
 }
 
 async function translateFile(filePath, targetLang, cache) {
@@ -105,11 +129,12 @@ async function translateFile(filePath, targetLang, cache) {
   }
 
   const collection = path.basename(path.dirname(path.dirname(filePath)));
-  const fields = getTranslatableFields(collection);
+  const { fields, nestedFields } = getTranslatableFields(collection);
 
   const translatedData = await translateFrontmatter(
     parsed.data,
     fields,
+    nestedFields,
     targetLang,
   );
   translatedData.lang = targetLang;

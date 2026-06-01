@@ -15,7 +15,11 @@
       "fields": ["title", "description"]
     },
     "developers": {
-      "fields": ["name", "role", "bio"]
+      "fields": ["name", "role", "bio"],
+      "nestedFields": {
+        "certifications": ["name", "issuer"],
+        "education": ["institution", "department", "status"]
+      }
     }
   }
 }
