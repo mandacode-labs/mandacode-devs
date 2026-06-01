@@ -1,6 +1,6 @@
 /**
- * OG 이미지 캐싱 스크립트
- * 빌드 전에 실행되어 프로젝트 URL의 Open Graph 이미지를 가져옵니다.
+ * OG Image Caching Script
+ * Fetches Open Graph images from project URLs before build.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -34,7 +34,7 @@ async function fetchOgImage(url) {
       return ogImageMatch[1];
     }
 
-    // property/content 순서가 반대인 경우도 확인
+    // Also check reversed property/content order
     const ogImageMatch2 = html.match(
       /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["'][^>]*>/i,
     );
@@ -79,13 +79,13 @@ async function main() {
     const parsed = matter(content);
     const slug = file.replace(".md", "");
 
-    // 사용자 지정 커버 이미지가 있으면 스킵
+    // Skip if custom cover image exists
     if (parsed.data.coverImage) {
       console.log(`  ✓ ${slug}: Using custom cover image`);
       continue;
     }
 
-    // 이미 ogImage가 유효한 경로를 가리키면 스킵
+    // Skip if ogImage already points to a valid path
     if (
       parsed.data.ogImage &&
       parsed.data.ogImage !== FALLBACK_IMAGE &&
@@ -113,7 +113,7 @@ async function main() {
       console.log(`  ⚠ ${slug}: No OG image found, using fallback`);
     }
 
-    // 파일 저장
+    // Save file
     const newContent = matter.stringify(parsed.content, parsed.data);
     fs.writeFileSync(filePath, newContent);
   }

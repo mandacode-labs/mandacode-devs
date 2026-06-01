@@ -1,5 +1,5 @@
 /**
- * Fallback 이미지 생성 스크립트
+ * Fallback Image Generation Script
  */
 import fs from "node:fs";
 import path from "node:path";

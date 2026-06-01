@@ -29,7 +29,7 @@ Below is an image inserted into the body:
 #### code block
 
 ```typescript
-// TypeScript 예제
+// TypeScript example
 interface BlogPost {
   title: string;
   coverImage?: string;
