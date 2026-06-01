@@ -118,6 +118,96 @@ const { Content } = await render(developer);
       </div>
     </div>
 
+    {
+      developer.data.techStack && developer.data.techStack.length > 0 && (
+        <div class="mb-10">
+          <h2 class="text-xl font-semibold text-text-primary mb-4">
+            {t("techStack")}
+          </h2>
+          <div class="flex flex-wrap gap-2">
+            {developer.data.techStack.map((tech) => (
+              <span class="px-3 py-1.5 bg-surface border border-border rounded-lg text-sm text-text-secondary">
+                {tech}
+              </span>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    {
+      developer.data.certifications &&
+        developer.data.certifications.length > 0 && (
+          <div class="mb-10">
+            <h2 class="text-xl font-semibold text-text-primary mb-4">
+              {t("certifications")}
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {developer.data.certifications.map((cert) => (
+                <div class="flex items-start gap-4 p-4 bg-surface border border-border rounded-xl">
+                  {cert.badge && (
+                    <img
+                      src={cert.badge}
+                      alt={cert.name}
+                      class="w-16 h-16 object-contain flex-shrink-0"
+                      loading="lazy"
+                    />
+                  )}
+                  <div class="flex-1 min-w-0">
+                    <h3 class="font-medium text-text-primary text-sm mb-1">
+                      {cert.url ? (
+                        <a
+                          href={cert.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="hover:text-accent transition-colors"
+                        >
+                          {cert.name}
+                        </a>
+                      ) : (
+                        cert.name
+                      )}
+                    </h3>
+                    <p class="text-xs text-text-muted mb-1">{cert.issuer}</p>
+                    <p class="text-xs text-text-secondary">{cert.date}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+    }
+
+    {
+      developer.data.education && developer.data.education.length > 0 && (
+        <div class="mb-10">
+          <h2 class="text-xl font-semibold text-text-primary mb-4">
+            {t("education")}
+          </h2>
+          <div class="space-y-4">
+            {developer.data.education.map((edu) => (
+              <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-4 bg-surface border border-border rounded-xl">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-1">
+                    <h3 class="font-medium text-text-primary">
+                      {edu.institution}
+                    </h3>
+                    <span class="px-2 py-0.5 text-xs bg-accent/10 text-accent rounded-full">
+                      {edu.status}
+                    </span>
+                  </div>
+                  <p class="text-sm text-text-secondary">{edu.department}</p>
+                </div>
+                <p class="text-sm text-text-muted whitespace-nowrap">
+                  {edu.period}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
     <div class="prose prose-neutral max-w-none">
       <Content />
     </div>

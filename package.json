@@ -7,7 +7,9 @@
   },
   "scripts": {
     "prebuild": "node scripts/fetch-og-images.mjs",
-    "translate": "node scripts/translate.mjs",
+    "translate:ui": "node scripts/translate-ui.mjs",
+    "translate:content": "node scripts/translate-content.mjs",
+    "translate": "npm run translate:ui && npm run translate:content",
     "build": "astro build",
     "dev": "astro dev",
     "preview": "astro preview",
