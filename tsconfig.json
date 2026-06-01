@@ -4,6 +4,7 @@
   "exclude": ["dist"],
   "compilerOptions": {
     "verbatimModuleSyntax": true,
+    "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]

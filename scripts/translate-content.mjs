@@ -4,7 +4,7 @@ import crypto from "node:crypto";
 import matter from "gray-matter";
 import * as deepl from "deepl-node";
 
-const CONFIG_PATH = "src/config/translate.json";
+const CONFIG_PATH = "src/config/translate-content.json";
 const config = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf-8"));
 
 const DEEPL_API_KEY = process.env.DEEPL_API_KEY;
@@ -58,7 +58,7 @@ async function translateText(text, targetLang) {
     const result = await translator.translateText(
       cleanText,
       config.deepl.sourceLang,
-      targetLang === "en" ? "en-US" : targetLang,
+      targetLang === "en" ? "EN-US" : targetLang,
     );
 
     const translated = Array.isArray(result) ? result[0].text : result.text;
@@ -80,12 +80,7 @@ async function translateFrontmatter(data, fields, targetLang) {
 }
 
 function getTranslatableFields(collection) {
-  const fields = {
-    blog: ["title", "description"],
-    projects: ["title", "description"],
-    developers: ["name", "role", "bio"],
-  };
-  return fields[collection] || [];
+  return config.collections[collection]?.fields || [];
 }
 
 async function translateFile(filePath, targetLang, cache) {
@@ -148,7 +143,7 @@ async function translateFile(filePath, targetLang, cache) {
 }
 
 async function translateContent() {
-  console.log("🌐 Starting content translation...\n");
+  console.log("Starting content translation...\n");
 
   const cache = loadCache();
   const contentDir = path.resolve(config.contentDir);
@@ -186,75 +181,7 @@ async function translateContent() {
   console.log("\n✅ Content translation complete!");
 }
 
-async function translateUI() {
-  console.log("\n🌐 Translating UI text...\n");
-
-  const uiContent = fs.readFileSync(config.uiFile, "utf-8");
-
-  const koMatch = uiContent.match(/ko:\s*\{([\s\S]*?)\n  \},/);
-  if (!koMatch) {
-    console.warn("Could not find Korean UI strings");
-    return;
-  }
-
-  const koBlock = koMatch[1];
-  const lines = koBlock
-    .split("\n")
-    .filter((l) => l.includes('"') && l.includes(":"));
-
-  const koStrings = {};
-  for (const line of lines) {
-    const match = line.match(/"([^"]+)":\s*"([^"]+)"/);
-    if (match) {
-      const [, key, value] = match;
-      koStrings[key] = value;
-    }
-  }
-
-  const targetStrings = {};
-  for (const [key, value] of Object.entries(koStrings)) {
-    if (value.match(/[가-힣]/)) {
-      targetStrings[key] = await translateText(value, "en");
-    } else {
-      targetStrings[key] = value;
-    }
-  }
-
-  let newUI = uiContent;
-  for (const targetLang of config.targetLangs) {
-    const langBlock = Object.entries(targetStrings)
-      .map(([key, value]) => `    "${key}": "${value}",`)
-      .join("\n");
-
-    const existingLang = new RegExp(
-      `\\n  ${targetLang}:\\s*\\{[\\s\\S]*?\\n  \\},`,
-    );
-    if (existingLang.test(newUI)) {
-      newUI = newUI.replace(
-        existingLang,
-        `\n  ${targetLang}: {\n${langBlock}\n  },`,
-      );
-    } else {
-      const koBlockMatch = newUI.match(/(ko:\s*\{[\s\S]*?\n  \},)/);
-      if (koBlockMatch) {
-        newUI = newUI.replace(
-          koBlockMatch[1],
-          `${koBlockMatch[1]}\n  ${targetLang}: {\n${langBlock}\n  },`,
-        );
-      }
-    }
-  }
-
-  fs.writeFileSync(config.uiFile, newUI);
-  console.log("✅ UI translation complete!");
-}
-
-async function main() {
-  await translateContent();
-  await translateUI();
-}
-
-main().catch((error) => {
+translateContent().catch((error) => {
   console.error("Translation failed:", error);
   process.exit(1);
 });

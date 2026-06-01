@@ -24,11 +24,16 @@ certifications:
     issuer: 한국산업인력공단
     date: 2023-11
     badge: /images/certifications/q-net.png
+education:
+  - period: 2018.03 - 2025.08
+    institution: 강원대학교
+    department: 컴퓨터공학과
+    status: 졸업
 ---
 
 ## Developers who understand and develop across services
 <br>
-I'm a development nerd. Starting in middle school, when I made mods for my favorite games to play with my friends, I've found fulfillment in creating and sharing services.
+I'm a development geek. Starting in middle school, when I made mods for my favorite games to play with my friends, I've found a sense of accomplishment in creating and sharing services.
 
 As I built more and more, I naturally needed a variety of skills. Hands-on experience with the backend for functionality, the UI for the user, and the infrastructure to run the service gave me an understanding of the overall flow of a service.
 

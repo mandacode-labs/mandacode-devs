@@ -1,4 +1,4 @@
-import { ui, type Lang, type UIKey } from "./ui";
+import { ui, type Lang, type UIKey } from "./index";
 
 export function useTranslations(lang: Lang) {
   return function t(

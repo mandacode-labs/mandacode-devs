@@ -23,8 +23,8 @@ certifications:
     date: "2023-11"
     badge: "/images/certifications/q-net.png"
 education:
-  - period: "2019.03 - 2023.02"
-    institution: "한국대학교"
+  - period: "2018.03 - 2025.08"
+    institution: "강원대학교"
     department: "컴퓨터공학과"
     status: "졸업"
 ---

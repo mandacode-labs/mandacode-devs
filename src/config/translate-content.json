@@ -1,0 +1,21 @@
+{
+  "sourceLang": "ko",
+  "targetLangs": ["en"],
+  "deepl": {
+    "sourceLang": "KO",
+    "targetLang": "EN-US"
+  },
+  "contentDir": "src/content",
+  "cacheFile": ".translate-cache.json",
+  "collections": {
+    "blog": {
+      "fields": ["title", "description"]
+    },
+    "projects": {
+      "fields": ["title", "description"]
+    },
+    "developers": {
+      "fields": ["name", "role", "bio"]
+    }
+  }
+}
