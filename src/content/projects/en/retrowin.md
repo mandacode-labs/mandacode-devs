@@ -1,7 +1,8 @@
 ---
 title: Retrowin
-description: A file management system that works with external storage.
+description: External storage integration file management and storage services
 url: 'https://retrowin.mandacode.com'
+sourceUrl: 'https://github.com/mandacode-labs/retrowin-go'
 status: production
 techStack:
   - Go
@@ -11,7 +12,7 @@ techStack:
   - Next.js
   - Keycloak
   - PostgreSQL
-order: 3
+order: 1
 lang: en
 coverImage: /images/projects/retrowin/cover.png
 ---

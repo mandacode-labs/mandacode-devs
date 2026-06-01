@@ -1,16 +1,14 @@
 ---
-title: Mandacode Auth
-description: >-
-  A unified authentication and entitlement management system that provides
-  secure and consistent user authentication across platforms.
-url: 'https://auth.mandacode.dev'
-status: completed
+title: Meerkat
+description: AI Agent-based log analysis and monitoring system
+sourceUrl: 'https://github.com/serengeti-sh/meerkat'
+status: production
 techStack:
   - TypeScript
   - Node.js
   - PostgreSQL
   - JWT
-order: 1
+order: 2
 lang: en
 ---
 
