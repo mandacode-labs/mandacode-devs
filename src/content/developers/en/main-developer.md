@@ -24,6 +24,7 @@ certifications:
   - name: Engineer Information Processing
     issuer: Human Resources Development Service of Korea
     date: 2023-11
+    badge: /images/certifications/q-net.png
 ---
 
 Kim Dev is a 5th year full-stack developer who has been involved in various startups and open source projects. He works primarily with TypeScript and Node.js, and has recently been focusing on web development with Astro and React.
