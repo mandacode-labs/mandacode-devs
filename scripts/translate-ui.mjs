@@ -37,11 +37,7 @@ async function main() {
     }
 
     try {
-      const result = await translator.translateText(
-        koValue,
-        "KO",
-        "EN-US",
-      );
+      const result = await translator.translateText(koValue, "KO", "EN-US");
       const translatedText = Array.isArray(result)
         ? result[0].text
         : result.text;
@@ -65,7 +61,9 @@ async function main() {
   fs.writeFileSync(EN_PATH, JSON.stringify(updated, null, 2) + "\n");
 
   console.log(`\n✅ UI translation complete!`);
-  console.log(`   ${translated} translated, ${kept} kept, ${Object.keys(updated).length} total`);
+  console.log(
+    `   ${translated} translated, ${kept} kept, ${Object.keys(updated).length} total`,
+  );
 }
 
 main().catch((error) => {

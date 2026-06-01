@@ -23,6 +23,10 @@ certifications:
     date: "2023-11"
     badge: "/images/certifications/q-net.png"
 education:
+  - period: "2015.03 - 2018.01"
+    institution: "구리고등학교"
+    department: ""
+    status: "졸업"
   - period: "2018.03 - 2025.08"
     institution: "강원대학교"
     department: "컴퓨터공학과"
@@ -30,6 +34,7 @@ education:
 ---
 
 ## 서비스 전반을 이해하며 개발하는 개발자
+
 <br>
 저는 개발 덕후입니다. 중학생 때부터 좋아하는 게임의 모드를 만들어 친구들과 즐긴 것을 시작으로, 여러 서비스를 만들고 공유하며 성취감을 느꼈습니다.
 

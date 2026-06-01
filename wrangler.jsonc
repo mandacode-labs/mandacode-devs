@@ -1,21 +1,19 @@
 {
   "compatibility_date": "2026-05-29",
-  "compatibility_flags": [
-    "global_fetch_strictly_public"
-  ],
+  "compatibility_flags": ["global_fetch_strictly_public"],
   "name": "mandacode-devs",
   "main": "@astrojs/cloudflare/entrypoints/server",
   "assets": {
     "directory": "./dist",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
   },
   "observability": {
-    "enabled": true
+    "enabled": true,
   },
   "kv_namespaces": [
     {
       "binding": "SESSION",
-      "id": "28cb47437003445c98783721f6fcad7b"
-    }
-  ]
+      "id": "28cb47437003445c98783721f6fcad7b",
+    },
+  ],
 }

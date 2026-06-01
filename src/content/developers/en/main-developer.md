@@ -5,9 +5,9 @@ bio: >-
   Hyunwoo is a developer who understands services from the front end to the
   infrastructure.
 avatar: /images/developers/avatar.webp
-github: 'https://github.com/sauce-git'
+github: "https://github.com/sauce-git"
 email: sauce@mandacode.com
-website: 'https://dev.mandacode.com'
+website: "https://dev.mandacode.com"
 lang: en
 techStack:
   - Kubernetes
@@ -32,6 +32,7 @@ education:
 ---
 
 ## Developers who understand and develop across services
+
 <br>
 I'm a development geek. Starting in middle school, when I made mods for my favorite games to play with my friends, I've found fulfillment in creating and sharing services.
 

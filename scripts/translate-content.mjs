@@ -80,7 +80,9 @@ async function translateFrontmatter(data, fields, nestedFields, targetLang) {
   }
 
   // Translate nested fields (arrays of objects)
-  for (const [nestedKey, nestedFieldList] of Object.entries(nestedFields || {})) {
+  for (const [nestedKey, nestedFieldList] of Object.entries(
+    nestedFields || {},
+  )) {
     if (!Array.isArray(data[nestedKey])) continue;
 
     translated[nestedKey] = await Promise.all(
@@ -88,11 +90,14 @@ async function translateFrontmatter(data, fields, nestedFields, targetLang) {
         const translatedItem = { ...item };
         for (const field of nestedFieldList) {
           if (item[field] && typeof item[field] === "string") {
-            translatedItem[field] = await translateText(item[field], targetLang);
+            translatedItem[field] = await translateText(
+              item[field],
+              targetLang,
+            );
           }
         }
         return translatedItem;
-      })
+      }),
     );
   }
 

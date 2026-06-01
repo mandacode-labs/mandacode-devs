@@ -1,7 +1,7 @@
 ---
 title: Mandacode CLI
 description: A command-line interface tool for developing Mandacode projects.
-url: 'https://cli.mandacode.dev'
+url: "https://cli.mandacode.dev"
 status: planning
 techStack:
   - TypeScript

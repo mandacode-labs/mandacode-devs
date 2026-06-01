@@ -3,7 +3,7 @@ title: Mandacode Core
 description: >-
   A core shared library of Mandacode projects, containing common utilities and
   domain logic.
-url: 'https://core.mandacode.dev'
+url: "https://core.mandacode.dev"
 status: production
 techStack:
   - TypeScript
