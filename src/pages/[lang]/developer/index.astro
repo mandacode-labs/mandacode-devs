@@ -40,16 +40,16 @@ const { Content } = await render(developer);
         />
       </div>
 
-      <div class="flex-1 min-w-0">
-        <h1
-          class="text-2xl sm:text-4xl font-bold text-text-primary mb-1 sm:mb-2"
-        >
+      <div class="flex flex-col items-start gap-2 sm:gap-4">
+        <h1 class="text-2xl sm:text-4xl font-bold text-text-primary">
           {name}
         </h1>
-        <p class="text-base sm:text-lg text-accent font-medium mb-2 sm:mb-4">
-          {role}
-        </p>
-        <p class="text-sm sm:text-base text-text-secondary">{bio}</p>
+        <div class="flex flex-col items-start gap-2 ml-1">
+          <p class="text-base sm:text-lg text-accent font-medium">
+            {role}
+          </p>
+          <p class="text-sm sm:text-base text-text-secondary">{bio}</p>
+        </div>
       </div>
     </div>
 

@@ -2,7 +2,7 @@
 title: Retrowin
 description: "외부 스토리지 연동 파일 관리 및 저장 서비스"
 url: "https://retrowin.mandacode.com"
-sourceUrl: "https://github.com/mandacode-labs/retrowin-go"
+sourceUrl: "https://github.com/mandacode-labs/retrowin"
 status: production
 techStack:
   - Go
