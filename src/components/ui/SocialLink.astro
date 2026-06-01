@@ -1,0 +1,38 @@
+---
+import Button from "../ui/Button.astro";
+import GithubIcon from "../icons/Github.astro";
+import EmailIcon from "../icons/Email.astro";
+import GlobeIcon from "../icons/Globe.astro";
+
+interface Props {
+  platform: "github" | "email" | "website";
+  href: string;
+  size?: "sm" | "md" | "lg";
+}
+
+const { platform, href, size = "md" } = Astro.props;
+
+const config = {
+  github: {
+    label: "GitHub",
+    icon: GithubIcon,
+  },
+  email: {
+    label: "Email",
+    icon: EmailIcon,
+  },
+  website: {
+    label: "Website",
+    icon: GlobeIcon,
+  },
+};
+
+const { label, icon: Icon } = config[platform];
+const isEmail = platform === "email";
+const buttonHref = isEmail ? `mailto:${href}` : href;
+---
+
+<Button href={buttonHref} variant="secondary" size={size}>
+  <Icon size={16} />
+  <span>{label}</span>
+</Button>
