@@ -26,7 +26,7 @@ certifications:
     badge: /images/certifications/q-net.png
 education:
   - period: 2015.03 - 2018.01
-    institution: Guriga High School
+    institution: Guri High School
     department: ''
     status: Graduation
   - period: 2018.03 - 2025.08
