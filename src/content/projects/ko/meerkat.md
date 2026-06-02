@@ -5,20 +5,27 @@ sourceUrl: "https://github.com/serengeti-sh/meerkat"
 status: production
 techStack:
   - Go
-  - Kubernetes
+  - gRPC
   - OpenTelemetry
   - OpenAI API
-  - Retrieval Augmented Generation (RAG)
+  - RAG
   - PostgreSQL
   - Milvus
+  - Kubernetes
+  - Helm
+  - ogen
+  - Ent ORM
 order: 2
 lang: ko
+coverImage: "/images/projects/meerkat/cover.png"
+blogUrl: "/ko/blog/meerkat-deep-dive"
 ---
 
-Meerkat은 AI Agent 기반의 로그 분석 및 모니터링 시스템입니다. 다양한 로그 데이터를 수집하여 AI Agent가 분석하고, 이상 징후를 감지하여 실시간으로 알림을 제공합니다. 
-<br>
-Go로 백엔드를 개발하였으며, Kubernetes 환경에서 운영되어 높은 확장성과 안정성을 보장합니다. 
+Meerkat은 AI Agent가 직접 인프라의 로그와 메트릭을 분석하여 이상 징후를 탐지하는 관측 가능성 플랫폼입니다.
+기존 규칙 기반 알림의 한계를 넘어, 자연어 질의나 외부 웹훅을 통해 전달된 이벤트를 AI가 스스로 맥락을 파악하고 
+Prometheus, Loki 등의 도구를 직접 쿼리하며 원인을 추론합니다. 
+OpenTelemetry로 로그를 수집하고 벡터 데이터베이스에 저장하여 의미 기반 검색을 지원하며, 
+분석 결과는 웹훅으로 외부 채널에 전달됩니다.
 
-OpenTelemetry를 활용하여 로그 데이터를 수집하고, OpenAI API와 RAG 기술을 활용하여 로그 분석과 이상 징후 감지를 수행합니다.
-
-PostgreSQL과 Milvus를 사용하여 로그 데이터를 효율적으로 저장하고 검색할 수 있도록 설계되었습니다.
+시스템은 Analyzer와 Vectors 두 개의 독립적인 서비스로 구성되어 있으며, Kubernetes 환경에서 Helm Chart로 배포됩니다. 
+Analyzer는 비동기 워커 풀과 중복 분석 방지, 컨텍스트 오버플로우 복구 메커니즘 등을 통해 대규모 로그 처리에도 안정적으로 동작하도록 설계되었습니다.
