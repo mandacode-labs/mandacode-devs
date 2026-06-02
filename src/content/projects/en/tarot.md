@@ -1,14 +1,16 @@
 ---
 title: Tarot cards
 description: Tarot Card Services
-url: 'https://cli.mandacode.dev'
+url: 'https://tarot.mandacode.com'
 status: production
 techStack:
   - TypeScript
-  - Node.js
-  - Commander.js
+  - NestJS
+  - React
+  - Next.js
+  - OpenAI API
 order: 3
 lang: en
 ---
 
-Mandacode CLI is a CLI tool that provides the ability to create project scaffolds, automate deployments, manage development servers, and more.
+Tarot Cards is a service that utilizes the OpenAI API to provide tarot card readings. Users type in a question and the AI draws a tarot card and provides an answer with an interpretation.
