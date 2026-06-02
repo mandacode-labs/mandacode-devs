@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
+import mermaid from "astro-mermaid";
 import path from "node:path";
 
 import cloudflare from "@astrojs/cloudflare";
@@ -19,4 +20,10 @@ export default defineConfig({
       },
     },
   },
+  integrations: [
+    mermaid({
+      theme: "forest",
+      autoTheme: true,
+    }),
+  ],
 });
