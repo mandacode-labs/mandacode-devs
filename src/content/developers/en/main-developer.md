@@ -10,11 +10,19 @@ email: sauce@mandacode.com
 website: 'https://dev.mandacode.com'
 lang: en
 techStack:
-  - Kubernetes
   - Go
   - TypeScript
+  - NestJS
+  - Ceph
+  - AWS
   - React
+  - Next.js
   - Astro
+  - Kubernetes
+  - Proxmox VE
+  - Terraform
+  - ArgoCD
+  - Github Actions
 certifications:
   - name: Certified Kubernetes Administrator (CKA)
     issuer: Linux Foundation
@@ -39,7 +47,7 @@ education:
 
 <br>
 
-hello. I'm Hyunwoo, a developer who understands services from front-end to infrastructure with hands-on experience.
+hello. I'm Hyunwoo, a developer who understands services from front-end to infrastructure.
 
 I grew up making mods for my favorite games and sharing them with my friends, and when I wanted to make something, I found a way to make it happen.
 
@@ -55,9 +63,10 @@ I was able to expand my knowledge by acquiring CKA certification.
 In service development, he has experience in organizing CI/CD pipelines to automate code management and deployment,
 I also developed an AI-based automatic log monitoring and analysis system to maximize operational convenience.
 
-In Alibaba's OpenSandbox open source project, he discovered security issues with traditional configuration file-based methods in real-world deployments such as Kubernetes,
+In Alibaba's OpenSandbox open source project, I discovered security issues with traditional configuration file-based methods in real-world deployments such as Kubernetes,
 and changed to an environment variable-based approach to improve operability and security.
 
 <br>
 
-These experiences have helped me to develop with a holistic understanding of services and have helped me to grow as a developer with a holistic understanding of services.
+As a developer, my goal is to enjoy technical challenges and continue to grow.
+I love learning and applying new technologies to create better services, and I value collaborating with my teammates to grow together.

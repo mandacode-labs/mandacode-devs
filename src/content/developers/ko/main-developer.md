@@ -8,29 +8,37 @@ email: "sauce@mandacode.com"
 website: "https://dev.mandacode.com"
 lang: ko
 techStack:
-  - Kubernetes
-  - Go
-  - TypeScript
-  - React
-  - Astro
+    - Go
+    - TypeScript
+    - NestJS
+    - Ceph
+    - AWS
+    - React
+    - Next.js
+    - Astro
+    - Kubernetes
+    - Proxmox VE
+    - Terraform
+    - ArgoCD
+    - Github Actions
 certifications:
-  - name: "CKA (Certified Kubernetes Administrator)"
-    issuer: "Linux Foundation"
-    date: "2026-03"
-    badge: "/images/certifications/cka.png"
-  - name: "정보처리기사"
-    issuer: "한국산업인력공단"
-    date: "2023-11"
-    badge: "/images/certifications/q-net.png"
+    - name: "CKA (Certified Kubernetes Administrator)"
+      issuer: "Linux Foundation"
+      date: "2026-03"
+      badge: "/images/certifications/cka.png"
+    - name: "정보처리기사"
+      issuer: "한국산업인력공단"
+      date: "2023-11"
+      badge: "/images/certifications/q-net.png"
 education:
-  - period: "2015.03 - 2018.01"
-    institution: "구리고등학교"
-    department: ""
-    status: "졸업"
-  - period: "2018.03 - 2025.08"
-    institution: "강원대학교"
-    department: "컴퓨터공학과"
-    status: "졸업"
+    - period: "2015.03 - 2018.01"
+      institution: "구리고등학교"
+      department: ""
+      status: "졸업"
+    - period: "2018.03 - 2025.08"
+      institution: "강원대학교"
+      department: "컴퓨터공학과"
+      status: "졸업"
 ---
 
 ### 자기소개
@@ -58,4 +66,5 @@ Alibaba의 OpenSandbox 오픈소스 프로젝트에서는 Kubernetes와 같은 �
 
 <br>
 
-이러한 경험들은 서비스에 대한 전체적인 이해를 바탕으로 개발할 수 있게 해주었고, 서비스 전반을 이해하는 개발자로 성장하는 데 큰 도움이 되었습니다. 
+개발자로서의 목표는, 기술적 도전을 즐기며 지속적으로 성장하는 것입니다.
+새로운 기술을 배우고 적용하는 것을 좋아하며, 이를 통해 더 나은 서비스를 만들어 나가고 싶습니다. 또한, 팀원들과 협업하여 함께 성장하는 것을 중요하게 생각합니다.
