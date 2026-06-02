@@ -111,7 +111,7 @@ func (s *FsService) AtomicUpload(ctx context.Context, objectID string) error {
 ```
 
 트랜잭션 내에서 모든 작업이 원자적으로 수행되므로,
-중간에 실패핬더라도 데이터가 불일치되는 일은 없습니다.
+중간에 실패했더라도 데이터가 불일치되는 일은 없습니다.
 
 ## 인증과 권한: 표준을 따르기
 

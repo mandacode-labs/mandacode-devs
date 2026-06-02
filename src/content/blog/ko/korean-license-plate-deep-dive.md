@@ -52,14 +52,16 @@ graph LR
     Plate --> Crop[번호판 크롭]
     Crop --> Vertex[모서리 탐지]
     Vertex --> Warp[원근 보정]
-    Crop --> OCR1[원본 OCR]
-    Warp --> OCR2[보정 OCR]
-    OCR1 --> Confirm[결과 검증]
-    OCR2 --> Confirm
-    Confirm --> Output[최종 번호]
+    Warp --> OCR1[warped OCR]
+    OCR1 --> Validate1[정규표현식 검증]
+    Validate1 -->|통과| Output[최종 번호]
+    Validate1 -->|실패| OCR2[cropped OCR]
+    Crop --> OCR2
+    OCR2 --> Validate2[정규표현식 검증]
+    Validate2 --> Output
 ```
 
-## 이중 검증: 한 번 더 확인
+## 검증과 폴스백: 안정성과 효율의 균형
 
 원근 변환이 항상 완벽하지는 않습니다.
 모서리 탐지가 실패하거나 기울어진 번호판을 마주할 수 있습니다.
@@ -119,23 +121,23 @@ def validate_plate_num(plate_num, mask=True):
 sequenceDiagram
     participant Detect as detect.py
     participant ONNX as ONNX Runtime
-    participant Confirm as confirm_num
+    participant Validate as validate_plate_num
 
-    Detect->>ONNX: 원본 이미지로 문자 인식
-    ONNX-->>Detect: 결과 A
-    Detect->>ONNX: 보정 이미지로 문자 인식
-    ONNX-->>Detect: 결과 B
+    Detect->>ONNX: warped 이미지로 문자 인식
+    ONNX-->>Detect: 결과
+    Detect->>Validate: 정규표현식 검증
 
-    Detect->>Confirm: 두 결과 비교 및 검증
-
-    alt A와 B 일치
-        Confirm->>Confirm: 결과 채택
-    else A만 검증 통과
-        Confirm->>Confirm: A 사용
-    else B만 검증 통과
-        Confirm->>Confirm: B 사용
-    else
-        Confirm->>Confirm: 실패 반환
+    alt 검증 통과
+        Validate-->>Detect: 최종 번호 반환
+    else 검증 실패
+        Detect->>ONNX: cropped 이미지로 문자 인식
+        ONNX-->>Detect: 결과
+        Detect->>Validate: 정규표현식 검증
+        alt 검증 통과
+            Validate-->>Detect: 최종 번호 반환
+        else
+            Validate-->>Detect: 실패 반환
+        end
     end
 ```
 
@@ -171,8 +173,9 @@ GitHub Releases에 업로드합니다.
 
 YOLO 기반 문자 탐지는 불규칙한 간격과 가림에 강하지만
 작은 문자의 세밀한 인식률은 전통 OCR보다 낮을 수 있습니다.
-이를 보완하기 위해 이중 OCR과 정규표현식 검증,
-폴스백 메커니즘을 도입했습니다.
+이를 보완하기 위해 warped 이미지를 우선적으로 OCR하고
+정규표현식 검증을 통과하면 즉시 반환하며,
+실패할 경우에만 cropped 이미지로 폴스백하는 메커니즘을 도입했습니다.
 NMS 임계값 0.3은 문자 간 겹침이 많은 번호판에서
 중복 제거와 누락 방지의 균형점입니다.
 
@@ -186,7 +189,7 @@ GUI의 모달 입력 방식은 다소 구식으로 보일 수 있지만
 
 이 프로젝트는 단순한 딥러닝 데모를 넘어
 실제 현장에서 사용 가능한 도구를 지향합니다.
-3단계 모델 파이프라인의 모듈화, 이중 검증의 안정성,
+3단계 모델 파이프라인의 모듈화, 우선 검증과 폴스백의 안정성,
 PySide6 GUI의 사용성,
 그리고 PyInstaller와 GitHub Actions를 활용한
 크로스 플랫폼 배포까지 전체 라이프사이클을 고려한 설계가 돋보입니다.
