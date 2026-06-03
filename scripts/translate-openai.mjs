@@ -155,8 +155,14 @@ async function translateFile(filePath, targetLang, cache) {
   try {
     const result = await translateMarkdown(content, config.sourceLang, targetLang);
     
-    // lang 필드 업데이트
-    result.frontmatter.lang = targetLang;
+    // 파일 경로에서 lang 결정 (결정적 동작)
+    const sourceDir = path.dirname(filePath);
+    const targetDir = sourceDir.replace(
+      `/${config.sourceLang}`,
+      `/${targetLang}`,
+    );
+    const pathLang = path.basename(targetDir);
+    result.frontmatter.lang = pathLang;
     
     // 새 마크다운 생성
     const newContent = matter.stringify(result.body, result.frontmatter);
