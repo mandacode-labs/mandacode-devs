@@ -8,7 +8,7 @@ techStack:
   - ONNX Runtime
   - YOLO
   - PySide6
-duration: "2023.09 - 2023.12"
+duration: "2023.04 - 2023.04"
 teamSize: 1
 role: "풀스택 개발"
 order: 3

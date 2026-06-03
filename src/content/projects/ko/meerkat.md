@@ -14,7 +14,7 @@ techStack:
   - Kubernetes
   - Helm
   - Ent ORM
-duration: "2024.09 - 2025.02"
+duration: "2026.04 - 2026.06"
 teamSize: 1
 role: "풀스택 개발"
 order: 2

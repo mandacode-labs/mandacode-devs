@@ -14,7 +14,7 @@ techStack:
   - Docker
   - Kubernetes
   - Helm
-duration: "2024.06 - 2024.09"
+duration: "2025.03 - 2025.04"
 teamSize: 2
 role: "프론트엔드, 백엔드 개발"
 order: 3

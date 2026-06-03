@@ -14,7 +14,7 @@ techStack:
   - Kubernetes
   - Helm
   - Ent ORM
-duration: 2024.09 - 2025.02
+duration: 2026.04 - 2026.06
 teamSize: 1
 role: 풀스택 개발
 order: 2
@@ -30,4 +30,4 @@ Logs are collected with OpenTelemetry and stored in the Vector database for sema
 Analytics results are delivered to external channels via webhooks.
 
 The system consists of two independent services, Analyzer and Vectors, deployed as Helm Chart in a Kubernetes environment.
-Analyzer is designed to be reliable for large-scale log processing with an asynchronous worker pool, duplicate analysis prevention, and context overflow recovery mechanisms.
+Analyzer is designed to be reliable for large log processing with an asynchronous worker pool, duplicate analysis prevention, and context overflow recovery mechanisms.

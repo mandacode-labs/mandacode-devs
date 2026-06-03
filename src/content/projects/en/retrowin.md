@@ -15,7 +15,7 @@ techStack:
   - Valkey
   - Ent ORM
   - Helm
-duration: 2024.03 - 2024.08
+duration: 2024.10 - 2024.12
 teamSize: 1
 role: 풀스택 개발
 order: 1
