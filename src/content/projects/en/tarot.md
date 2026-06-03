@@ -1,7 +1,7 @@
 ---
 title: Tarot cards
 description: AI-powered tarot card reading service
-url: 'https://tarot.mandacode.com'
+url: "https://tarot.mandacode.com"
 status: production
 techStack:
   - TypeScript
@@ -52,6 +52,4 @@ flowchart TB
 
 ## Request Flow
 
-
-___code_block_1___
-
+**_code_block_1_**

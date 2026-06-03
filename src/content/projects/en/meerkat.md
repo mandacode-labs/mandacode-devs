@@ -1,7 +1,7 @@
 ---
 title: Meerkat
 description: AI Agent-based log analysis and monitoring system
-sourceUrl: 'https://github.com/serengeti-sh/meerkat'
+sourceUrl: "https://github.com/serengeti-sh/meerkat"
 status: production
 techStack:
   - Go
@@ -66,6 +66,4 @@ graph TB
 
 ## Analysis Flow
 
-
-___code_block_1___
-
+**_code_block_1_**

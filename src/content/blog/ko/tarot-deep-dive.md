@@ -65,10 +65,10 @@ Zod 스키마를 전달하면 OpenAI API가 JSON 형식을 강제하여
 
 ```typescript
 export const ReadResponseSchema = z.object({
-  title: z.string().min(1),      // 영어 카드명
-  titleKR: z.string().min(1),    // 한글 카드명
+  title: z.string().min(1), // 영어 카드명
+  titleKR: z.string().min(1), // 한글 카드명
   keywords: z.array(z.string()).min(1),
-  advice: z.string().min(1),     // 조언 메시지
+  advice: z.string().min(1), // 조언 메시지
 });
 ```
 

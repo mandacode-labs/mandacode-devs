@@ -1,8 +1,8 @@
 ---
 title: Retrowin
 description: External storage integration file management and storage services
-url: 'https://retrowin.mandacode.com'
-sourceUrl: 'https://github.com/mandacode-labs/retrowin-go'
+url: "https://retrowin.mandacode.com"
+sourceUrl: "https://github.com/mandacode-labs/retrowin-go"
 status: production
 techStack:
   - Go
@@ -84,12 +84,8 @@ graph TB
 
 ## File Upload Flow
 
-
-___code_block_1___
-
+**_code_block_1_**
 
 ## Garbage Collection Flow
 
-
-___code_block_2___
-
+**_code_block_2_**

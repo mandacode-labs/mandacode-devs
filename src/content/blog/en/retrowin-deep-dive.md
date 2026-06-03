@@ -1,5 +1,5 @@
 ---
-title: 'Retrowin: POSIX filesystem implemented on top of object storage'
+title: "Retrowin: POSIX filesystem implemented on top of object storage"
 description: >-
   A deep dive into Retrowin's hexagonal architecture, presigned URL-based atomic
   uploads, Keycloak OIDC authentication, and GC design.

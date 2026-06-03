@@ -1,5 +1,5 @@
 ---
-title: 'Tarot Core: AI tarot service built with caching and Structured Outputs'
+title: "Tarot Core: AI tarot service built with caching and Structured Outputs"
 description: >-
   Technical analysis of the Tarot Core API's random bucket caching strategy,
   utilization of OpenAI Structured Outputs, NestJS module design, and

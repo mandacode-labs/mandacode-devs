@@ -1,5 +1,5 @@
 ---
-title: 'Korean License Plate Detector: A YOLO-based Object Detection OCR Pipeline'
+title: "Korean License Plate Detector: A YOLO-based Object Detection OCR Pipeline"
 description: >-
   Analyze the implementation of a three-step YOLO model pipeline, double OCR
   validation, PySide6 GUI, and real-time inference system based on ONNX Runtime.
@@ -42,7 +42,7 @@ The main thing we cared about was the user experience in case of detection failu
 
 All models run with ONNX Runtime's CPUExecutionProvider. Preprocessing applies a common YOLO standard letterbox resize (gray 114 padding), BGR->RGB conversion, normalization, and CHW conversion. In post-processing, we implemented lightweight implementations of the YOLOResult, YOLOBoxes, and YOLOBox classes similar to the Ultralytics API so that the code in detect.py reads similarly to the actual ultralytics package. This eliminated the need to import torch or ultralytics at runtime, significantly reducing the size of the PyInstaller binary.
 
-The model is automatically downloaded from the Hugging Face Hub. You can specify the model repository with the HF_MODEL_REPO environment variable, and they are cached in the local .cache/models to avoid re-downloading. The PyInstaller spec specifies exclusions for large libraries such as torch, tensorflow, matplotlib, and pandas to lighten the final binary. The GitHub Actions workflow automatically builds and uploads releases for Linux, macOS, and Windows to GitHub Releases on v* tag pushes.
+The model is automatically downloaded from the Hugging Face Hub. You can specify the model repository with the HF_MODEL_REPO environment variable, and they are cached in the local .cache/models to avoid re-downloading. The PyInstaller spec specifies exclusions for large libraries such as torch, tensorflow, matplotlib, and pandas to lighten the final binary. The GitHub Actions workflow automatically builds and uploads releases for Linux, macOS, and Windows to GitHub Releases on v\* tag pushes.
 
 ## Tradeoffs and design philosophy
 

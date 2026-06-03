@@ -5,9 +5,9 @@ bio: >-
   Developers who understand the service as a whole, with hands-on experience
   from front-end to back-end to infrastructure.
 avatar: https://static.mandacode.com/mandacode-devs/developers/avatar.webp
-github: 'https://github.com/sauce-git'
+github: "https://github.com/sauce-git"
 email: sauce@mandacode.com
-website: 'https://dev.mandacode.com'
+website: "https://dev.mandacode.com"
 lang: en
 techStack:
   - Go
@@ -35,7 +35,7 @@ certifications:
 education:
   - period: 2015.03 - 2018.01
     institution: Guriga High School
-    department: ''
+    department: ""
     status: Graduation
   - period: 2018.03 - 2025.08
     institution: Kangwon National University

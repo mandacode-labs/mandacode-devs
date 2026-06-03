@@ -26,11 +26,11 @@ NMS와 극단점 기반 라인 피팅으로 지역명과 숫자를 분리하며
 전체 흐름은 `detect.py`의 `get_num()` 함수 하나로 제어합니다.
 세 개의 ONNX 모델이 각자의 전문 분야를 담당합니다.
 
-| 단계 | 모델 | 역할 |
-|------|------|------|
-| 1 | `plate_detect_v1` | 전체 이미지에서 번호판 영역 탐지 |
-| 2 | `vertex_detect_v1` | 네 모서리 탐지 후 원근 보정 |
-| 3 | `syllable_detect_v1` | 75개 클래스로 개별 문자 탐지 |
+| 단계 | 모델                 | 역할                             |
+| ---- | -------------------- | -------------------------------- |
+| 1    | `plate_detect_v1`    | 전체 이미지에서 번호판 영역 탐지 |
+| 2    | `vertex_detect_v1`   | 네 모서리 탐지 후 원근 보정      |
+| 3    | `syllable_detect_v1` | 75개 클래스로 개별 문자 탐지     |
 
 첫 번째 모델은 전체 이미지에서 번호판 영역 하나를 찾습니다.
 여러 후보 중 신뢰도가 가장 높은 것을 선택해 크롭합니다.
@@ -75,35 +75,35 @@ graph LR
 def get_num(img):
     cropped = plate_detector.detect_and_crop(img)
     warped = vertex_detector.detect_and_warp(cropped)
-    
+
     # Step 1: warped 이미지 우선 OCR
     if warped is not None:
         res = syllable_detector.get_num_from_img(warped)
         result = validate_plate_num(res, mask=False)
         if result:
             return result
-    
+
     # Step 2: fallback - cropped 이미지 OCR
     if cropped is not None:
         res = syllable_detector.get_num_from_img(cropped)
         result = validate_plate_num(res, mask=False)
         if result:
             return result
-    
+
     return None
 
 def validate_plate_num(plate_num, mask=True):
     """단일 OCR 결과에 대해 regex 검증 + mask 적용"""
     if plate_num is None:
         plate_num = ''
-    
+
     m = re.fullmatch(PLATE_REGEX, plate_num)
     if m is None:
         return None
-    
+
     if mask:
         plate_num = re.search(OUTPUT_REGEX, plate_num).group()
-    
+
     return plate_num
 ```
 
@@ -164,7 +164,7 @@ torch, tensorflow, matplotlib 같은 대형 라이브러리를
 모든 ONNX 모델은 Hugging Face Hub에서 자동 다운로드되며
 로컬 캐시에 저장되어 재다운로드를 방지합니다.
 
-GitHub Actions는 v* 태그 푸시 시
+GitHub Actions는 v\* 태그 푸시 시
 Linux, macOS, Windows용 릴리스를 자동으로 빌드하여
 GitHub Releases에 업로드합니다.
 사용자는 압축을 풀고 바로 실행할 수 있습니다.

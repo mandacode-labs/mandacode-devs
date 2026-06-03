@@ -1,5 +1,5 @@
 ---
-title: 'Meerkat: Designing and Implementing an AI Agent-Based Observability Platform'
+title: "Meerkat: Designing and Implementing an AI Agent-Based Observability Platform"
 description: >-
   In-depth technical analysis of the Meerkat project's architecture, log
   ingestion pipeline, AI Agent analysis loop, and operational strategy.
