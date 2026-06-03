@@ -9,9 +9,6 @@
     "translate:ui": "node scripts/translate-openai.mjs ui",
     "translate:content": "node scripts/translate-openai.mjs content",
     "translate": "node scripts/translate-openai.mjs",
-    "translate:deepl": "npm run translate:ui:deepl && npm run translate:content:deepl",
-    "translate:ui:deepl": "node scripts/translate-ui.mjs",
-    "translate:content:deepl": "node scripts/translate-content.mjs",
     "content:sync": "node scripts/sync-content.mjs",
     "build": "astro build",
     "dev": "astro dev",
@@ -24,8 +21,7 @@
   "dependencies": {
     "@astrojs/cloudflare": "^13.6.0",
     "astro": "^6.4.2",
-    "astro-mermaid": "^2.0.2",
-    "deepl-node": "^1.27.0"
+    "astro-mermaid": "^2.0.2"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.19",

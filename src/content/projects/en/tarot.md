@@ -1,6 +1,4 @@
 ---
-title: Tarot Cards
-description: AI-based Tarot Card Reading Service
 url: 'https://tarot.mandacode.com'
 status: production
 techStack:
@@ -14,14 +12,16 @@ techStack:
   - Docker
   - Kubernetes
   - Helm
-duration: 2025.03 - 2025.04
 teamSize: 2
-role: 'Frontend, Backend Development'
 order: 3
 lang: en
 coverImage: 'https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png'
 blogUrl: /ko/blog/tarot-deep-dive
+title: Tarot Card
+description: AI-based Tarot Card Reading Service
+duration: March 2025 - April 2025
+role: 'Frontend, Backend Development'
 ---
-Tarot Cards is an AI-based service that provides users with tarot card reading results utilizing OpenAI's language model. It selects cards randomly from a deck of 78, determining orientation (upright or reversed) and one of several buckets to generate a new contextual reading each time. Through a caching system, it quickly reuses previously generated results to optimize API call costs and response speed. In the event of a cache server failure, it gracefully handles the situation by directly calling OpenAI.
+The Tarot Card service is an AI-based platform utilizing OpenAI's language model to provide users with tarot card reading results. It randomly selects cards from a deck of 78, determining orientation (upright or reversed) and one of several buckets to generate a reading with a new context each time. By employing a caching system, it efficiently reuses previously generated results to optimize API call costs and response times. In the event of a cache server failure, it gracefully falls back to directly calling OpenAI.
 
-The backend, based on NestJS, ensures consistent responses with a structured output format and supports flexible environment configurations through a YAML and environment variable-based configuration system. It operates with multiple instances via Docker and Kubernetes Helm Chart, automatically scaling according to load.
+The backend, built on NestJS, ensures consistent responses with a structured output format and supports flexible environment configuration through a YAML and environment variable-based settings system. It operates across multiple instances using Docker and Kubernetes Helm Chart, with automatic scaling to handle varying loads.
