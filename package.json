@@ -6,10 +6,13 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "translate:ui": "node scripts/translate-ui.mjs",
-    "translate:content": "node scripts/translate-content.mjs",
+    "translate:ui": "node scripts/translate-openai.mjs ui",
+    "translate:content": "node scripts/translate-openai.mjs content",
+    "translate": "node scripts/translate-openai.mjs",
+    "translate:deepl": "npm run translate:ui:deepl && npm run translate:content:deepl",
+    "translate:ui:deepl": "node scripts/translate-ui.mjs",
+    "translate:content:deepl": "node scripts/translate-content.mjs",
     "content:sync": "node scripts/sync-content.mjs",
-    "translate": "npm run translate:ui && npm run translate:content",
     "build": "astro build",
     "dev": "astro dev",
     "preview": "astro preview",
@@ -28,11 +31,13 @@
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.3.0",
     "gray-matter": "^4.0.3",
+    "openai": "^6.41.0",
     "prettier": "^3.8.3",
     "prettier-plugin-astro": "^0.14.1",
     "sharp": "^0.34.5",
     "tailwindcss": "^4.3.0",
-    "wrangler": "^4.95.0"
+    "wrangler": "^4.95.0",
+    "zod": "^4.4.3"
   },
   "overrides": {
     "vite": "^7"

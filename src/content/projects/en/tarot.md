@@ -1,6 +1,6 @@
 ---
-title: Tarot cards
-description: AI-powered tarot card reading service
+title: Tarot Cards
+description: AI-based Tarot Card Reading Service
 url: 'https://tarot.mandacode.com'
 status: production
 techStack:
@@ -16,17 +16,12 @@ techStack:
   - Helm
 duration: 2025.03 - 2025.04
 teamSize: 2
-role: '프론트엔드, 백엔드 개발'
+role: 'Frontend, Backend Development'
 order: 3
 lang: en
 coverImage: 'https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png'
 blogUrl: /ko/blog/tarot-deep-dive
 ---
+Tarot Cards is an AI-based service that provides users with tarot card reading results by utilizing OpenAI's language model. It randomly selects cards from a deck of 78, determining upright or reversed positions, and chooses from multiple buckets to generate a reading in a new context each time. Through a caching system, it quickly reuses previously generated results to optimize API call costs and response times. In the event of a cache server failure, it gracefully handles the situation by directly calling OpenAI.
 
-Tarot Cards is an AI-powered service that utilizes OpenAI's language model to provide users with tarot card readings.
-It randomly selects a card from a 78-card deck, determines whether it is forward or reverse, and falls into one of several buckets to generate a new contextualized reading each time.
-A caching system allows for quick reuse of previously generated results to optimize API call cost and response speed, while responding gracefully to cache server failures by calling OpenAI directly.
-
-The NestJS-based backend ensures consistent responses with a structured output format,
-A configuration system based on YAML and environment variables for flexible environment configuration.
-It operates in multiple instances via Docker and Kubernetes Helm Chart and automatically scales with load.
+The backend, based on NestJS, ensures consistent responses with a structured output format and supports flexible environment configurations through a YAML and environment variable-based settings system. It operates across multiple instances via Docker and Kubernetes Helm Chart, automatically scaling according to the load.

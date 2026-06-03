@@ -1,59 +1,55 @@
 ---
-title: 'Building a home cluster1: Selecting hardware and configuring your network'
+title: 'Building a Home Cluster Part 1: Hardware Selection and Network Configuration'
 description: >-
-  Hardware selection and network configuration in building a home cluster based
-  on Proxmox VE
-pubDate: 2026-06-03T00:00:00.000Z
+  Hardware selection and network configuration in the process of building a home
+  cluster based on Proxmox VE
+pubDate: '2026-06-03T00:00:00.000Z'
 tags:
   - Proxmox
   - Home Lab
 lang: en
 coverImage: 'https://static.mandacode.com/mandacode-devs/blog/home-cluster-1/blog-cover.png'
 ---
+I initially planned to handle all my diverse project operations, development, testing workloads, and personal learning and experimentation on AWS EKS.
 
-We wanted to run a variety of projects, handle development and test workloads, and do it all on AWS EKS for personal learning and experimentation.
+However... the cloud is expensive.~~(Very much so.)~~
 
-But... The cloud is expensive (a lot of it).
+Since the cluster is primarily for personal services and development, I concluded that EKS was overkill.
 
-We decided that EKS was overkill for a cluster that was primarily for personal services and development anyway.
+Thus, I decided to build a home cluster. However, setting up a home server is not an easy task.<br>
+While it would be ideal to purchase professional hardware and install it on a rack mount, that's not feasible in a household setting.
+There are several constraints such as cost, noise, heat, and space.
 
-So I decided to build a home cluster (but building a home server is not an easy task either)<br>
-It would be nice to be able to buy specialized hardware, install it on a rackmount, and run it, but you can't do that at home.
-There are many constraints: price, noise, heat, space, etc.
+To choose the optimal solution, I established the following criteria:
 
-To choose the best solution, we set the following criteria:
+- **Cost**: It should not be too expensive
+- **Noise**: It should be quiet enough to be barely noticeable
+- **Heat**: It should be manageable in a typical household
+- **Space**: It should be installable in a small area
+- **Performance**: It should be capable of handling workloads run on EKS
 
-- **Price**: It shouldn't be too expensive.
-- Noise: It should be quiet enough to be almost inaudible
-- Heat generation: it should be manageable for the average household
-- Space: it should be able to fit in small spaces
-- Performance: It should be able to handle the workloads that the EKS is running
+The cost constraint was particularly significant. The goal was to build the server with minimal investment given the current situation.
 
-Price was the biggest constraint - the goal was to build the server for the least amount of money possible at this point.
-
-So we bought a cheap Intel Xeon E5 series, a Chinese motherboard, and ECC memory from Ali,
-For the server case, we decided to use a regular desktop case due to noise and heat issues.
+Therefore, I purchased Intel Xeon E5 series and Chinese motherboards, along with ECC memory, at a low price from AliExpress.
+For the server case, I opted for a standard desktop case due to noise and heat issues.
 
 ![Hardware](https://static.mandacode.com/mandacode-devs/blog/home-cluster-1/home-cluster-01.jpg)
 
-<center style="font-size: 0.9em; color: #666;"><center style="font-size: 0.9em; color: #666;">
-(And so the computers are ready)
-</center>.
+<center style="font-size: 0.9em; color: #666;">
+(Thus, the prepared computers)
+</center>
 
-We had a total of three computers ready to go, but due to power, network configuration, and noise, we decided it was better to go with just one at this point.
+Although a total of three computers were prepared, due to power supply, network configuration, and noise, it was deemed best to configure with just one at this point.
 
-We also wanted to configure the cluster with Talos Linux, and since we have plans to expand and move the cluster in the future, we decided to install Talos Linux on top of the hypervisor rather than installing it directly.
-hypervisor on top of Talos Linux, rather than installing Talos Linux directly.
+Additionally, I planned to configure the cluster with Talos Linux, and since there are plans for future cluster expansion and migration, I chose to run Talos Linux on a hypervisor rather than installing it directly.
 
-I chose Proxmox VE for the hypervisor because it's free to use, simple to install, and supports a variety of storage options including ZFS and Ceph, as well as network virtualization capabilities.
-It also has an intuitive dashboard UI, making it easy to manage, which was a big plus.
+I selected Proxmox VE as the hypervisor because it is free to use, easy to install, and supports various storage options like ZFS and Ceph, as well as network virtualization features. Another major advantage is its intuitive dashboard UI, which makes management convenient.
 
 ![Proxmox VE Dashboard](https://static.mandacode.com/mandacode-devs/blog/home-cluster-1/proxmox-dashboard.png)
 <center style="font-size: 0.9em; color: #666;">
-(Proxmox VE dashboard)
-</center> </center>
+(Proxmox VE Dashboard)
+</center>
 
-While we plan to utilize the Proxmox VE cluster feature in the future to scale our cluster,
-For now, we'll be operating with ETCD backups and GitOps workflows to manage the health of the cluster, as it's not completely reliable with a single node.
+Although I plan to expand the cluster using Proxmox VE's clustering features in the future, for now, since a single node is not entirely stable, I intend to manage the cluster state through ETCD backup and GitOps workflow.
 
-In the next post, we'll talk about how we installed Talos Linux on top of Proxmox VE and configured our Kubernetes cluster!
+In the next article, I will discuss the process of installing Talos Linux on Proxmox VE and configuring a Kubernetes cluster!

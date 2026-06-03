@@ -1,9 +1,9 @@
 ---
-title: License Plate Recognition Problem Solved with YOLO Object Detection
+title: Solving License Plate Recognition with YOLO Object Detection
 description: >-
-  A real-world license plate recognition system created with a YOLO-based 3-step
-  pipeline that goes beyond the limitations of traditional OCR
-pubDate: 2026-06-02T00:00:00.000Z
+  A practical license plate recognition system using a three-step YOLO-based
+  pipeline, surpassing the limitations of traditional OCR
+pubDate: '2026-06-02T00:00:00.000Z'
 tags:
   - Python
   - YOLO
@@ -14,98 +14,60 @@ lang: en
 coverImage: >-
   https://static.mandacode.com/mandacode-devs/projects/korean-license-plate/cover.png
 ---
+## Problem Awareness
 
-## Problem statement
+Traditional OCR works well on clean documents but struggles with blurred and tilted images like license plates. Recognition rates plummet when character spacing is irregular or partially obscured. Additionally, Korean vehicle license plates have diverse arrangements of characters and a mix of region names and numbers, posing challenges for general OCR models.
 
-Traditional OCR works well on clear documents, but it's weak on
-but it struggles with blurry, skewed images like license plates.
-Recognition rates plummet when characters are irregularly spaced or partially obscured.
-In addition, Korean license plates have a varied arrangement of characters and a mix of
-and a mix of regional names and numbers, which was a challenge for typical OCR models.
+This project adopts a perspective that views characters as objects rather than text. Using YOLO-based object detection, each character is independently identified, and OCR is performed on both the original and corrected image versions for dual verification. Region names and numbers are separated using NMS and extremum-based line fitting, ensuring robust performance even in environments where traditional OCR fails.
 
-The project took the perspective of viewing characters as objects rather than text.
-YOLO-based object detection was used to find each character independently.
-Double-validate by performing OCR on both versions of the original and calibrated images.
-Separate place names and numbers with NMS and extreme point-based line fitting.
-Robustly performs in environments where traditional OCR fails.
+## Three-Step Pipeline: The Art of Division of Labor
 
-## 3-step pipeline: the art of the division of labor
+The entire flow is controlled by a single function, `get_num()`, in `detect.py`. Three ONNX models handle their respective areas of expertise.
 
-The entire flow is controlled by a single `get_num()` function in `detect.py`.
-Three ONNX models are responsible for their respective areas of expertise.
+| Step | Model                | Role                              |
+| ---- | -------------------- | --------------------------------- |
+| 1    | `plate_detect_v1`    | Detects license plate area in the entire image |
+| 2    | `vertex_detect_v1`   | Detects four corners and performs perspective correction |
+| 3    | `syllable_detect_v1` | Detects individual characters with 75 classes |
 
-| Step | Model | Role |
-| ---- | -------------------- | -------------------------------- |
-| 1 | `plate_detect_v1` | Detect license plate regions in the entire image |
-| 2 | `vertex_detect_v1` | Detect four corners and correct for perspective |
-| 3 | `syllable_detect_v1` | Detect individual characters with 75 classes |
+The first model finds a single license plate area in the entire image, selecting the most reliable candidate for cropping. The second model detects the four corners in the cropped image and performs perspective correction. The third model detects individual characters as objects with 75 classes. Unlike traditional OCR, which reads text lines, this approach finds the position of each character within the license plate, allowing recognition even when character spacing is irregular or partially obscured.
 
-The first model finds one license plate region in the entire image.
-It selects the one with the highest confidence among several candidates and crops it.
-The second model finds four corners in the cropped image and performs perspective correction.
-and performs perspective correction.
-The third model detects individual characters as objects with 75 classes.
-Rather than reading lines of text like traditional OCR
-it finds the position of each character within the license plate
-even if the characters are irregularly spaced or some are obscured.
-the rest can still be recognized.
-
-All models run with the ONNX Runtime
-PyInstaller binaries do not include torch or ultralytics to minimize the
-minimized size.
+All models run on ONNX Runtime, and the PyInstaller binary excludes torch or ultralytics to minimize size.
 
 ```mermaid
 graph LR
-    Input[입력 이미지] --> Plate[번호판 탐지]
-    Plate --> Crop[번호판 크롭]
-    Crop --> Vertex[모서리 탐지]
-    Vertex --> Warp[원근 보정]
+    Input[Input Image] --> Plate[License Plate Detection]
+    Plate --> Crop[License Plate Crop]
+    Crop --> Vertex[Corner Detection]
+    Vertex --> Warp[Perspective Correction]
     Warp --> OCR1[warped OCR]
-    OCR1 --> Validate1[정규표현식 검증]
-    Validate1 -->|통과| Output[최종 번호]
-    Validate1 -->|실패| OCR2[cropped OCR]
+    OCR1 --> Validate1[Regex Validation]
+    Validate1 -->|Pass| Output[Final Number]
+    Validate1 -->|Fail| OCR2[cropped OCR]
     Crop --> OCR2
-    OCR2 --> Validate2[정규표현식 검증]
+    OCR2 --> Validate2[Regex Validation]
     Validate2 --> Output
 ```
 
-## Validation and fallback: balancing reliability and efficiency
+## Validation and Fallback: Balancing Stability and Efficiency
 
-Perspective transformations aren't always perfect.
-Edge detection may fail, or you may encounter a tilted license plate.
+Perspective transformation is not always perfect. Corner detection may fail, or tilted license plates may be encountered.
 
-This project **prioritizes OCRing warped images** and,
-and returns the result immediately if it passes regular expression validation.
-Only if it fails does it fall back to the original cropped image for
-perform additional OCR.
-
-
-___code_block_1___
-
-
-This approach treats warping as a single OCR if it succeeds,
-only falling back to the cropped image when it fails.
-This design reduces unnecessary inference while maintaining stability.
-
-After character detection, we use NMS to remove redundant bounding boxes,
-draws lines based on the left and right extreme points
-Separate the region name from the numeric region.
-For example, Seoul, Gyeonggi, Busan, etc.
-Proofread against a hard-coded list of valid regions.
+This project **prioritizes OCR on warped images**, returning results immediately if regex validation passes. Only if it fails does it fallback to the original cropped image for additional OCR.
 
 ```python
 def get_num(img):
     cropped = plate_detector.detect_and_crop(img)
     warped = vertex_detector.detect_and_warp(cropped)
 
-    # Step 1: warped 이미지 우선 OCR
+    # Step 1: Prioritize OCR on warped image
     if warped is not None:
         res = syllable_detector.get_num_from_img(warped)
         result = validate_plate_num(res, mask=False)
         if result:
             return result
 
-    # Step 2: fallback - cropped 이미지 OCR
+    # Step 2: Fallback - OCR on cropped image
     if cropped is not None:
         res = syllable_detector.get_num_from_img(cropped)
         result = validate_plate_num(res, mask=False)
@@ -115,7 +77,7 @@ def get_num(img):
     return None
 
 def validate_plate_num(plate_num, mask=True):
-    """단일 OCR 결과에 대해 regex 검증 + mask 적용"""
+    """Regex validation + mask application for a single OCR result"""
     if plate_num is None:
         plate_num = ''
 
@@ -129,57 +91,52 @@ def validate_plate_num(plate_num, mask=True):
     return plate_num
 ```
 
-## Design a user-friendly GUI
+This method processes with a single OCR if warping succeeds, and only falls back to the cropped image if it fails. It reduces unnecessary inference while maintaining stability.
 
-What if some images fail to be detected during batch processing?
-Ignoring them leads to poor data quality and
-Stopping the entire batch is less efficient.
+After character detection, duplicate bounding boxes are removed using NMS, and lines are drawn based on left and right extremities to separate region names and number areas. Region names are corrected by comparing them to a hardcoded list of valid regions like Seoul, Gyeonggi, and Busan.
 
-The PySide6-based GUI automatically pauses on detection failures and displays the
-and shows the corresponding images on the screen.
-The user manually enters the license plate number and presses the
-and stops processing until the user presses the OK button.
-This is a hybrid approach that achieves 100% coverage
-efficiency of batch processing.
-The results are automatically saved as result.xlsx via openpyxl.
-The progress is visualized in the progress bar.
+```mermaid
+sequenceDiagram
+    participant Detect as detect.py
+    participant ONNX as ONNX Runtime
+    participant Validate as validate_plate_num
 
-## Deployment: Write on the fly
+    Detect->>ONNX: Character recognition on warped image
+    ONNX-->>Detect: Result
+    Detect->>Validate: Regex validation
 
-Create a single executable with PyInstaller.
-Large libraries like torch, tensorflow, matplotlib, etc.
-explicitly excluded to minimize binary size.
-All ONNX models are automatically downloaded from the Hugging Face Hub and
-stored in a local cache to prevent re-downloads.
+    alt Validation Passes
+        Validate-->>Detect: Return final number
+    else Validation Fails
+        Detect->>ONNX: Character recognition on cropped image
+        ONNX-->>Detect: Result
+        Detect->>Validate: Regex validation
+        alt Validation Passes
+            Validate-->>Detect: Return final number
+        else
+            Validate-->>Detect: Return failure
+        end
+    end
+```
 
-GitHub Actions are enabled on v\* tag pushes.
-automatically builds releases for Linux, macOS, and Windows and uploads them to
-GitHub Releases.
-Users can unzip it and run it right away.
+## User-Friendly GUI Design
 
-## Tradeoffs and design philosophy
+What should be done if some images fail detection during batch processing? Ignoring them lowers data quality, while stopping the entire process reduces efficiency.
 
-YOLO-based character detection is robust to irregular spacing and occlusions, but fine-grained recognition of small characters may be lower than traditional OCR.
-but the fine-grained recognition rate for small characters can be lower than traditional OCR.
-To compensate for this, we prioritize OCRing warped images and
-and return it immediately if it passes regular expression validation,
-only falling back to the cropped image if it fails.
-An NMS threshold of 0.3 is recommended for license plates with high character overlap.
-It is a balance between deduplication and miss prevention.
+The PySide6-based GUI automatically pauses when detection fails, displaying the image on the screen. Processing halts until the user manually enters the license plate number and presses the confirm button. This hybrid approach achieves 100% coverage while maintaining batch processing efficiency. Results are automatically saved to result.xlsx via openpyxl, and progress is visualized with a progress bar.
 
-The modal input method in the GUI may seem a bit archaic, but it's a good compromise between
-practical for handling edge cases where full automation is not possible
-edge cases that cannot be fully automated in real-world production.
-Balancing data quality and processing efficiency is the core philosophy behind
-is the core philosophy of this project.
+## Deployment: Ready for Immediate Use
 
-## Conclusion.
+A single executable file is created using PyInstaller. Large libraries like torch, tensorflow, and matplotlib are explicitly excluded to minimize the binary size. All ONNX models are automatically downloaded from the Hugging Face Hub and stored in the local cache to prevent re-downloading.
 
-This project is more than just a deep learning demo
-to a tool that can be used in the real world.
-Modularization of the 3-step model pipeline, reliability of first validation and fallback,
-usability of the PySide6 GUI,
-and cross-platform deployment using PyInstaller and GitHub Actions.
-cross-platform deployment with PyInstaller and GitHub Actions.
-In the narrow domain of license plate recognition
-This is an example of object detection at its full potential.
+GitHub Actions automatically build releases for Linux, macOS, and Windows upon v\* tag pushes, uploading them to GitHub Releases. Users can simply extract and run.
+
+## Trade-offs and Design Philosophy
+
+YOLO-based character detection is robust against irregular spacing and occlusion, but may have lower fine recognition rates for small characters compared to traditional OCR. To compensate, the mechanism prioritizes OCR on warped images and returns immediately if regex validation passes, falling back to the cropped image only if it fails. An NMS threshold of 0.3 balances duplicate removal and omission prevention on plates with overlapping characters.
+
+The modal input method of the GUI may seem somewhat outdated, but it is a practical choice for handling edge cases where full automation is not possible in real-world environments. Balancing data quality and processing efficiency is the core philosophy of this project.
+
+## Conclusion
+
+This project aims to be a tool usable in real-world scenarios, beyond a simple deep learning demo. The modularization of the three-step model pipeline, the stability of prioritization and fallback, the usability of the PySide6 GUI, and the cross-platform deployment using PyInstaller and GitHub Actions highlight a design that considers the entire lifecycle. It is a case that maximizes the potential of object detection in the narrow domain of license plate recognition.
