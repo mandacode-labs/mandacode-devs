@@ -59,14 +59,14 @@ const { Content } = await render(project);
     </a>
 
     <div
-      class="w-full aspect-video rounded-lg overflow-hidden bg-bg-secondary mb-8"
+      class="flex w-full max-h-[30rem]! justify-center mb-8 bg-bg-secondary rounded-lg overflow-hidden"
     >
       {
         coverImage ? (
           <img
             src={coverImage}
             alt={title}
-            class="w-full h-full object-cover"
+            class="w-full h-full object-contain"
           />
         ) : (
           <div class="w-full h-full bg-gradient-to-br from-surface to-border flex items-center justify-center">
@@ -110,7 +110,10 @@ const { Content } = await render(project);
         <h6 class="text-text-muted uppercase tracking-wider mb-2">
           {t("teamSize")}
         </h6>
-        <p class="text-text-primary">{project.data.teamSize} {lang === "ko" ? "명" : ""}</p>
+        <p class="text-text-primary">
+          {project.data.teamSize}
+          {lang === "ko" ? "명" : ""}
+        </p>
       </div>
       <div>
         <h6 class="text-text-muted uppercase tracking-wider mb-2">
