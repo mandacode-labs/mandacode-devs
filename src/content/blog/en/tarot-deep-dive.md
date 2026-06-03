@@ -7,23 +7,24 @@ tags:
   - Redis
   - Caching
 lang: en
-coverImage: 'https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png'
-title: 'Tarot Core: Caching Strategy for AI Tarot Service'
+coverImage: "https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png"
+title: "Tarot Core: Caching Strategy for AI Tarot Service"
 description: >-
-  Caching Design for Tarot Service: Optimizing OpenAI API Costs and Response
-  Time While Delivering a Fresh Experience Each Time
+  The caching design of a tarot service that optimizes OpenAI API costs and
+  response speed while providing a new experience each time.
 ---
+
 ## Problem Awareness
 
-AI-generated content is always fresh, but repeatedly calling the API with the same input can accumulate costs. Tarot readings are particularly susceptible to this. Users find it engaging when different interpretations arise from the same cards. However, constantly invoking the OpenAI API can lead to a cost explosion.
+Content created by AI is always new, but calling the API with the same input repeatedly incurs costs. Tarot reading is especially like this. Even if the same card appears, different interpretations should be provided each time to keep users entertained. However, calling the OpenAI API every time will soon lead to a cost explosion.
 
-Tarot Core addresses this dilemma with a bucket system. By generating cache keys for 1,560 unique combinations (78 cards x 2 directions x 10 buckets), the same combination is immediately returned from Valkey. This approach enforces JSON response formats with Structured Outputs, effectively managing both costs and latency.
+Tarot Core solves this dilemma with a bucket system. By generating cache keys with 78 cards x 2 directions x 10 buckets = 1,560 unique combinations, the same combination is immediately returned from Valkey. This enforces a JSON response format with Structured Outputs, addressing both cost and latency.
 
 ## Buckets: Balancing Diversity and Efficiency
 
-With 78 cards x 2 directions x 10 buckets, there are 1,560 unique combinations. Each time a user makes a request, one of these combinations is randomly selected. The cache key follows the format `tarot:read:{card}:{direction}:{bucket}`, and subsequent requests with the same key are instantly returned from Valkey. The OpenAI API is only called when the cache is empty.
+78 cards x 2 directions x 10 buckets = 1,560 unique combinations. Each time a user makes a request, one of these combinations is randomly selected. The cache key is in the form `tarot:read:{card}:{direction}:{bucket}`, and subsequent requests with the same key are immediately returned from Valkey. The OpenAI API is only called when there is no cache.
 
-Keywords are not included in the cache key. Even within the same bucket, if different keywords are selected, the AI generates readings in a different context. This design saves cache space while preventing monotony.
+Keywords are not included in the cache key. Even if the same bucket is selected, different keywords can lead AI to generate readings in different contexts. This design saves cache space while preventing monotony.
 
 ```mermaid
 flowchart LR
@@ -42,12 +43,12 @@ flowchart LR
     Dir --> Key
     Bucket --> Key
     Key --> Valkey[(Valkey)]
-    Keywords -.->|Set Reading Direction| OpenAI[OpenAI API]
+    Keywords -.->|Reading Direction Setup| OpenAI[OpenAI API]
 ```
 
 ## Structured Outputs: Consistency in Response Format
 
-One of the most challenging aspects of using the OpenAI API is ensuring consistency in response formats. Tarot Core effectively addresses this issue with the Structured Outputs API. By passing a Zod schema, the OpenAI API is forced to return JSON formats, eliminating client-side parsing errors.
+The most troublesome aspect of using the OpenAI API is the consistency of the response format. Tarot Core completely blocks this issue with the Structured Outputs API. By providing a Zod schema, the OpenAI API enforces a JSON format, eliminating client-side parsing errors.
 
 ```typescript
 export const ReadResponseSchema = z.object({
@@ -58,9 +59,9 @@ export const ReadResponseSchema = z.object({
 });
 ```
 
-System prompts include constraints like "cold and natural like a fortune teller" and "no special characters." User messages are delivered in JSON format with card information and four keywords, allowing the AI to grasp the context.
+The system prompt includes constraints like "cold and natural like a fortune teller" and "no special characters allowed." Card information and 4 keywords are delivered as JSON in the user message, allowing AI to understand the context.
 
-Even in the event of a cache server failure, the service remains uninterrupted. All cache calls are wrapped in try/catch blocks, treating lookup failures as cache misses and quietly ignoring storage failures. When Valkey is unavailable, it gracefully falls back to direct OpenAI calls.
+Even in the event of a cache server failure, the service is not interrupted. All cache calls are wrapped in try/catch, treating lookup failures as cache misses and quietly ignoring storage failures. When Valkey is down, it gracefully falls back to direct OpenAI calls.
 
 ```mermaid
 sequenceDiagram
@@ -69,7 +70,7 @@ sequenceDiagram
     participant Cache as Valkey
     participant AI as OpenAI
 
-    Client->>Service: Tarot reading request
+    Client->>Service: Request for tarot reading
     Service->>Service: Random selection of card/direction/bucket/keywords
     Service->>Cache: Cache lookup
 
@@ -86,16 +87,16 @@ sequenceDiagram
 
 ## Module Design and Deployment
 
-The design is intentionally simple. There is no database; the card deck and keyword pool are hardcoded in memory. The NestJS module structure consists of ConfigModule → ValkeyModule (global) → TarotModule, with TarotService handling all business logic. This simplicity reduces code volume and facilitates testing.
+The design is intentionally simple. There is no database, and the card deck and keyword pool are all hardcoded in memory. The NestJS module structure consists of ConfigModule → ValkeyModule (global) → TarotModule, with TarotService handling all business logic. This simplicity reduces code volume and makes testing easier.
 
-Configuration is managed in two layers: YAML files and environment variables. Basic settings are loaded with js-yaml and overridden by six environment variables, including OPENAI_API_KEY. Zod schemas handle default values and validation simultaneously.
+Configuration is managed in two layers: YAML files and environment variables. Basic settings are loaded with js-yaml and overwritten by 6 environment variables, including OPENAI_API_KEY. Zod schemas handle default values and validation simultaneously.
 
-The Dockerfile employs a three-stage multi-stage build, and the Helm Chart operates with two default replicas, automatically scaling from 2 to 10 via HPA. Security contexts include non-root execution, seccomp profile application, and removal of all capabilities.
+The Dockerfile uses a three-stage multi-stage build, and the Helm Chart operates with 2 replicas by default, automatically scaling from 2 to 10 with HPA. In the security context, it runs non-root, applies a seccomp profile, and removes all capabilities.
 
-## Areas for Improvement
+## Room for Improvement
 
-Currently, keywords are not included in the cache key, which means that if only the keywords differ within the same bucket, a cache hit might result in an unintended reading. While this is by design, the lack of cache warming leads to concentrated OpenAI calls during cold starts. In the future, pre-generating popular combinations is under consideration.
+Currently, keywords are not included in the cache key, so if only keywords differ within the same bucket, a cache hit may result in an unintended reading. This is intentional by design, but without cache warming, OpenAI calls are concentrated during cold starts. We are considering pre-generating popular combinations in the future.
 
 ## Conclusion
 
-Tarot Core showcases the balance between caching and AI generation, reliable response formats created with Structured Outputs, and modern deployment using NestJS and Kubernetes. It stands out as a design that considers both cost and performance in a real operational environment, beyond just a simple toy.
+Tarot Core demonstrates a balance between caching and AI generation, reliable response formats created with Structured Outputs, and modern deployment using NestJS and Kubernetes. It stands out as a design that considers both cost and performance in a real operational environment, beyond just being a simple toy.

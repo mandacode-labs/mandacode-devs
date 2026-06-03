@@ -3,11 +3,16 @@ import path from "node:path";
 import crypto from "node:crypto";
 import matter from "gray-matter";
 import OpenAI from "openai";
-
-// Load translation configuration
+// Load translation configuration from central language config
+const languagesConfig = JSON.parse(
+  fs.readFileSync(
+    new URL("../config/languages.json", import.meta.url),
+    "utf-8",
+  ),
+);
 const TRANSLATION_CONFIG = {
-  sourceLang: "ko",
-  targetLangs: ["en"],
+  sourceLang: languagesConfig.translation.source,
+  targetLangs: languagesConfig.translation.targets,
   contentDir: "src/content",
   cacheFile: ".translate-cache.json",
   collections: {
@@ -87,22 +92,23 @@ if (!OPENAI_API_KEY) {
 
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
-const TRANSLATION_STYLE = `You are a professional translator specializing in Korean-to-English technical content.
+/**
+ * Generate translation prompt with source and target languages
+ * @param {string} sourceLang - Source language code
+ * @param {string} targetLang - Target language code
+ * @returns {string}
+ */
+function getTranslationStyle(sourceLang, targetLang) {
+  return `You are a professional translator.
+Translate the following content from ${sourceLang} to ${targetLang}.
 
-Style Guidelines:
-- Natural, professional English suitable for a developer portfolio
-- Technical terms should be used naturally (e.g., "implement" instead of "carry out")
-- Maintain a confident, knowledgeable tone
-- Avoid overly literal translations
-- Use active voice where possible
-
-Rules:
-- PRESERVE all code blocks, URLs, file paths, technical terms, and proper nouns
-- MAINTAIN all markdown formatting (headers, lists, bold, italic, links)
-- DO NOT translate content inside backticks or code fences
-- KEEP frontmatter fields like urls, paths, identifiers, and dates unchanged
-- PRESERVE date fields (pubDate, updatedDate, etc.) in their original format
-- Maintain the original structure and formatting`;
+Guidelines:
+- Maintain the original author's tone, style, and voice
+- Adapt expressions to sound natural for ${targetLang} speakers
+- Preserve technical terms, code blocks, URLs, and markdown formatting
+- Do not translate content inside backticks or code fences
+- Keep frontmatter metadata (dates, URLs, paths) unchanged`;
+}
 
 /**
  * Generate MD5 hash for content caching
@@ -130,7 +136,10 @@ function loadCache() {
  * @param {Record<string, string>} cache
  */
 function saveCache(cache) {
-  fs.writeFileSync(TRANSLATION_CONFIG.cacheFile, JSON.stringify(cache, null, 2));
+  fs.writeFileSync(
+    TRANSLATION_CONFIG.cacheFile,
+    JSON.stringify(cache, null, 2),
+  );
 }
 
 /**
@@ -181,7 +190,7 @@ async function translateNestedItems(items, fields, targetLang) {
         }
       }
       return translatedItem;
-    })
+    }),
   );
 }
 
@@ -198,10 +207,16 @@ async function translateText(text, targetLang) {
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
-        { role: "system", content: TRANSLATION_STYLE },
+        {
+          role: "system",
+          content: getTranslationStyle(
+            TRANSLATION_CONFIG.sourceLang,
+            targetLang,
+          ),
+        },
         {
           role: "user",
-          content: `Translate the following Korean text to ${targetLang === "en" ? "English" : targetLang}:\n\n${text}`,
+          content: `Translate the following ${TRANSLATION_CONFIG.sourceLang === "ko" ? "Korean" : TRANSLATION_CONFIG.sourceLang} text to ${targetLang === "en" ? "English" : targetLang}:\n\n${text}`,
         },
       ],
       temperature: 0.3,
@@ -247,10 +262,16 @@ async function translateBody(body, targetLang) {
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
-        { role: "system", content: TRANSLATION_STYLE },
+        {
+          role: "system",
+          content: getTranslationStyle(
+            TRANSLATION_CONFIG.sourceLang,
+            targetLang,
+          ),
+        },
         {
           role: "user",
-          content: `Translate the following Korean markdown content to ${targetLang === "en" ? "English" : targetLang}. Keep all markdown formatting, code blocks, and technical terms unchanged:\n\n${body}`,
+          content: `Translate the following ${TRANSLATION_CONFIG.sourceLang === "ko" ? "Korean" : TRANSLATION_CONFIG.sourceLang} markdown content to ${targetLang === "en" ? "English" : targetLang}. Keep all markdown formatting, code blocks, and technical terms unchanged:\n\n${body}`,
         },
       ],
       temperature: 0.3,
@@ -326,26 +347,26 @@ async function translateFile(filePath, targetLang, cache) {
     // Extract translatable and preserved fields
     const { translatable, preserved } = extractTranslatableFields(
       collection,
-      parsed.data
+      parsed.data,
     );
 
     // Translate top-level fields
     const translatedFields = await translateFrontmatterFields(
       translatable,
-      targetLang
+      targetLang,
     );
 
     // Translate nested fields (certifications, education, etc.)
     const config = TRANSLATION_CONFIG.collections[collection];
     if (config?.nestedTranslatableFields) {
       for (const [nestedKey, nestedFields] of Object.entries(
-        config.nestedTranslatableFields
+        config.nestedTranslatableFields,
       )) {
         if (Array.isArray(preserved[nestedKey])) {
           preserved[nestedKey] = await translateNestedItems(
             preserved[nestedKey],
             nestedFields,
-            targetLang
+            targetLang,
           );
         }
       }
@@ -365,7 +386,7 @@ async function translateFile(filePath, targetLang, cache) {
     const sourceDir = path.dirname(filePath);
     const targetDir = sourceDir.replace(
       `/${TRANSLATION_CONFIG.sourceLang}`,
-      `/${targetLang}`
+      `/${targetLang}`,
     );
 
     if (!fs.existsSync(targetDir)) {
@@ -401,11 +422,11 @@ async function translateContent() {
 
       const sourceDir = path.join(
         collectionPath,
-        TRANSLATION_CONFIG.sourceLang
+        TRANSLATION_CONFIG.sourceLang,
       );
       if (!fs.existsSync(sourceDir)) {
         console.log(
-          `  ⚠ ${collection}: No ${TRANSLATION_CONFIG.sourceLang} folder found`
+          `  ⚠ ${collection}: No ${TRANSLATION_CONFIG.sourceLang} folder found`,
         );
         continue;
       }
@@ -435,8 +456,8 @@ async function translateContent() {
 async function translateUIStrings() {
   console.log("🌐 Translating UI strings...\n");
 
-  const KO_PATH = "src/i18n/ko.json";
-  const EN_PATH = "src/i18n/en.json";
+  const KO_PATH = "src/lib/i18n/ko.json";
+  const EN_PATH = "src/lib/i18n/en.json";
 
   const ko = JSON.parse(fs.readFileSync(KO_PATH, "utf-8"));
 
@@ -466,10 +487,13 @@ async function translateUIStrings() {
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: TRANSLATION_STYLE },
+        {
+          role: "system",
+          content: getTranslationStyle(TRANSLATION_CONFIG.sourceLang, "en"),
+        },
         {
           role: "user",
-          content: `Translate the following Korean UI strings to English. Return a JSON object with the same keys but translated values:\n\n${JSON.stringify(toTranslate, null, 2)}`,
+          content: `Translate the following ${TRANSLATION_CONFIG.sourceLang === "ko" ? "Korean" : TRANSLATION_CONFIG.sourceLang} UI strings to English. Return a JSON object with the same keys but translated values:\n\n${JSON.stringify(toTranslate, null, 2)}`,
         },
       ],
       response_format: { type: "json_object" },
@@ -491,7 +515,7 @@ async function translateUIStrings() {
 
     fs.writeFileSync(EN_PATH, JSON.stringify(updated, null, 2) + "\n");
     console.log(
-      `\n✅ UI translation complete! ${newKeys.length} strings translated`
+      `\n✅ UI translation complete! ${newKeys.length} strings translated`,
     );
   } catch (error) {
     console.error(`  ✗ UI translation failed: ${error.message}`);

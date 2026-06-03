@@ -1,5 +1,6 @@
 ---
-import { useTranslations, type Lang } from "@/i18n/utils";
+import { useTranslations, type Lang } from "@/lib/i18n/utils";
+import { getOtherLanguage, SUPPORTED_LANGUAGES } from "@/lib/config/languages";
 
 interface Props {
   currentLang: Lang;
@@ -9,8 +10,11 @@ const { currentLang } = Astro.props;
 const t = useTranslations(currentLang);
 
 const currentPath = Astro.url.pathname;
-const otherLang = currentLang === "ko" ? "en" : "ko";
-const otherUrl = currentPath.replace(/^\/(ko|en)/, `/${otherLang}`);
+const otherLang = getOtherLanguage(currentLang);
+const otherUrl = currentPath.replace(
+  new RegExp(`^/(${SUPPORTED_LANGUAGES.join("|")})`),
+  `/${otherLang}`,
+);
 ---
 
 <div class="relative group">

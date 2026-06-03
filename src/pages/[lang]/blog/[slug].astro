@@ -2,7 +2,9 @@
 import Layout from "@/components/layouts/Layout.astro";
 import Badge from "@/components/ui/Badge.astro";
 import { getCollection, render } from "astro:content";
-import { useTranslations, type Lang } from "@/i18n/utils";
+import { useTranslations, type Lang } from "@/lib/i18n/utils";
+import { formatDate } from "@/lib/utils/date";
+import { isValidLanguage } from "@/lib/config/languages";
 
 export async function getStaticPaths() {
   const posts = await getCollection("blog");
@@ -15,29 +17,27 @@ export async function getStaticPaths() {
 }
 
 const { lang, slug } = Astro.params;
-const t = useTranslations(lang as Lang);
+
+if (!lang || !isValidLanguage(lang)) {
+  return Astro.redirect("/ko/blog");
+}
+
+const typedLang: Lang = lang;
+const t = useTranslations(typedLang);
 
 const posts = await getCollection(
   "blog",
-  (p) => p.data.lang === lang && p.id.endsWith(`/${slug}`),
+  (p) => p.data.lang === typedLang && p.id.endsWith(`/${slug}`),
 );
 const post = posts[0];
 
 if (!post) {
-  return Astro.redirect(`/${lang}/blog`);
+  return Astro.redirect(`/${typedLang}/blog`);
 }
 
 const title = post.data.title;
 const description = post.data.description;
 const image = post.data.coverImage || post.data.ogImage;
-
-const formatDate = (date: Date) => {
-  return new Intl.DateTimeFormat(lang === "ko" ? "ko-KR" : "en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  }).format(date);
-};
 
 const { Content } = await render(post);
 ---
@@ -45,7 +45,7 @@ const { Content } = await render(post);
 <Layout title={title} description={description} ogImage={image}>
   <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
     <a
-      href={`/${lang}/blog`}
+      href={`/${typedLang}/blog`}
       class="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors mb-8"
     >
       <svg
@@ -75,7 +75,7 @@ const { Content } = await render(post);
     <header class="mb-8">
       <div class="flex items-center gap-2 mb-4">
         <time class="text-sm text-text-muted"
-          >{formatDate(post.data.pubDate)}</time
+          >{formatDate(post.data.pubDate, typedLang)}</time
         >
         <span class="text-text-muted">·</span>
         <div class="flex items-center gap-1.5">

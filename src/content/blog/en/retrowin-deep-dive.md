@@ -7,23 +7,24 @@ tags:
   - Keycloak
   - PostgreSQL
 lang: en
-coverImage: 'https://static.mandacode.com/mandacode-devs/projects/retrowin/cover.png'
-title: 'Retrowin: Implementing a POSIX Filesystem on S3'
+coverImage: "https://static.mandacode.com/mandacode-devs/projects/retrowin/cover.png"
+title: "Retrowin: Implementing a POSIX Filesystem on S3"
 description: >-
-  The design philosophy and technical decisions of Retrowin, which combines the
+  The design philosophy and technical decisions of Retrowin, which combine the
   scalability of object storage with the convenience of POSIX
 ---
+
 ## Problem Awareness
 
-While S3 offers excellent durability and scalability, it remains complex for developers to handle directly. It lacks directories, has coarse-grained permission management, and requires manual implementation for large file uploads.
+S3 offers excellent durability and scalability, but it remains complex for developers to handle directly. It lacks directories, has rough permission management, and requires manual implementation for large file uploads.
 
-Retrowin is a system that maintains S3's scalability while providing a POSIX filesystem interface. By storing Inodes and Dentries as JSON in PostgreSQL, it allows directory lookups without joins, and efficiently handles large files through a two-step upload process using temporary URLs. The addition of a retro Windows XP-style UI seeks to combine technical challenge with fun.
+Retrowin is a system that maintains S3's scalability while providing a POSIX filesystem interface. It stores inodes and dentries as JSON in PostgreSQL, allowing directory lookups without joins, and efficiently handles large files through a two-step upload process using temporary URLs. By adding a retro Windows XP-style UI, it seeks both technical challenge and fun.
 
 ## Core Design: Modern Reinterpretation of Inode and Dentry
 
-The primary design question was, "How can we represent the hierarchical structure of a filesystem in a relational DB?" We borrowed the concepts of Linux's inode and dentry but reinterpreted them in a modern way.
+The biggest design question was, "How to represent the hierarchical structure of a filesystem in a relational DB?" We borrowed the concepts of inode and dentry from Linux but reinterpreted them in a modern way.
 
-The Inode table stores file metadata, while Dentry manages the mapping of file names to Inode IDs within a directory. An interesting decision was to store Dentry as JSON in the content column of the Inode, rather than in a separate table. This allows directory lookups to read only a single row without joins, reducing latency and enabling the use of PostgreSQL's JSONB indexes. The downside is that modifying a directory requires rewriting the entire JSON, but since most directories contain fewer than a few hundred files, this overhead is minimal.
+The Inode table stores file metadata, while Dentry manages the mapping of file names and Inode IDs within a directory. An interesting decision was to store Dentry as JSON in the content column of Inode, rather than in a separate table. This allows directory lookups by reading only a single row, reducing latency, and leveraging PostgreSQL's JSONB indexing. The downside is that the entire JSON must be rewritten when modifying a directory, but since most directories contain fewer than hundreds of files, this overhead is minimal.
 
 ```mermaid
 graph TB
@@ -40,9 +41,9 @@ graph TB
 
 ## Large File Upload: Temporary URL and Atomic Completion
 
-Proxying files through the server to S3 can create bandwidth and memory bottlenecks. Retrowin addresses this with a two-step upload process using temporary URLs.
+Proxying files through the server to S3 creates bandwidth and memory bottlenecks. Retrowin solves this with a two-step upload process based on temporary URLs.
 
-When a client requests an upload, the server creates a pending record in the DB and issues a temporary S3 URL. The client uploads directly to S3 using this URL. Upon completion, the client notifies the server, which then atomically verifies the S3 object's existence, activates the status, creates the Inode, and links the Dentry within a PostgreSQL transaction. Idempotency keys are supported to reuse existing records on retry of the same upload request.
+When a client requests an upload, the server creates a pending record in the DB and issues a temporary S3 URL. The client uploads directly to S3 using this URL. Upon completion, the server is notified, and within a PostgreSQL transaction, it atomically verifies S3 existence, transitions the status to active, creates an Inode, and links the Dentry. Idempotency keys are also supported to reuse existing records on retry of the same upload request.
 
 ```mermaid
 sequenceDiagram
@@ -63,10 +64,10 @@ sequenceDiagram
     API->>S3: Verify Object Existence
     API->>DB: Activate Status, Create Inode, Link Dentry
     API->>DB: COMMIT
-    API-->>Client: Completion
+    API-->>Client: Complete
 ```
 
-### Key to Atomic Upload
+### Core of Atomic Upload
 
 ```go
 func (s *FsService) AtomicUpload(ctx context.Context, objectID string) error {
@@ -91,28 +92,28 @@ func (s *FsService) AtomicUpload(ctx context.Context, objectID string) error {
 
 All operations are performed atomically within the transaction, ensuring no data inconsistency even if a failure occurs midway.
 
-## Authentication and Authorization: Adhering to Standards
+## Authentication and Authorization: Following Standards
 
-Permission management is crucial in a filesystem. We use Keycloak as an OIDC provider to follow standardized authentication flows. PKCE is applied to ensure secure authentication on both mobile and desktop clients, and OIDC clients are lazily initialized to prevent server startup from halting if Keycloak is temporarily unavailable.
+Permission management is vital for filesystems. By using Keycloak as an OIDC provider, we adhere to standardized authentication flows. PKCE is applied for secure authentication on mobile and desktop clients, and the OIDC client is lazily initialized, so server startup isn't halted if Keycloak is temporarily down.
 
-File permissions follow the standard Unix permission bits, controlling read/write/execute access for the owner, group, and others, with root having full access.
+File permissions follow the standard Unix permission bits, controlling read/write/execute access for owners, groups, and others, with root having full access.
 
-| Principal      | Read | Write | Execute |
-| -------------- | ---- | ---- | ---- |
-| Owner          | ✅   | ✅   | ✅   |
-| Group          | ✅   | ❌   | ✅   |
-| Other          | ❌   | ❌   | ❌   |
+| Subject | Read | Write | Execute |
+| ------- | ---- | ----- | ------- |
+| Owner   | ✅   | ✅    | ✅      |
+| Group   | ✅   | ❌    | ✅      |
+| Other   | ❌   | ❌    | ❌      |
 
 ## Cleaning Up Forgotten Files
 
-Over time, pending files that were never completed or orphaned records that remain in the DB after being deleted from S3 can accumulate. A two-step cleanup is performed daily at 3 AM using a Kubernetes CronJob. First, expired objects pending for over 24 hours are removed, followed by cleaning up orphaned objects marked as active in the DB but missing from S3.
+Over time, pending files that haven't completed uploading or orphaned records that remain in the DB but are deleted from S3 can accumulate. A Kubernetes CronJob performs a two-step cleanup daily at 3 AM. It first removes expired pending objects older than 24 hours, then identifies and cleans up orphaned objects marked active in the DB but missing in S3.
 
 ## Trade-offs and Lessons Learned
 
-While JSON-based Dentry improves lookup performance, the in-memory lock for concurrent directory modifications limits horizontal scalability. Additionally, resolving symbolic links is recursive and lacks cycle detection, making it vulnerable to link loops. However, in environments with single users or small teams, these trade-offs are acceptable, and the simplicity offers significant operational advantages.
+JSON-based Dentry enhances lookup performance, but the in-memory lock for concurrent directory modifications limits horizontal scalability. Additionally, resolving symbolic links is recursive and lacks cycle detection, making it vulnerable to link loops. However, in single-user or small team environments, these trade-offs are acceptable, and the operational simplicity offers greater benefits.
 
-In terms of security context, we applied non-root execution, read-only root filesystem, and privilege escalation prevention.
+In the security context, non-root execution, read-only root filesystem, and privilege escalation prevention are applied.
 
 ## Conclusion
 
-Retrowin is an intriguing experiment that combines the scalability of object storage with the familiarity of a POSIX filesystem. It incorporates elements like atomic uploads, OIDC authentication, and garbage collection, all tailored for real-world operational environments, while actively leveraging modern tools from the Go ecosystem such as Ent ORM and ogen. The retro UI embodies the project's identity, pursuing both technical challenges and enjoyment.
+Retrowin is an intriguing experiment combining the scalability of object storage with the familiarity of a POSIX filesystem. It incorporates elements like atomic uploads, OIDC authentication, and garbage collection, considering real operational environments, while actively utilizing modern tools in the Go ecosystem such as Ent ORM and ogen. The retro UI reflects the project's identity, pursuing both technical challenges and fun.

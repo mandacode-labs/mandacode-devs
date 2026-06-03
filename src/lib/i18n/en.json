@@ -22,6 +22,7 @@
   "status.completed": "Completed",
   "duration": "Duration",
   "teamSize": "Team Size",
+  "teamSize.unit": "people",
   "role": "Role",
   "techStack": "Tech Stack",
   "certifications": "Certifications",

@@ -3,7 +3,8 @@ import Layout from "@/components/layouts/Layout.astro";
 import Badge from "@/components/ui/Badge.astro";
 import Button from "@/components/ui/Button.astro";
 import { getCollection, render } from "astro:content";
-import { useTranslations, type Lang } from "@/i18n/utils";
+import { useTranslations, type Lang } from "@/lib/i18n/utils";
+import { isValidLanguage } from "@/lib/config/languages";
 
 export async function getStaticPaths() {
   const projects = await getCollection("projects");
@@ -16,16 +17,22 @@ export async function getStaticPaths() {
 }
 
 const { lang, slug } = Astro.params;
-const t = useTranslations(lang as Lang);
+
+if (!lang || !isValidLanguage(lang)) {
+  return Astro.redirect("/ko/projects");
+}
+
+const typedLang: Lang = lang;
+const t = useTranslations(typedLang);
 
 const projects = await getCollection(
   "projects",
-  (p) => p.data.lang === lang && p.id.endsWith(`/${slug}`),
+  (p) => p.data.lang === typedLang && p.id.endsWith(`/${slug}`),
 );
 const project = projects[0];
 
 if (!project) {
-  return Astro.redirect(`/${lang}/projects`);
+  return Astro.redirect(`/${typedLang}/projects`);
 }
 
 const title = project.data.title;
@@ -112,7 +119,7 @@ const { Content } = await render(project);
         </h6>
         <p class="text-text-primary">
           {project.data.teamSize}
-          {lang === "ko" ? "명" : ""}
+          {t("teamSize.unit")}
         </p>
       </div>
       <div>

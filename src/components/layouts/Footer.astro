@@ -1,5 +1,5 @@
 ---
-import { useTranslations, type Lang } from "@/i18n/utils";
+import { useTranslations, type Lang } from "@/lib/i18n/utils";
 
 interface Props {
   currentLang: Lang;
@@ -14,7 +14,11 @@ const year = new Date().getFullYear();
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-2">
-        <img src="https://static.mandacode.com/mandacode-devs/mandacode.webp" alt="Mandacode" class="h-5 w-5 opacity-60" />
+        <img
+          src="https://static.mandacode.com/mandacode-devs/mandacode.webp"
+          alt="Mandacode"
+          class="h-5 w-5 opacity-60"
+        />
         <span class="text-sm text-text-muted"
           >{t("footer.copyright", { year })}</span
         >

@@ -1,7 +1,7 @@
 ---
 import Layout from "@/components/layouts/Layout.astro";
 import NavigationCard from "@/components/content/NavigationCard.astro";
-import { useTranslations } from "@/i18n/utils";
+import { useTranslations } from "@/lib/i18n/utils";
 
 const t = useTranslations("ko");
 
@@ -66,13 +66,20 @@ const cards = [
 </Layout>
 
 <script>
-  // Detect browser language and redirect English users to /en/
+  // Detect browser language and redirect to appropriate locale
   (function () {
-    const userLang = navigator.language || navigator.languages?.[0] || "ko";
+    const SUPPORTED_LANGUAGES = ["ko", "en"];
+    const DEFAULT_LANGUAGE = "ko";
+
+    const userLang =
+      navigator.language || navigator.languages?.[0] || DEFAULT_LANGUAGE;
     const primaryLang = userLang.split("-")[0].toLowerCase();
 
-    if (primaryLang === "en") {
-      window.location.replace("/en/");
+    if (
+      SUPPORTED_LANGUAGES.includes(primaryLang) &&
+      primaryLang !== DEFAULT_LANGUAGE
+    ) {
+      window.location.replace(`/${primaryLang}/`);
     }
   })();
 </script>

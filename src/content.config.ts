@@ -1,6 +1,7 @@
 import { defineCollection } from "astro:content";
 import { z } from "astro/zod";
 import { glob } from "astro/loaders";
+import { SUPPORTED_LANGUAGES } from "./lib/config/languages";
 
 const projects = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/content/projects" }),
@@ -17,7 +18,7 @@ const projects = defineCollection({
     teamSize: z.number(),
     role: z.string(),
     order: z.number(),
-    lang: z.string(),
+    lang: z.enum(SUPPORTED_LANGUAGES),
   }),
 });
 
@@ -31,7 +32,7 @@ const developers = defineCollection({
     github: z.url().optional(),
     email: z.email().optional(),
     website: z.url().optional(),
-    lang: z.string(),
+    lang: z.enum(SUPPORTED_LANGUAGES),
     techStack: z.array(z.string()).optional(),
     certifications: z
       .array(
@@ -67,7 +68,7 @@ const blog = defineCollection({
     draft: z.boolean().default(false),
     coverImage: z.string().optional(),
     ogImage: z.string().optional(),
-    lang: z.string(),
+    lang: z.enum(SUPPORTED_LANGUAGES),
   }),
 });
 

@@ -1,4 +1,6 @@
 ---
+import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "@/lib/config/languages";
+
 interface Props {
   title: string;
   description?: string;
@@ -43,27 +45,29 @@ const currentUrl = new URL(Astro.url.pathname, site).toString();
 <link rel="canonical" href={canonical || currentUrl} />
 
 <!-- Alternate languages -->
-<link
-  rel="alternate"
-  hreflang="ko"
-  href={new URL(
-    Astro.url.pathname.replace(/^\/(en)\//, "/ko/"),
-    site,
-  ).toString()}
-/>
-<link
-  rel="alternate"
-  hreflang="en"
-  href={new URL(
-    Astro.url.pathname.replace(/^\/(ko)\//, "/en/"),
-    site,
-  ).toString()}
-/>
+{
+  SUPPORTED_LANGUAGES.map((lang) => (
+    <link
+      rel="alternate"
+      hreflang={lang}
+      href={new URL(
+        Astro.url.pathname.replace(
+          new RegExp(`^/(${SUPPORTED_LANGUAGES.join("|")})/`),
+          `/${lang}/`,
+        ),
+        site,
+      ).toString()}
+    />
+  ))
+}
 <link
   rel="alternate"
   hreflang="x-default"
   href={new URL(
-    Astro.url.pathname.replace(/^\/(ko|en)\//, "/ko/"),
+    Astro.url.pathname.replace(
+      new RegExp(`^/(${SUPPORTED_LANGUAGES.join("|")})/`),
+      `/${DEFAULT_LANGUAGE}/`,
+    ),
     site,
   ).toString()}
 />

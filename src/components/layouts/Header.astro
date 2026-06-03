@@ -1,6 +1,10 @@
 ---
-import LanguageSwitcher from "../shared/LanguageSwitcher.astro";
-import { useTranslations, getRelativeLocaleUrl, type Lang } from "@/i18n/utils";
+import LanguageSwitcher from "../LanguageSwitcher.astro";
+import {
+  useTranslations,
+  getRelativeLocaleUrl,
+  type Lang,
+} from "@/lib/i18n/utils";
 
 interface Props {
   currentLang: Lang;
@@ -28,7 +32,11 @@ const currentPath = Astro.url.pathname;
         href={getRelativeLocaleUrl(currentLang, "/")}
         class="flex items-center gap-2"
       >
-        <img src="https://static.mandacode.com/mandacode-devs/mandacode.webp" alt="Mandacode" class="h-7 w-7" />
+        <img
+          src="https://static.mandacode.com/mandacode-devs/mandacode.webp"
+          alt="Mandacode"
+          class="h-7 w-7"
+        />
         mandacode
       </a>
 

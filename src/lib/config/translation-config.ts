@@ -4,12 +4,20 @@
  * This is used by the OpenAI translation script to ensure type-safe translation.
  */
 
+import { TRANSLATION_SOURCE, TRANSLATION_TARGETS } from "./languages";
+
+interface CollectionConfig {
+  translatableFields: string[];
+  preservedFields: string[];
+  nestedTranslatableFields?: Record<string, string[]>;
+}
+
 export const TRANSLATION_CONFIG = {
+  sourceLang: TRANSLATION_SOURCE,
+  targetLangs: TRANSLATION_TARGETS,
   collections: {
     blog: {
-      // Fields that should be translated (string content)
       translatableFields: ["title", "description"],
-      // Fields that should be preserved exactly as-is
       preservedFields: [
         "pubDate",
         "updatedDate",
@@ -28,7 +36,7 @@ export const TRANSLATION_CONFIG = {
         "sourceUrl",
         "blogUrl",
       ],
-    },
+    } as CollectionConfig,
     projects: {
       translatableFields: ["title", "description", "duration", "role"],
       preservedFields: [
@@ -47,7 +55,7 @@ export const TRANSLATION_CONFIG = {
         "sourceUrl",
         "blogUrl",
       ],
-    },
+    } as CollectionConfig,
     developers: {
       translatableFields: ["name", "role", "bio"],
       nestedTranslatableFields: {
@@ -72,7 +80,7 @@ export const TRANSLATION_CONFIG = {
         "badge",
         "url",
       ],
-    },
+    } as CollectionConfig,
   },
 };
 
@@ -82,8 +90,14 @@ export const TRANSLATION_CONFIG = {
  * @param {string} field - Field name
  * @returns {boolean}
  */
-export function isTranslatableField(collection, field) {
-  const config = TRANSLATION_CONFIG.collections[collection];
+export function isTranslatableField(
+  collection: string,
+  field: string,
+): boolean {
+  const config =
+    TRANSLATION_CONFIG.collections[
+      collection as keyof typeof TRANSLATION_CONFIG.collections
+    ];
   if (!config) return false;
   return config.translatableFields.includes(field);
 }
@@ -94,8 +108,11 @@ export function isTranslatableField(collection, field) {
  * @param {string} field - Field name
  * @returns {boolean}
  */
-export function isPreservedField(collection, field) {
-  const config = TRANSLATION_CONFIG.collections[collection];
+export function isPreservedField(collection: string, field: string): boolean {
+  const config =
+    TRANSLATION_CONFIG.collections[
+      collection as keyof typeof TRANSLATION_CONFIG.collections
+    ];
   if (!config) return false;
   return config.preservedFields.includes(field);
 }
@@ -105,7 +122,12 @@ export function isPreservedField(collection, field) {
  * @param {string} collection - Collection name
  * @returns {Record<string, string[]> | undefined}
  */
-export function getNestedTranslatableFields(collection) {
-  const config = TRANSLATION_CONFIG.collections[collection];
+export function getNestedTranslatableFields(
+  collection: string,
+): Record<string, string[]> | undefined {
+  const config =
+    TRANSLATION_CONFIG.collections[
+      collection as keyof typeof TRANSLATION_CONFIG.collections
+    ];
   return config?.nestedTranslatableFields;
 }
