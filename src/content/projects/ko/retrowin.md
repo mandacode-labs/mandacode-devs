@@ -13,9 +13,11 @@ techStack:
   - Keycloak
   - PostgreSQL
   - Valkey
-  - ogen
   - Ent ORM
   - Helm
+duration: "2024.03 - 2024.08"
+teamSize: 1
+role: "풀스택 개발"
 order: 1
 lang: ko
 coverImage: "https://static.mandacode.com/mandacode-devs/projects/retrowin/cover.png"

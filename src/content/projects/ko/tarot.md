@@ -14,6 +14,9 @@ techStack:
   - Docker
   - Kubernetes
   - Helm
+duration: "2024.06 - 2024.09"
+teamSize: 1
+role: "풀스택 개발"
 order: 3
 lang: ko
 coverImage: "https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png"

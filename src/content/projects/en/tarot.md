@@ -14,6 +14,9 @@ techStack:
   - Docker
   - Kubernetes
   - Helm
+duration: "2024.06 - 2024.09"
+teamSize: 1
+role: "Full Stack Development"
 order: 3
 lang: en
 coverImage: 'https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png'

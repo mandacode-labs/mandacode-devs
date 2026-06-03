@@ -9,6 +9,9 @@ techStack:
   - YOLO
   - PySide6
   - OpenPyXL
+duration: "2023.09 - 2023.12"
+teamSize: 1
+role: "풀스택 개발"
 order: 3
 lang: ko
 blogUrl: "/ko/blog/korean-license-plate-deep-dive"

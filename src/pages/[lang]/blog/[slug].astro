@@ -66,8 +66,8 @@ const { Content } = await render(post);
 
     {
       image && (
-        <div class="aspect-video rounded-xl overflow-hidden bg-bg-secondary mb-8">
-          <img src={image} alt={title} class="w-full h-full object-cover" />
+        <div class="flex w-full max-h-[30rem]! justify-center rounded-xl overflow-hidden bg-bg-secondary mb-8">
+          <img src={image} alt={title} class="w-full h-full object-contain" />
         </div>
       )
     }
