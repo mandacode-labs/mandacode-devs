@@ -1,8 +1,9 @@
 ---
-title: "Meerkat: Designing and Implementing an AI Agent-Based Observability Platform"
+title: 'Meerkat: Changing the paradigm of log analysis with AI agents'
 description: >-
-  In-depth technical analysis of the Meerkat project's architecture, log
-  ingestion pipeline, AI Agent analysis loop, and operational strategy.
+  The design philosophy and implementation story of Meerkat, which pushes the
+  boundaries of rule-based alerts and lets AI agents analyze infrastructure on
+  their own.
 pubDate: 2026-06-02T00:00:00.000Z
 tags:
   - Go
@@ -10,40 +11,119 @@ tags:
   - Observability
   - OpenTelemetry
   - RAG
-  - Kubernetes
 lang: en
+coverImage: 'https://static.mandacode.com/mandacode-devs/projects/meerkat/cover.png'
 ---
 
-## enters
+## Problem statement
 
-In modern distributed systems, logs and metrics have become massive, but interpreting them is still a human endeavor. Meerkat is an attempt to address this point with an AI agent. Rather than simply collecting and storing logs, we've built a system of agents that query, analyze, and draw conclusions directly from LLM. In this article, we'll cover the design philosophy and implementation details of two of Meerkat's core services, Analyzer and Vectors.
+PagerDuty notification that goes off in the middle of the night. "CPU over 90%".
+Woke up and checked the dashboard and realized it was caused by a batch job that was running from yesterday,
+It's supposed to go down automatically in 30 minutes.
+These false alerts pile up and desensitize you to the real problem when it comes.
 
-## Vectors: a semantic log store
+Meerkat set out to solve this problem from the ground up.
+Instead of rule-based alerts, our AI agent reads logs and metrics directly and uses
+tools like Prometheus, Loki, and others to infer the cause.
+Logs are vectorized and stored for semantic search,
+Analyzer and Vectors into two services that can scale independently.
 
-Meerkat's Vectors service is not just a log aggregator, but a vector repository with semantic search. It receives logs from applications over the OpenTelemetry OTLP protocol, converts them into structured entries, and burns them through a pipeline.
+## Core design: two services, two responsibilities
 
-The first step in the pipeline is filtering. It supports three modes: all, severity, and template. The default, template mode, is a simplified implementation of the Drain algorithm. It uses regular expressions to mask parameters such as integers, IPs, paths, and emails, and then merges them with templates that have a token-wise similarity of at least 0.7. It keeps up to 10,000 templates in memory and emits them in an LRU fashion, and does not vectorize duplicate logs, which significantly reduces the cost of embedding API calls.
+Meerkat is organized into two services: Analyzer and Vectors.
+This separation is an intentional design.
 
-Logs that pass the filtering are embedded with OpenAI's text-embedding-3-small model and stored in Milvus. The Milvus collection uses the HNSW index and enables metadata-driven search by applying service name and time range as expression filters. Vectors also exposes its own Prometheus metrics, which measure ingestion volume, deduplication rate, and search and embedding latency.
+**Vectors focuses solely on taking logs and storing them in a meaningful way.
+Logs coming into the OpenTelemetry OTLP are template extracted to remove duplicates,
+OpenAI embedding, and then stored as vectors in Milvus.
+Even if a service leaves tens of thousands of logs per day, only a few dozen unique templates are actually vectorized.
+significantly reducing storage costs and improving search efficiency.
 
-## Analyzer: AI agents that use the tool
+The **Analyzer** focuses solely on AI analysis and worker management.
+It receives requests via HTTP API and processes them in an asynchronous worker pool,
+requests Vectors for semantic search when needed.
+The two services communicate with gRPC and can scale out independently of each other.
 
-The Analyzer service is an HTTP API server that puts incoming requests into an asynchronous worker pool for processing. It is configured with a buffered channel size of 1000, 10 workers, and provides a backpressure that immediately returns a 429 error when the queue is full. Report statuses are managed as queued, running, completed, and failed, and duplicate requests with the same trigger are blocked within a 5 minute window.
+```mermaid
+graph LR
+    subgraph "데이터 흐름"
+        App[애플리케이션] -- OTLP Logs --> Vectors
+        Vectors -- 임베딩 저장 --> Milvus[(Milvus)]
+        Client[사용자/웹훅] -- 분석 요청 --> Analyzer
+        Analyzer -- 의미 검색 --> Vectors
+        Analyzer -- 메트릭/로그 쿼리 --> Prometheus
+        Analyzer -- LLM 호출 --> OpenAI
+    end
+```
 
-At the heart of the analysis is the LLM Agent Loop. Analyzer provides LLM with a list of available tools, and LLM writes its own PromQL or LogQL to query Prometheus or Loki, or asks Vectors for a natural language search. Tool results are limited to 30,000 characters, and errors are categorized as parameter_validation, connection, or query, prompting the LLM to retry or change strategy.
+### Effect of template extraction
 
-Of particular interest is the context overflow recovery mechanism. If the LLM returns a context length error, the Analyzer summarizes the previous conversation turns, compresses them into a single message, and retries, keeping only the last two exchanges. Additionally, Vectors' GetContext uses the zero-vector trick of embedding an empty string to retrieve recent logs by metadata filters alone, without semantic similarity.
+| Filter Modes | Behavior | Use Cases |
+| ------------------- | ---------------------------- | ----------------------------- |
+| **all** | Vectorizes all logs | Small services, development environments |
+| **severity** | Processes only above a specified level | Production environments, error-centric monitoring |
+| **template** (default) | Drain algorithm removes duplicates | large services, cost optimization
 
-## Communication and deployment between services
+## That AI uses tools
 
-Analyzer and Vectors communicate with gRPC. Through the Search and GetContext methods defined by ProtoBuf, Analyzer requests semantic search from Vectors, while Vectors performs OTLP reception and vector storage independently. This separation allows Vectors to receive logs directly from OpenTelemetry Collector, and Analyzer to focus on AI analysis.
+At its core, Analyzer is about giving LLMs tools and letting them use them on their own.
+Prometheus, Loki, VictoriaLogs queries and Vectors semantic search,
+We provide four tools
 
-The database is only PostgreSQL, and the Ent ORM manages only Report entities. We intentionally kept the schema minimal to reduce operational complexity. Deployment is done with Helm Chart, storing settings and system prompts in ConfigMap, and API keys and DB passwords separately in Secret. The migration runs as a Kubernetes Job and can be integrated with the ArgoCD PreSync hook.
+When I get a request to "analyze error spikes," this is what happens.
+First, we search Vectors for recent error logs for that service,
+Prometheus to see how the error rate is trending,
+Loki to analyze the frequency of specific error messages.
+Putting it all together, we find "Error spike due to Redis connection timeout,
+started at 14:23, auto-recovered at 14:45" and draws conclusions such as "Redis connection timeout.
 
-## What we didn't like and how to improve
+The tool limits its results to 30,000 characters,
+Errors are categorized into query syntax errors, connection failures, and query failures.
+If LLM says, "This is wrong with my query, fix it and try again" or
+"Prometheus is unresponsive, let's go to Loki".
 
-Currently, queues are in-memory channel-based, so jobs in queued state are lost when Analyzer restarts. They remain queued in the DB, but there is no mechanism to reprocess them. Also, Vectors' OTLP and gRPC endpoints are not authenticated, which can be dangerous in low confidence interval networks. In the future, we plan to apply persistent queues and mTLS to increase transportation reliability.
+```mermaid
+sequenceDiagram
+    participant User as 사용자
+    participant Analyzer as Analyzer
+    participant LLM as LLM
+    participant Tools as 도구들
 
-## Closing thoughts.
+    User->>Analyzer: 분석 요청
+    Analyzer->>LLM: 컨텍스트 + 사용 가능한 도구 목록
 
-Meerkat has gone beyond simply calling LLM APIs, combining a tool-enabled agent architecture with semantic log search and a controllable pool of asynchronous workers to create an observability platform that can be used in real production environments. The ultimate goal of the project is to provide natural language-based, intuitive insights to teams where rule-based alerting has reached its limits.
+    loop 에이전트 루프
+        LLM-->>Analyzer: 도구 호출 또는 최종 답변
+
+        alt 도구 호출
+            Analyzer->>Tools: Prometheus/Loki/Vectors 쿼리
+            Tools-->>Analyzer: 결과
+        else 최종 답변
+            Analyzer-->>User: 분석 완료
+        end
+    end
+```
+
+## Considerations for production environments
+
+The worker pool is configured with a buffered channel size of 1000 and 10 workers.
+When the queue is full, it immediately returns a 429 error to provide a backpressure.
+Duplicate analytics for the same trigger and query are automatically blocked within a
+automatically blocked within a 5 minute window.
+
+Deployments are managed by Helm Chart,
+ConfigMap contains settings and system prompts,
+Secret stores API keys and DB passwords separately.
+However, the queue in the worker pool is an in-memory channel.
+there is a limitation that queued jobs are lost when the server is restarted.
+In the future, we plan to apply persistence queues.
+
+## Closing
+
+Meerkat has gone beyond simply calling the LLM API.
+It uses an AI Agent architecture with tools and semantic log search,
+and a controllable pool of asynchronous workers.
+we've created a platform that can be used in real production environments.
+For teams where rules-based alerting has hit its limits
+Opening up new observability to understand what's going on with your infrastructure in natural language,
+That's the value of this project.
