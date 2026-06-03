@@ -168,3 +168,17 @@ code {
   margin-top: 2rem;
   margin-bottom: 0.75rem;
 }
+
+/* Inline code styling */
+.prose code:not(pre code) {
+  background-color: var(--color-bg-secondary);
+  padding: 0.2em 0.4em;
+  border-radius: var(--radius-sm);
+  font-size: 0.875em;
+  border: 1px solid var(--color-border);
+}
+
+.prose code:not(pre code)::before,
+.prose code:not(pre code)::after {
+  content: none;
+}

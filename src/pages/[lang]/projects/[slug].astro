@@ -4,6 +4,7 @@ import Badge from "@/components/ui/Badge.astro";
 import Button from "@/components/ui/Button.astro";
 import { getCollection, render } from "astro:content";
 import { useTranslations, type Lang } from "@/i18n/utils";
+import { getImageUrl } from "@/lib/images";
 
 export async function getStaticPaths() {
   const projects = await getCollection("projects");
@@ -30,7 +31,7 @@ if (!project) {
 
 const title = project.data.title;
 const description = project.data.description;
-const coverImage = project.data.coverImage;
+const coverImage = project.data.coverImage ? getImageUrl(project.data.coverImage) : null;
 const statusKey = `status.${project.data.status}` as const;
 
 const { Content } = await render(project);

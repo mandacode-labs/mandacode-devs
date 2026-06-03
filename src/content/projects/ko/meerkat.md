@@ -17,7 +17,7 @@ techStack:
   - Ent ORM
 order: 2
 lang: ko
-coverImage: "/images/projects/meerkat/cover.png"
+coverImage: "projects/meerkat/cover.png"
 blogUrl: "/ko/blog/meerkat-deep-dive"
 ---
 

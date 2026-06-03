@@ -18,7 +18,7 @@ techStack:
   - Helm
 order: 1
 lang: ko
-coverImage: "/images/projects/retrowin/cover.png"
+coverImage: "projects/retrowin/cover.png"
 blogUrl: "/ko/blog/retrowin-deep-dive"
 ---
 

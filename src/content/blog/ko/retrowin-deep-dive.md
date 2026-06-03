@@ -4,7 +4,7 @@ description: "오브젝트 스토리지의 확장성과 POSIX의 편의성을 �
 pubDate: 2026-06-02
 tags: ["Go", "S3", "Filesystem", "Keycloak", "PostgreSQL"]
 lang: ko
-coverImage: "/images/projects/retrowin/cover.png"
+coverImage: "projects/retrowin/cover.png"
 ---
 
 ## 문제의식

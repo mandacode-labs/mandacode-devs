@@ -4,7 +4,7 @@ description: "전통 OCR의 한계를 넘어 YOLO 기반 3단계 파이프라인
 pubDate: 2026-06-02
 tags: ["Python", "YOLO", "ONNX", "Computer Vision", "OCR"]
 lang: ko
-coverImage: "/images/projects/korean-license-plate/cover.png"
+coverImage: "projects/korean-license-plate/cover.png"
 ---
 
 ## 문제의식
@@ -61,14 +61,14 @@ graph LR
     Validate2 --> Output
 ```
 
-## 검증과 폴스백: 안정성과 효율의 균형
+## 검증과 fallback: 안정성과 효율의 균형
 
 원근 변환이 항상 완벽하지는 않습니다.
 모서리 탐지가 실패하거나 기울어진 번호판을 마주할 수 있습니다.
 
 이 프로젝트는 **warped 이미지를 우선적으로 OCR**하고,
 정규표현식 검증을 통과하면 즉시 결과를 반환합니다.
-실패할 경우에만 원본 cropped 이미지로 폴스백하여
+실패할 경우에만 원본 cropped 이미지로 fallback하여
 추가 OCR을 수행합니다.
 
 ```python
@@ -108,7 +108,7 @@ def validate_plate_num(plate_num, mask=True):
 ```
 
 이 방식은 warping이 성공하면 OCR 1회로 처리하고,
-실패할 때만 cropped 이미지로 폴스백합니다.
+실패할 때만 cropped 이미지로 fallback합니다.
 불필요한 추론을 줄이면서도 안정성을 유지하는 설계입니다.
 
 문자 탐지 후에는 NMS로 중복 바울딩 박스를 제거하고,
@@ -175,7 +175,7 @@ YOLO 기반 문자 탐지는 불규칙한 간격과 가림에 강하지만
 작은 문자의 세밀한 인식률은 전통 OCR보다 낮을 수 있습니다.
 이를 보완하기 위해 warped 이미지를 우선적으로 OCR하고
 정규표현식 검증을 통과하면 즉시 반환하며,
-실패할 경우에만 cropped 이미지로 폴스백하는 메커니즘을 도입했습니다.
+실패할 경우에만 cropped 이미지로 fallback하는 메커니즘을 도입했습니다.
 NMS 임계값 0.3은 문자 간 겹침이 많은 번호판에서
 중복 제거와 누락 방지의 균형점입니다.
 
@@ -189,7 +189,7 @@ GUI의 모달 입력 방식은 다소 구식으로 보일 수 있지만
 
 이 프로젝트는 단순한 딥러닝 데모를 넘어
 실제 현장에서 사용 가능한 도구를 지향합니다.
-3단계 모델 파이프라인의 모듈화, 우선 검증과 폴스백의 안정성,
+3단계 모델 파이프라인의 모듈화, 우선 검증과 fallback의 안정성,
 PySide6 GUI의 사용성,
 그리고 PyInstaller와 GitHub Actions를 활용한
 크로스 플랫폼 배포까지 전체 라이프사이클을 고려한 설계가 돋보입니다.

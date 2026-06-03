@@ -4,7 +4,7 @@ description: "규칙 기반 알림의 한계를 넘어 AI Agent가 직접 인프
 pubDate: 2026-06-02
 tags: ["Go", "AI", "Observability", "OpenTelemetry", "RAG"]
 lang: ko
-coverImage: "/images/projects/meerkat/cover.png"
+coverImage: "projects/meerkat/cover.png"
 ---
 
 ## 문제의식

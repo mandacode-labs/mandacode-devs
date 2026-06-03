@@ -16,7 +16,7 @@ techStack:
   - Helm
 order: 3
 lang: ko
-coverImage: "/images/projects/tarot/cover.png"
+coverImage: "projects/tarot/cover.png"
 blogUrl: "/ko/blog/tarot-deep-dive"
 ---
 

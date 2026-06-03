@@ -3,6 +3,7 @@ import Layout from "@/components/layouts/Layout.astro";
 import Badge from "@/components/ui/Badge.astro";
 import { getCollection, render } from "astro:content";
 import { useTranslations, type Lang } from "@/i18n/utils";
+import { getImageUrl } from "@/lib/images";
 
 export async function getStaticPaths() {
   const posts = await getCollection("blog");
@@ -29,7 +30,11 @@ if (!post) {
 
 const title = post.data.title;
 const description = post.data.description;
-const image = post.data.coverImage || post.data.ogImage;
+const image = post.data.coverImage 
+  ? getImageUrl(post.data.coverImage) 
+  : post.data.ogImage 
+    ? getImageUrl(post.data.ogImage) 
+    : null;
 
 const formatDate = (date: Date) => {
   return new Intl.DateTimeFormat(lang === "ko" ? "ko-KR" : "en-US", {

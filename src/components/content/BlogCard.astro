@@ -4,6 +4,7 @@ import Card from "../ui/Card.astro";
 import Badge from "../ui/Badge.astro";
 import ImagePlaceholder from "../icons/ImagePlaceholder.astro";
 import { useTranslations, type Lang } from "@/i18n/utils";
+import { getImageUrl } from "@/lib/images";
 
 interface Props {
   post: CollectionEntry<"blog">;
@@ -15,6 +16,7 @@ const t = useTranslations(lang);
 
 const title = post.data.title;
 const description = post.data.description;
+const coverImage = post.data.coverImage ? getImageUrl(post.data.coverImage) : null;
 
 const formatDate = (date: Date) => {
   return new Intl.DateTimeFormat(lang === "ko" ? "ko-KR" : "en-US", {
