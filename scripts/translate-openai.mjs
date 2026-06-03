@@ -16,7 +16,7 @@ if (!OPENAI_API_KEY) {
 
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
-// 번역 스타일 설정
+// Translation style configuration
 const TRANSLATION_STYLE = `You are a professional translator specializing in Korean-to-English technical content.
 
 Style Guidelines:
@@ -51,13 +51,13 @@ function saveCache(cache) {
 }
 
 /**
- * 마크다운 콘텐츠를 OpenAI로 번역
- * frontmatter와 body를 한 번에 처리
+ * Translate markdown content using OpenAI
+ * Processes frontmatter and body together
  */
 async function translateMarkdown(content, sourceLang, targetLang) {
   const parsed = matter(content);
   
-  // 번역할 내용 준비
+  // Prepare content for translation
   const frontmatterStr = JSON.stringify(parsed.data, null, 2);
   const bodyStr = parsed.content;
   
@@ -95,7 +95,7 @@ Important:
 
     const result = JSON.parse(response.choices[0].message.content);
     
-    // 필수 필드 검증
+    // Validate required fields
     if (!result.frontmatter || !result.body) {
       throw new Error("Invalid response structure");
     }
@@ -108,7 +108,7 @@ Important:
 }
 
 /**
- * UI JSON 파일 번역 (한 번에 처리)
+ * Translate UI JSON file (process all at once)
  */
 async function translateUI(koJson) {
   const prompt = `Translate the following Korean UI strings to English.
@@ -125,7 +125,7 @@ Rules:
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // UI는 더 작은 모델로도 충분
+      model: "gpt-4o-mini", // Smaller model is sufficient for UI strings
       messages: [
         { role: "system", content: TRANSLATION_STYLE },
         { role: "user", content: prompt }
@@ -155,7 +155,7 @@ async function translateFile(filePath, targetLang, cache) {
   try {
     const result = await translateMarkdown(content, config.sourceLang, targetLang);
     
-    // 파일 경로에서 lang 결정 (결정적 동작)
+    // Determine lang from file path (deterministic behavior)
     const sourceDir = path.dirname(filePath);
     const targetDir = sourceDir.replace(
       `/${config.sourceLang}`,
@@ -164,15 +164,8 @@ async function translateFile(filePath, targetLang, cache) {
     const pathLang = path.basename(targetDir);
     result.frontmatter.lang = pathLang;
     
-    // 새 마크다운 생성
+    // Generate new markdown
     const newContent = matter.stringify(result.body, result.frontmatter);
-    
-    // 저장 경로 설정
-    const sourceDir = path.dirname(filePath);
-    const targetDir = sourceDir.replace(
-      `/${config.sourceLang}`,
-      `/${targetLang}`,
-    );
 
     if (!fs.existsSync(targetDir)) {
       fs.mkdirSync(targetDir, { recursive: true });
@@ -242,7 +235,7 @@ async function translateUIStrings() {
     console.log("No existing en.json, creating new one");
   }
 
-  // 새로 추가된 키만 번역
+  // Only translate newly added keys
   const newKeys = Object.keys(ko).filter(key => !existingEn[key]);
   
   if (newKeys.length === 0) {
@@ -260,10 +253,10 @@ async function translateUIStrings() {
   try {
     const translated = await translateUI(toTranslate);
     
-    // 기존 번역과 병합
+    // Merge with existing translations
     const updated = { ...existingEn, ...translated };
     
-    // 더 이상 존재하지 않는 키 제거
+    // Remove keys that no longer exist
     for (const key of Object.keys(updated)) {
       if (!(key in ko)) {
         delete updated[key];
@@ -278,7 +271,7 @@ async function translateUIStrings() {
   }
 }
 
-// 메인 실행
+// Main execution
 const mode = process.argv[2] || "all";
 
 async function main() {

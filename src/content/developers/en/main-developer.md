@@ -29,7 +29,7 @@ certifications:
     date: 2026-03
     badge: 'https://static.mandacode.com/mandacode-devs/certifications/cka.png'
   - name: Information Processing Engineer
-    issuer: Korea Industrial Manpower Corporation
+    issuer: Korea Industrial Human Resources Corporation
     date: 2023-11
     badge: 'https://static.mandacode.com/mandacode-devs/certifications/q-net.png'
 education:
@@ -44,12 +44,8 @@ education:
 ---
 ## Introduction
 
-Hello, I am Hyunwoo Lee, a developer with hands-on experience from frontend to infrastructure, providing a comprehensive understanding of services.<br>
-Starting from creating mods for my favorite games and sharing them with friends during my childhood, I have grown by finding ways to bring my ideas to life.
+Hello, I'm Hyunwoo Lee, a developer with hands-on experience from frontend to infrastructure, providing a comprehensive understanding of services.<br> Starting with creating mods for my favorite games and sharing them with friends, I have grown by finding ways to implement what I want to create.
 
-I have gained experience in developing various services, such as log analysis systems, file management services, and AI-based services, as well as operating them on both on-premises and cloud environments. This has allowed me to grow into a developer with a full understanding of frontend, backend, and infrastructure.<br>
-I am particularly interested in operating Kubernetes clusters, and I have accumulated diverse experiences such as automating cluster configuration using Terraform, setting up on-premises servers, and reducing costs through the operation of the Github Action Runner Controller. I was also able to expand my knowledge by obtaining the CKA certification.<br>
-In service development, I have experience in automating code management and deployment by setting up CI/CD pipelines, and I have maximized operational convenience by developing an AI-based automatic log monitoring and analysis system.<br>
-In Alibaba's OpenSandbox open-source project, I discovered security issues with the traditional configuration file-based approach in real deployment environments like Kubernetes, and I improved operational convenience and security by switching to an environment variable-based approach.
+From building various services such as log analysis systems, file management services, and AI-based services, to operating them on-premises and in the cloud, I have developed into a developer with a full understanding of frontend, backend, and infrastructure.<br> Particularly interested in operating Kubernetes clusters, I have gained diverse experiences such as automating cluster configuration using Terraform, setting up on-premises servers, and reducing costs through operating Github Action Runner Controller. I expanded my knowledge by obtaining the CKA certification.<br> In service development, I have experience in automating code management and deployment by setting up CI/CD pipelines and have maximized operational convenience by developing an AI-based automatic log monitoring and analysis system.<br> In Alibaba's OpenSandbox open-source project, I identified security issues with the existing configuration file-based method in real deployment environments like Kubernetes and improved operational convenience and security by switching to an environment variable-based method.
 
-My goal as a developer is to enjoy technical challenges and continuously grow. I love learning and applying new technologies to create better services. Additionally, I value collaborating with team members to grow together.
+My goal as a developer is to enjoy technical challenges and continuously grow. I love learning and applying new technologies to create better services. Additionally, I value collaborating with team members and growing together.

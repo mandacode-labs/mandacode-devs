@@ -17,12 +17,12 @@ techStack:
   - Helm
 duration: 2024.10 - 2024.12
 teamSize: 1
-role: Full-stack Developer
+role: Full-stack Development
 order: 1
 lang: en
 coverImage: 'https://static.mandacode.com/mandacode-devs/projects/retrowin/cover.png'
 blogUrl: /ko/blog/retrowin-deep-dive
 ---
-Retrowin is a distributed file management system that provides a POSIX-style file management interface by integrating with external object storage. Users can handle files with a familiar directory structure and permission system, while the actual data is securely stored in S3 or MinIO. It ensures data consistency with a two-step upload process based on presigned URLs and atomic transactions, and enhances security through Keycloak OIDC authentication and Unix-style permission management.
+Retrowin is a distributed file management system that provides a POSIX-style file management interface by integrating with external object storage. Users can manage files with familiar directory structures and permission systems, while the actual data is securely stored in S3 or MinIO. It ensures data consistency with a two-step upload based on Presigned URLs and atomic transactions, and secures authentication with Keycloak OIDC and Unix-style permission management.
 
-The Garbage Collection feature automatically cleans up unused files, reducing storage costs, and offers a retro aesthetic combined with a modern user experience through a Windows XP-style retro UI. Deployment utilizing Kubernetes and Helm Chart ensures high scalability and stability.
+The Garbage Collection feature automatically cleans up unused files to reduce storage costs, and the retro UI styled like Windows XP offers a nostalgic feel alongside a modern user experience. Deployment using Kubernetes and Helm Chart ensures high scalability and stability.
