@@ -4,7 +4,7 @@ role: DevOps
 bio: >-
   Developers who understand the service as a whole, with hands-on experience
   from front-end to back-end to infrastructure.
-avatar: /images/developers/avatar.webp
+avatar: https://static.mandacode.com/mandacode-devs/developers/avatar.webp
 github: 'https://github.com/sauce-git'
 email: sauce@mandacode.com
 website: 'https://dev.mandacode.com'
@@ -27,11 +27,11 @@ certifications:
   - name: Certified Kubernetes Administrator (CKA)
     issuer: Linux Foundation
     date: 2026-03
-    badge: /images/certifications/cka.png
+    badge: https://static.mandacode.com/mandacode-devs/certifications/cka.png
   - name: Information Processor
     issuer: Korea Industrial Workforce Agency
     date: 2023-11
-    badge: /images/certifications/q-net.png
+    badge: https://static.mandacode.com/mandacode-devs/certifications/q-net.png
 education:
   - period: 2015.03 - 2018.01
     institution: Guriga High School

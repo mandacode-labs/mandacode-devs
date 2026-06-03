@@ -12,7 +12,7 @@ techStack:
 order: 3
 lang: ko
 blogUrl: "/ko/blog/korean-license-plate-deep-dive"
-coverImage: "projects/korean-license-plate/cover.png"
+coverImage: "https://static.mandacode.com/mandacode-devs/projects/korean-license-plate/cover.png"
 ---
 
 한국어 자동차 번호판 검출기는 ONNX Runtime 기반의 실시간 이미지 처리 파이프라인으로, 

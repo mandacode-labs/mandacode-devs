@@ -4,7 +4,7 @@ description: "전통 OCR의 한계를 넘어 YOLO 기반 3단계 파이프라인
 pubDate: 2026-06-02
 tags: ["Python", "YOLO", "ONNX", "Computer Vision", "OCR"]
 lang: ko
-coverImage: "projects/korean-license-plate/cover.png"
+coverImage: "https://static.mandacode.com/mandacode-devs/projects/korean-license-plate/cover.png"
 ---
 
 ## 문제의식

@@ -3,7 +3,6 @@ import type { CollectionEntry } from "astro:content";
 import Card from "../ui/Card.astro";
 import Badge from "../ui/Badge.astro";
 import { useTranslations, type Lang } from "@/i18n/utils";
-import { getImageUrl } from "@/lib/images";
 
 interface Props {
   project: CollectionEntry<"projects">;
@@ -15,7 +14,7 @@ const t = useTranslations(lang);
 
 const title = project.data.title;
 const description = project.data.description;
-const coverImage = project.data.coverImage ? getImageUrl(project.data.coverImage) : null;
+const coverImage = project.data.coverImage;
 const statusKey = `status.${project.data.status}` as const;
 ---
 

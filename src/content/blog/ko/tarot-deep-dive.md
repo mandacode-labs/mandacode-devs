@@ -4,7 +4,7 @@ description: "OpenAI API 비용과 응답 속도를 최적화하면서도 매번
 pubDate: 2026-06-02
 tags: ["TypeScript", "NestJS", "OpenAI", "Redis", "Caching"]
 lang: ko
-coverImage: "projects/tarot/cover.png"
+coverImage: "https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png"
 ---
 
 ## 문제의식

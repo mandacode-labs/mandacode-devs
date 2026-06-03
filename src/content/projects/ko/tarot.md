@@ -16,7 +16,7 @@ techStack:
   - Helm
 order: 3
 lang: ko
-coverImage: "projects/tarot/cover.png"
+coverImage: "https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png"
 blogUrl: "/ko/blog/tarot-deep-dive"
 ---
 

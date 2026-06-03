@@ -9,8 +9,8 @@ tags:
   - image
   - markdown
 draft: false
-coverImage: /images/blog/test-blog-cover.webp
-ogImage: /images/blog/test-blog-og.webp
+coverImage: https://static.mandacode.com/mandacode-devs/blog/test-blog-cover.webp
+ogImage: https://static.mandacode.com/mandacode-devs/blog/test-blog-og.webp
 lang: en
 ---
 
@@ -22,7 +22,7 @@ This is a test of a **blog post with images**. It verifies that various markdown
 
 Below is an image inserted into the body:
 
-![body test image](/images/blog/test-body-image.webp)
+![body test image](https://static.mandacode.com/mandacode-devs/blog/test-body-image.webp)
 
 ### Various Markdown Elements
 

@@ -18,7 +18,7 @@ techStack:
   - Helm
 order: 1
 lang: ko
-coverImage: "projects/retrowin/cover.png"
+coverImage: "https://static.mandacode.com/mandacode-devs/projects/retrowin/cover.png"
 blogUrl: "/ko/blog/retrowin-deep-dive"
 ---
 

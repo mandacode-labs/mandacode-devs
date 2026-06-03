@@ -30,7 +30,7 @@ lang: ko
 서버라는 명목상? 완전히 한대로만 구성하기엔 리스크가 크다고 판단하여, 3대의 서버로 클러스터를 구성하기로 했습니다. (하나는 기존에 사용하던 미니 PC를 활용하기로 했습니다.)
 또한 서버용 케이스는 소음과 발열 문제로 인해 일반 데스크탑 케이스를 사용하기로 했습니다.
 
-![홈 클러스터 구성도](/images/projects/tarot/cover.png)
+![홈 클러스터 구성도](https://static.mandacode.com/mandacode-devs/blog/home-cluster/hardware.jpg)
 <center style="font-size: 0.9em; color: #666;">
 (그리하여 준비된 컴퓨터들)
 </center>
