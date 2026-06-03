@@ -8,10 +8,9 @@ techStack:
   - ONNX Runtime
   - YOLO
   - PySide6
-  - OpenPyXL
-duration: "2023.09 - 2023.12"
+duration: 2023.09 - 2023.12
 teamSize: 1
-role: "Full Stack Development"
+role: 풀스택 개발
 order: 3
 lang: en
 blogUrl: /ko/blog/korean-license-plate-deep-dive

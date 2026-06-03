@@ -14,9 +14,9 @@ techStack:
   - Docker
   - Kubernetes
   - Helm
-duration: "2024.06 - 2024.09"
-teamSize: 1
-role: "Full Stack Development"
+duration: 2024.06 - 2024.09
+teamSize: 2
+role: '프론트엔드, 백엔드 개발'
 order: 3
 lang: en
 coverImage: 'https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png'
@@ -24,7 +24,7 @@ blogUrl: /ko/blog/tarot-deep-dive
 ---
 
 Tarot Cards is an AI-powered service that utilizes OpenAI's language model to provide users with tarot card readings.
-It randomly selects cards from a 78-card deck, determines whether they are forward or reverse, and falls into one of several buckets to generate a new contextualized reading each time.
+It randomly selects a card from a 78-card deck, determines whether it is forward or reverse, and falls into one of several buckets to generate a new contextualized reading each time.
 A caching system allows for quick reuse of previously generated results to optimize API call cost and response speed, while responding gracefully to cache server failures by calling OpenAI directly.
 
 The NestJS-based backend ensures consistent responses with a structured output format,
