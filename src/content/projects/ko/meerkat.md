@@ -13,7 +13,6 @@ techStack:
   - Milvus
   - Kubernetes
   - Helm
-  - ogen
   - Ent ORM
 duration: "2024.09 - 2025.02"
 teamSize: 1
