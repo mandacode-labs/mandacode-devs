@@ -15,6 +15,9 @@ techStack:
   - Helm
   - ogen
   - Ent ORM
+duration: "2024.09 - 2025.02"
+teamSize: 1
+role: "풀스택 개발"
 order: 2
 lang: ko
 coverImage: "https://static.mandacode.com/mandacode-devs/projects/meerkat/cover.png"

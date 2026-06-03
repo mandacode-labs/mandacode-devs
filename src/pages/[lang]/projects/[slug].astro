@@ -99,6 +99,27 @@ const { Content } = await render(project);
       </div>
     </section>
 
+    <section class="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div>
+        <h6 class="text-text-muted uppercase tracking-wider mb-2">
+          {t("duration")}
+        </h6>
+        <p class="text-text-primary">{project.data.duration}</p>
+      </div>
+      <div>
+        <h6 class="text-text-muted uppercase tracking-wider mb-2">
+          {t("teamSize")}
+        </h6>
+        <p class="text-text-primary">{project.data.teamSize} {lang === "ko" ? "명" : ""}</p>
+      </div>
+      <div>
+        <h6 class="text-text-muted uppercase tracking-wider mb-2">
+          {t("role")}
+        </h6>
+        <p class="text-text-primary">{project.data.role}</p>
+      </div>
+    </section>
+
     <div class="prose prose-neutral max-w-none mb-8">
       <Content />
     </div>

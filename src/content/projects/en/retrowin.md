@@ -16,6 +16,9 @@ techStack:
   - ogen
   - Ent ORM
   - Helm
+duration: "2024.03 - 2024.08"
+teamSize: 1
+role: "Full Stack Development"
 order: 1
 lang: en
 coverImage: 'https://static.mandacode.com/mandacode-devs/projects/retrowin/cover.png'
