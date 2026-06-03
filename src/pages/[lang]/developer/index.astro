@@ -82,9 +82,7 @@ const { Content } = await render(developer);
     {
       developer.data.techStack && developer.data.techStack.length > 0 && (
         <section class="mb-10">
-          <h3 class="mb-4">
-            {t("techStack")}
-          </h3>
+          <h3 class="mb-4">{t("techStack")}</h3>
           <ul class="flex flex-wrap gap-2">
             {developer.data.techStack.map((tech) => (
               <li class="px-3 py-1.5 bg-surface border border-border rounded-lg text-sm text-text-secondary">
@@ -100,9 +98,7 @@ const { Content } = await render(developer);
       developer.data.certifications &&
         developer.data.certifications.length > 0 && (
           <section class="mb-10">
-            <h3 class="mb-4">
-              {t("certifications")}
-            </h3>
+            <h3 class="mb-4">{t("certifications")}</h3>
             <ul class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {developer.data.certifications.map((cert) => (
                 <li class="flex items-start gap-4 p-4 bg-surface border border-border rounded-xl">
@@ -142,17 +138,13 @@ const { Content } = await render(developer);
     {
       developer.data.education && developer.data.education.length > 0 && (
         <section class="mb-10">
-          <h3 class="mb-4">
-            {t("education")}
-          </h3>
+          <h3 class="mb-4">{t("education")}</h3>
           <ul class="space-y-4">
             {developer.data.education.map((edu) => (
               <li class="flex flex-col sm:flex-row sm:items-center gap-2 p-4 bg-surface border border-border rounded-xl">
                 <div class="flex-1">
                   <div class="flex items-center gap-2 mb-1">
-                    <h5>
-                      {edu.institution}
-                    </h5>
+                    <h5>{edu.institution}</h5>
                     <span class="px-2 py-0.5 text-xs bg-accent/10 text-accent rounded-full">
                       {edu.status}
                     </span>

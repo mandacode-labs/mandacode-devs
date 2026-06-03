@@ -4,7 +4,7 @@ description: "OpenAI API 비용과 응답 속도를 최적화하면서도 매번
 pubDate: 2026-06-02
 tags: ["TypeScript", "NestJS", "OpenAI", "Redis", "Caching"]
 lang: ko
-coverImage: "/images/projects/tarot/cover.png"
+coverImage: "https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png"
 ---
 
 ## 문제의식
@@ -65,10 +65,10 @@ Zod 스키마를 전달하면 OpenAI API가 JSON 형식을 강제하여
 
 ```typescript
 export const ReadResponseSchema = z.object({
-  title: z.string().min(1),      // 영어 카드명
-  titleKR: z.string().min(1),    // 한글 카드명
+  title: z.string().min(1), // 영어 카드명
+  titleKR: z.string().min(1), // 한글 카드명
   keywords: z.array(z.string()).min(1),
-  advice: z.string().min(1),     // 조언 메시지
+  advice: z.string().min(1), // 조언 메시지
 });
 ```
 

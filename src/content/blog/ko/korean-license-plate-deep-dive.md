@@ -4,7 +4,7 @@ description: "전통 OCR의 한계를 넘어 YOLO 기반 3단계 파이프라인
 pubDate: 2026-06-02
 tags: ["Python", "YOLO", "ONNX", "Computer Vision", "OCR"]
 lang: ko
-coverImage: "/images/projects/korean-license-plate/cover.png"
+coverImage: "https://static.mandacode.com/mandacode-devs/projects/korean-license-plate/cover.png"
 ---
 
 ## 문제의식
@@ -26,11 +26,11 @@ NMS와 극단점 기반 라인 피팅으로 지역명과 숫자를 분리하며
 전체 흐름은 `detect.py`의 `get_num()` 함수 하나로 제어합니다.
 세 개의 ONNX 모델이 각자의 전문 분야를 담당합니다.
 
-| 단계 | 모델 | 역할 |
-|------|------|------|
-| 1 | `plate_detect_v1` | 전체 이미지에서 번호판 영역 탐지 |
-| 2 | `vertex_detect_v1` | 네 모서리 탐지 후 원근 보정 |
-| 3 | `syllable_detect_v1` | 75개 클래스로 개별 문자 탐지 |
+| 단계 | 모델                 | 역할                             |
+| ---- | -------------------- | -------------------------------- |
+| 1    | `plate_detect_v1`    | 전체 이미지에서 번호판 영역 탐지 |
+| 2    | `vertex_detect_v1`   | 네 모서리 탐지 후 원근 보정      |
+| 3    | `syllable_detect_v1` | 75개 클래스로 개별 문자 탐지     |
 
 첫 번째 모델은 전체 이미지에서 번호판 영역 하나를 찾습니다.
 여러 후보 중 신뢰도가 가장 높은 것을 선택해 크롭합니다.
@@ -52,61 +52,63 @@ graph LR
     Plate --> Crop[번호판 크롭]
     Crop --> Vertex[모서리 탐지]
     Vertex --> Warp[원근 보정]
-    Crop --> OCR1[원본 OCR]
-    Warp --> OCR2[보정 OCR]
-    OCR1 --> Confirm[결과 검증]
-    OCR2 --> Confirm
-    Confirm --> Output[최종 번호]
+    Warp --> OCR1[warped OCR]
+    OCR1 --> Validate1[정규표현식 검증]
+    Validate1 -->|통과| Output[최종 번호]
+    Validate1 -->|실패| OCR2[cropped OCR]
+    Crop --> OCR2
+    OCR2 --> Validate2[정규표현식 검증]
+    Validate2 --> Output
 ```
 
-## 이중 검증: 한 번 더 확인
+## 검증과 fallback: 안정성과 효율의 균형
 
 원근 변환이 항상 완벽하지는 않습니다.
 모서리 탐지가 실패하거나 기울어진 번호판을 마주할 수 있습니다.
 
 이 프로젝트는 **warped 이미지를 우선적으로 OCR**하고,
 정규표현식 검증을 통과하면 즉시 결과를 반환합니다.
-실패할 경우에만 원본 cropped 이미지로 폴스백하여
+실패할 경우에만 원본 cropped 이미지로 fallback하여
 추가 OCR을 수행합니다.
 
 ```python
 def get_num(img):
     cropped = plate_detector.detect_and_crop(img)
     warped = vertex_detector.detect_and_warp(cropped)
-    
+
     # Step 1: warped 이미지 우선 OCR
     if warped is not None:
         res = syllable_detector.get_num_from_img(warped)
         result = validate_plate_num(res, mask=False)
         if result:
             return result
-    
+
     # Step 2: fallback - cropped 이미지 OCR
     if cropped is not None:
         res = syllable_detector.get_num_from_img(cropped)
         result = validate_plate_num(res, mask=False)
         if result:
             return result
-    
+
     return None
 
 def validate_plate_num(plate_num, mask=True):
     """단일 OCR 결과에 대해 regex 검증 + mask 적용"""
     if plate_num is None:
         plate_num = ''
-    
+
     m = re.fullmatch(PLATE_REGEX, plate_num)
     if m is None:
         return None
-    
+
     if mask:
         plate_num = re.search(OUTPUT_REGEX, plate_num).group()
-    
+
     return plate_num
 ```
 
 이 방식은 warping이 성공하면 OCR 1회로 처리하고,
-실패할 때만 cropped 이미지로 폴스백합니다.
+실패할 때만 cropped 이미지로 fallback합니다.
 불필요한 추론을 줄이면서도 안정성을 유지하는 설계입니다.
 
 문자 탐지 후에는 NMS로 중복 바울딩 박스를 제거하고,
@@ -119,23 +121,23 @@ def validate_plate_num(plate_num, mask=True):
 sequenceDiagram
     participant Detect as detect.py
     participant ONNX as ONNX Runtime
-    participant Confirm as confirm_num
+    participant Validate as validate_plate_num
 
-    Detect->>ONNX: 원본 이미지로 문자 인식
-    ONNX-->>Detect: 결과 A
-    Detect->>ONNX: 보정 이미지로 문자 인식
-    ONNX-->>Detect: 결과 B
+    Detect->>ONNX: warped 이미지로 문자 인식
+    ONNX-->>Detect: 결과
+    Detect->>Validate: 정규표현식 검증
 
-    Detect->>Confirm: 두 결과 비교 및 검증
-
-    alt A와 B 일치
-        Confirm->>Confirm: 결과 채택
-    else A만 검증 통과
-        Confirm->>Confirm: A 사용
-    else B만 검증 통과
-        Confirm->>Confirm: B 사용
-    else
-        Confirm->>Confirm: 실패 반환
+    alt 검증 통과
+        Validate-->>Detect: 최종 번호 반환
+    else 검증 실패
+        Detect->>ONNX: cropped 이미지로 문자 인식
+        ONNX-->>Detect: 결과
+        Detect->>Validate: 정규표현식 검증
+        alt 검증 통과
+            Validate-->>Detect: 최종 번호 반환
+        else
+            Validate-->>Detect: 실패 반환
+        end
     end
 ```
 
@@ -162,7 +164,7 @@ torch, tensorflow, matplotlib 같은 대형 라이브러리를
 모든 ONNX 모델은 Hugging Face Hub에서 자동 다운로드되며
 로컬 캐시에 저장되어 재다운로드를 방지합니다.
 
-GitHub Actions는 v* 태그 푸시 시
+GitHub Actions는 v\* 태그 푸시 시
 Linux, macOS, Windows용 릴리스를 자동으로 빌드하여
 GitHub Releases에 업로드합니다.
 사용자는 압축을 풀고 바로 실행할 수 있습니다.
@@ -171,8 +173,9 @@ GitHub Releases에 업로드합니다.
 
 YOLO 기반 문자 탐지는 불규칙한 간격과 가림에 강하지만
 작은 문자의 세밀한 인식률은 전통 OCR보다 낮을 수 있습니다.
-이를 보완하기 위해 이중 OCR과 정규표현식 검증,
-폴스백 메커니즘을 도입했습니다.
+이를 보완하기 위해 warped 이미지를 우선적으로 OCR하고
+정규표현식 검증을 통과하면 즉시 반환하며,
+실패할 경우에만 cropped 이미지로 fallback하는 메커니즘을 도입했습니다.
 NMS 임계값 0.3은 문자 간 겹침이 많은 번호판에서
 중복 제거와 누락 방지의 균형점입니다.
 
@@ -186,7 +189,7 @@ GUI의 모달 입력 방식은 다소 구식으로 보일 수 있지만
 
 이 프로젝트는 단순한 딥러닝 데모를 넘어
 실제 현장에서 사용 가능한 도구를 지향합니다.
-3단계 모델 파이프라인의 모듈화, 이중 검증의 안정성,
+3단계 모델 파이프라인의 모듈화, 우선 검증과 fallback의 안정성,
 PySide6 GUI의 사용성,
 그리고 PyInstaller와 GitHub Actions를 활용한
 크로스 플랫폼 배포까지 전체 라이프사이클을 고려한 설계가 돋보입니다.

@@ -2,6 +2,7 @@
 import SEO from "@/components/shared/SEO.astro";
 import Header from "@/components/layout/Header.astro";
 import Footer from "@/components/layout/Footer.astro";
+import { ClientRouter } from "astro:transitions";
 import "@/styles/global.css";
 import { getLocaleFromPath } from "@/i18n/utils";
 
@@ -21,6 +22,7 @@ const pageTitle = title ? `${title} | ${siteTitle}` : siteTitle;
 <html lang={currentLang}>
   <head>
     <SEO title={pageTitle} description={description} ogImage={ogImage} />
+    <ClientRouter />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -28,6 +30,14 @@ const pageTitle = title ? `${title} | ${siteTitle}` : siteTitle;
       rel="stylesheet"
     />
     <title>{pageTitle}</title>
+    <style is:global>
+      /* Disable view transition animations */
+      ::view-transition-old(root),
+      ::view-transition-new(root) {
+        animation: none;
+        mix-blend-mode: normal;
+      }
+    </style>
   </head>
   <body class="min-h-screen flex flex-col bg-bg-primary">
     <Header currentLang={currentLang} />

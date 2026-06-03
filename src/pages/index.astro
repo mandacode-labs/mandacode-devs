@@ -32,7 +32,7 @@ const cards = [
     <header class="text-center mb-16">
       <div class="flex justify-center mb-6">
         <img
-          src="/mandacode.webp"
+          src="https://static.mandacode.com/mandacode-devs/mandacode.webp"
           alt="Mandacode"
           width="200"
           height="auto"
@@ -67,12 +67,12 @@ const cards = [
 
 <script>
   // Detect browser language and redirect English users to /en/
-  (function() {
-    const userLang = navigator.language || navigator.languages?.[0] || 'ko';
-    const primaryLang = userLang.split('-')[0].toLowerCase();
-    
-    if (primaryLang === 'en') {
-      window.location.replace('/en/');
+  (function () {
+    const userLang = navigator.language || navigator.languages?.[0] || "ko";
+    const primaryLang = userLang.split("-")[0].toLowerCase();
+
+    if (primaryLang === "en") {
+      window.location.replace("/en/");
     }
   })();
 </script>

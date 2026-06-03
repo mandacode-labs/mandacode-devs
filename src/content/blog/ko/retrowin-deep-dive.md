@@ -4,7 +4,7 @@ description: "오브젝트 스토리지의 확장성과 POSIX의 편의성을 �
 pubDate: 2026-06-02
 tags: ["Go", "S3", "Filesystem", "Keycloak", "PostgreSQL"]
 lang: ko
-coverImage: "/images/projects/retrowin/cover.png"
+coverImage: "https://static.mandacode.com/mandacode-devs/projects/retrowin/cover.png"
 ---
 
 ## 문제의식
@@ -111,7 +111,7 @@ func (s *FsService) AtomicUpload(ctx context.Context, objectID string) error {
 ```
 
 트랜잭션 내에서 모든 작업이 원자적으로 수행되므로,
-중간에 실패핬더라도 데이터가 불일치되는 일은 없습니다.
+중간에 실패했더라도 데이터가 불일치되는 일은 없습니다.
 
 ## 인증과 권한: 표준을 따르기
 
@@ -127,11 +127,11 @@ Keycloak이 잠깐 죽어도 서버 기동이 멈추지 않습니다.
 소유자, 그룹, 기타 사용자별로 읽기/쓰기/실행 권한을 제어하며
 root는 모든 작업이 가능합니다.
 
-| 권한 주체 | 읽기 | 쓰기 | 실행 |
-|----------|------|------|------|
-| 소유자 (Owner) | ✅ | ✅ | ✅ |
-| 그룹 (Group) | ✅ | ❌ | ✅ |
-| 기타 (Other) | ❌ | ❌ | ❌ |
+| 권한 주체      | 읽기 | 쓰기 | 실행 |
+| -------------- | ---- | ---- | ---- |
+| 소유자 (Owner) | ✅   | ✅   | ✅   |
+| 그룹 (Group)   | ✅   | ❌   | ✅   |
+| 기타 (Other)   | ❌   | ❌   | ❌   |
 
 ## 잊혀진 파일들 정리
 

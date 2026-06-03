@@ -74,10 +74,7 @@ function syncContent() {
       }
 
       // Clean up empty target directories
-      if (
-        fs.existsSync(targetDir) &&
-        fs.readdirSync(targetDir).length === 0
-      ) {
+      if (fs.existsSync(targetDir) && fs.readdirSync(targetDir).length === 0) {
         try {
           fs.rmdirSync(targetDir);
           console.log(`  📂 Removed empty directory: ${targetDir}`);
