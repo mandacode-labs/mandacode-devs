@@ -1,9 +1,4 @@
 ---
-title: 'Meerkat: Changing the paradigm of log analysis with AI agents'
-description: >-
-  The design philosophy and implementation story of Meerkat, which pushes the
-  boundaries of rule-based alerts and lets AI agents analyze infrastructure on
-  their own.
 pubDate: 2026-06-02T00:00:00.000Z
 tags:
   - Go
@@ -12,118 +7,83 @@ tags:
   - OpenTelemetry
   - RAG
 lang: en
-coverImage: 'https://static.mandacode.com/mandacode-devs/projects/meerkat/cover.png'
+coverImage: "https://static.mandacode.com/mandacode-devs/projects/meerkat/cover.png"
+title: "Meerkat: Changing the Paradigm of Log Analysis with AI Agents"
+description: >-
+  The Design Philosophy and Implementation Story of Meerkat: An AI Agent
+  Analyzing Infrastructure Beyond the Limits of Rule-Based Alerts
 ---
 
-## Problem statement
+## Problem Awareness
 
-PagerDuty notification that goes off in the middle of the night. "CPU over 90%".
-Woke up and checked the dashboard and realized it was caused by a batch job that was running from yesterday,
-It's supposed to go down automatically in 30 minutes.
-These false alerts pile up and desensitize you to the real problem when it comes.
+A PagerDuty alert rings in the middle of the night: "CPU exceeds 90%." You wake up and check the dashboard, only to find that a batch job running since yesterday is the cause, and it is expected to automatically decrease in 30 minutes. When such false alerts accumulate, you become desensitized to real issues.
 
-Meerkat set out to solve this problem from the ground up.
-Instead of rule-based alerts, our AI agent reads logs and metrics directly and uses
-tools like Prometheus, Loki, and others to infer the cause.
-Logs are vectorized and stored for semantic search,
-Analyzer and Vectors into two services that can scale independently.
+Meerkat was initiated to fundamentally solve this problem. Instead of rule-based alerts, an AI Agent directly reads logs and metrics, calls tools like Prometheus and Loki, and infers the cause. Logs are vectorized and stored for semantic search, and the system is divided into two services, Analyzer and Vectors, which can be independently scaled.
 
-## Core design: two services, two responsibilities
+## Core Design: Two Services, Two Responsibilities
 
-Meerkat is organized into two services: Analyzer and Vectors.
-This separation is an intentional design.
+Meerkat is composed of two services: Analyzer and Vectors. This separation is an intentional design.
 
-**Vectors focuses solely on taking logs and storing them in a meaningful way.
-Logs coming into the OpenTelemetry OTLP are template extracted to remove duplicates,
-OpenAI embedding, and then stored as vectors in Milvus.
-Even if a service leaves tens of thousands of logs per day, only a few dozen unique templates are actually vectorized.
-significantly reducing storage costs and improving search efficiency.
+**Vectors** focuses solely on meaningfully storing logs. Logs received via OpenTelemetry OTLP are deduplicated through template extraction and stored as vectors in Milvus after OpenAI embedding. Even if a service logs tens of thousands of entries a day, only a few dozen unique templates are vectorized, significantly improving storage costs and search efficiency.
 
-The **Analyzer** focuses solely on AI analysis and worker management.
-It receives requests via HTTP API and processes them in an asynchronous worker pool,
-requests Vectors for semantic search when needed.
-The two services communicate with gRPC and can scale out independently of each other.
+**Analyzer** focuses solely on AI analysis and worker management. It processes requests received via HTTP API in an asynchronous worker pool and requests semantic searches from Vectors if necessary. The two services communicate via gRPC and can scale out independently.
 
 ```mermaid
 graph LR
-    subgraph "데이터 흐름"
-        App[애플리케이션] -- OTLP Logs --> Vectors
-        Vectors -- 임베딩 저장 --> Milvus[(Milvus)]
-        Client[사용자/웹훅] -- 분석 요청 --> Analyzer
-        Analyzer -- 의미 검색 --> Vectors
-        Analyzer -- 메트릭/로그 쿼리 --> Prometheus
-        Analyzer -- LLM 호출 --> OpenAI
+    subgraph "Data Flow"
+        App[Application] -- OTLP Logs --> Vectors
+        Vectors -- Store Embedding --> Milvus[(Milvus)]
+        Client[User/Webhook] -- Analysis Request --> Analyzer
+        Analyzer -- Semantic Search --> Vectors
+        Analyzer -- Metric/Log Query --> Prometheus
+        Analyzer -- LLM Call --> OpenAI
     end
 ```
 
-### Effect of template extraction
+### Effects of Template Extraction
 
-| Filter Modes | Behavior | Use Cases |
-| ------------------- | ---------------------------- | ----------------------------- |
-| **all** | Vectorizes all logs | Small services, development environments |
-| **severity** | Processes only above a specified level | Production environments, error-centric monitoring |
-| **template** (default) | Drain algorithm removes duplicates | large services, cost optimization
+| Filter Mode            | Operation                          | Use Case                                         |
+| ---------------------- | ---------------------------------- | ------------------------------------------------ |
+| **all**                | Vectorize all logs                 | Small-scale services, dev environment            |
+| **severity**           | Process only above a certain level | Production environment, error-focused monitoring |
+| **template** (default) | Deduplicate with Drain algorithm   | Large-scale services, cost optimization          |
 
-## That AI uses tools
+## What It Means for AI to Use Tools
 
-At its core, Analyzer is about giving LLMs tools and letting them use them on their own.
-Prometheus, Loki, VictoriaLogs queries and Vectors semantic search,
-We provide four tools
+The core of Analyzer is to provide tools to the LLM and let it use them independently. It offers four tools: Prometheus, Loki, VictoriaLogs queries, and Vectors semantic search.
 
-When I get a request to "analyze error spikes," this is what happens.
-First, we search Vectors for recent error logs for that service,
-Prometheus to see how the error rate is trending,
-Loki to analyze the frequency of specific error messages.
-Putting it all together, we find "Error spike due to Redis connection timeout,
-started at 14:23, auto-recovered at 14:45" and draws conclusions such as "Redis connection timeout.
+When a request like "Analyze the error spike" comes in, the flow is as follows. First, search for recent error logs of the service in Vectors, then check the error rate trend in Prometheus, and analyze the frequency of specific error messages in Loki. Finally, it synthesizes the information to conclude something like "Error spike due to Redis connection timeout, started at 14:23 and auto-recovered at 14:45."
 
-The tool limits its results to 30,000 characters,
-Errors are categorized into query syntax errors, connection failures, and query failures.
-If LLM says, "This is wrong with my query, fix it and try again" or
-"Prometheus is unresponsive, let's go to Loki".
+The tool results are limited to 30,000 characters, and errors are categorized into query syntax errors, connection failures, and query failures. The LLM can make decisions like "My query was wrong, let's fix it and try again" or "Prometheus isn't responding, let's switch to Loki."
 
 ```mermaid
 sequenceDiagram
-    participant User as 사용자
+    participant User as User
     participant Analyzer as Analyzer
     participant LLM as LLM
-    participant Tools as 도구들
+    participant Tools as Tools
 
-    User->>Analyzer: 분석 요청
-    Analyzer->>LLM: 컨텍스트 + 사용 가능한 도구 목록
+    User->>Analyzer: Analysis Request
+    Analyzer->>LLM: Context + List of Available Tools
 
-    loop 에이전트 루프
-        LLM-->>Analyzer: 도구 호출 또는 최종 답변
+    loop Agent Loop
+        LLM-->>Analyzer: Tool Call or Final Answer
 
-        alt 도구 호출
-            Analyzer->>Tools: Prometheus/Loki/Vectors 쿼리
-            Tools-->>Analyzer: 결과
-        else 최종 답변
-            Analyzer-->>User: 분석 완료
+        alt Tool Call
+            Analyzer->>Tools: Prometheus/Loki/Vectors Query
+            Tools-->>Analyzer: Result
+        else Final Answer
+            Analyzer-->>User: Analysis Complete
         end
     end
 ```
 
-## Considerations for production environments
+## Considerations in Production Environment
 
-The worker pool is configured with a buffered channel size of 1000 and 10 workers.
-When the queue is full, it immediately returns a 429 error to provide a backpressure.
-Duplicate analytics for the same trigger and query are automatically blocked within a
-automatically blocked within a 5 minute window.
+The worker pool is configured with a buffered channel size of 1000 and 10 workers. If the queue is full, it immediately returns a 429 error to provide backpressure. Duplicate analysis for the same trigger and query is automatically blocked within a 5-minute window.
 
-Deployments are managed by Helm Chart,
-ConfigMap contains settings and system prompts,
-Secret stores API keys and DB passwords separately.
-However, the queue in the worker pool is an in-memory channel.
-there is a limitation that queued jobs are lost when the server is restarted.
-In the future, we plan to apply persistence queues.
+Deployment is managed with a Helm Chart, with ConfigMap storing settings and system prompts, and Secret storing API keys and DB passwords separately. However, since the worker pool's queue is an in-memory channel, queued tasks are lost upon server restart. There are plans to apply a persistent queue in the future.
 
-## Closing
+## Conclusion
 
-Meerkat has gone beyond simply calling the LLM API.
-It uses an AI Agent architecture with tools and semantic log search,
-and a controllable pool of asynchronous workers.
-we've created a platform that can be used in real production environments.
-For teams where rules-based alerting has hit its limits
-Opening up new observability to understand what's going on with your infrastructure in natural language,
-That's the value of this project.
+Meerkat goes beyond simply calling LLM APIs. By combining an AI Agent architecture that uses tools, semantic-based log search, and a controllable asynchronous worker pool, it has created a platform usable in real operational environments. For teams hitting the limits of rule-based alerts, it offers a new observability possibility to understand infrastructure situations with a simple natural language phrase. This is the value this project aims to pursue.

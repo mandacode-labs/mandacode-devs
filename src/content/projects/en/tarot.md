@@ -1,7 +1,5 @@
 ---
-title: Tarot cards
-description: AI-powered tarot card reading service
-url: 'https://tarot.mandacode.com'
+url: "https://tarot.mandacode.com"
 status: production
 techStack:
   - TypeScript
@@ -14,19 +12,17 @@ techStack:
   - Docker
   - Kubernetes
   - Helm
-duration: 2025.03 - 2025.04
 teamSize: 2
-role: '프론트엔드, 백엔드 개발'
 order: 3
 lang: en
-coverImage: 'https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png'
+coverImage: "https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png"
 blogUrl: /ko/blog/tarot-deep-dive
+title: Tarot card
+description: AI-based Tarot Card Reading Service
+duration: March 2025 - April 2025
+role: "Frontend, Backend Development"
 ---
 
-Tarot Cards is an AI-powered service that utilizes OpenAI's language model to provide users with tarot card readings.
-It randomly selects a card from a 78-card deck, determines whether it is forward or reverse, and falls into one of several buckets to generate a new contextualized reading each time.
-A caching system allows for quick reuse of previously generated results to optimize API call cost and response speed, while responding gracefully to cache server failures by calling OpenAI directly.
+Tarot Cards is an AI-based service that utilizes OpenAI's language model to provide users with tarot card reading results. It randomly selects cards from a deck of 78, determines whether they are upright or reversed, and chooses from several buckets to create a new contextual reading each time. Through a caching system, it quickly reuses previously generated results to optimize API call costs and response times. In case of cache server failures, it gracefully handles the situation by directly calling OpenAI.
 
-The NestJS-based backend ensures consistent responses with a structured output format,
-A configuration system based on YAML and environment variables for flexible environment configuration.
-It operates in multiple instances via Docker and Kubernetes Helm Chart and automatically scales with load.
+The backend, based on NestJS, ensures consistent responses with a structured output format and supports flexible environment configuration through a YAML and environment variable-based settings system. It operates with multiple instances via Docker and Kubernetes Helm Chart and automatically scales according to the load.

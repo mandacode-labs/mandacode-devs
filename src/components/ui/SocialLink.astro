@@ -30,9 +30,15 @@ const config = {
 const { label, icon: Icon } = config[platform];
 const isEmail = platform === "email";
 const buttonHref = isEmail ? `mailto:${href}` : href;
+
+const sizeClasses = {
+  sm: "px-3 py-1.5 text-xs",
+  md: "px-4 py-2 text-sm",
+  lg: "px-6 py-3 text-base",
+};
 ---
 
-<Button href={buttonHref} variant="secondary" size={size}>
+<Button href={buttonHref} variant="secondary" class={sizeClasses[size]}>
   <Icon size={16} />
   <span>{label}</span>
 </Button>

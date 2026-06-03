@@ -27,7 +27,7 @@ coverImage: "https://static.mandacode.com/mandacode-devs/blog/home-cluster-1/blo
 
 특히 가격 제약이 가장 컸습니다. 지금 상황에서 최소한의 비용을 투자하여 서버를 구축하는 것이 목표였습니다.
 
-그래서 알리에서 저렴하게 인텔 제온 E5시리즈 및 중국산 마더보드, 그리고 ECC 메모리를 구매하였고, 
+그래서 알리에서 저렴하게 인텔 제온 E5시리즈 및 중국산 마더보드, 그리고 ECC 메모리를 구매하였고,
 서버용 케이스는 소음과 발열 문제로 인해 일반 데스크탑 케이스를 사용하기로 했습니다.
 
 ![하드웨어](https://static.mandacode.com/mandacode-devs/blog/home-cluster-1/home-cluster-01.jpg)
@@ -45,6 +45,7 @@ coverImage: "https://static.mandacode.com/mandacode-devs/blog/home-cluster-1/blo
 또한 대쉬보드 UI가 직관적이어서 관리가 편리하다는 점도 큰 장점이었습니다.
 
 ![Proxmox VE 대시보드](https://static.mandacode.com/mandacode-devs/blog/home-cluster-1/proxmox-dashboard.png)
+
 <center style="font-size: 0.9em; color: #666;">
 (Proxmox VE 대시보드)
 </center>

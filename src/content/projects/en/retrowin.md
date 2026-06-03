@@ -1,8 +1,6 @@
 ---
-title: Retrowin
-description: External storage integration file management and storage services
-url: 'https://retrowin.mandacode.com'
-sourceUrl: 'https://github.com/mandacode-labs/retrowin-go'
+url: "https://retrowin.mandacode.com"
+sourceUrl: "https://github.com/mandacode-labs/retrowin-go"
 status: production
 techStack:
   - Go
@@ -15,19 +13,17 @@ techStack:
   - Valkey
   - Ent ORM
   - Helm
-duration: 2024.10 - 2024.12
 teamSize: 1
-role: 풀스택 개발
 order: 1
 lang: en
-coverImage: 'https://static.mandacode.com/mandacode-devs/projects/retrowin/cover.png'
+coverImage: "https://static.mandacode.com/mandacode-devs/projects/retrowin/cover.png"
 blogUrl: /ko/blog/retrowin-deep-dive
+title: Retrowin
+description: External Storage Integration File Management and Storage Service
+duration: October 2024 - December 2024
+role: Full-stack development
 ---
 
-Retrowin is a distributed file management system that works with external object storage to provide a POSIX-style file management interface.
-Users work with files in a familiar directory structure and permissions scheme, while the actual data is stored securely in S3 or MinIO.
-Presigned URL-based two-step uploads and atomic transactions ensure data consistency, and Keycloak OIDC authentication and Unix-style permissions management ensure security.
+Retrowin is a distributed file management system that integrates with external object storage to provide a POSIX-style file management interface. Users can handle files with familiar directory structures and permission systems, while the actual data is securely stored in S3 or MinIO. It ensures data consistency with presigned URL-based two-step uploads and atomic transactions, and secures with Keycloak OIDC authentication and Unix-style permission management.
 
-Garbage Collection feature automatically cleans up unused files to reduce storage costs,
-A Windows XP-style retro UI provides a retro sensibility and modern user experience at the same time.
-Deployment utilizes Kubernetes and Helm Chart for high scalability and reliability.
+The Garbage Collection feature automatically cleans up unused files to reduce storage costs, and the retro UI in the style of Windows XP offers both nostalgic charm and a modern user experience. Deployment using Kubernetes and Helm Chart ensures high scalability and stability.

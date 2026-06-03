@@ -1,7 +1,5 @@
 ---
-title: Meerkat
-description: AI Agent-based log analysis and monitoring system
-sourceUrl: 'https://github.com/serengeti-sh/meerkat'
+sourceUrl: "https://github.com/serengeti-sh/meerkat"
 status: production
 techStack:
   - Go
@@ -14,20 +12,17 @@ techStack:
   - Kubernetes
   - Helm
   - Ent ORM
-duration: 2026.04 - 2026.06
 teamSize: 1
-role: 풀스택 개발
 order: 2
 lang: en
-coverImage: 'https://static.mandacode.com/mandacode-devs/projects/meerkat/cover.png'
+coverImage: "https://static.mandacode.com/mandacode-devs/projects/meerkat/cover.png"
 blogUrl: /ko/blog/meerkat-deep-dive
+title: 미어캣
+description: AI Agent-based Log Analysis and Monitoring System
+duration: April 2026 - June 2026
+role: Full-stack development
 ---
 
-Meerkat is an observability platform where AI agents directly analyze logs and metrics from your infrastructure to detect anomalies.
-Going beyond the limitations of traditional rule-based alerting, AI can contextualize events fed to it via natural language queries or external webhooks, directly query tools like Prometheus and Loki, and infer causes.
-directly query tools like Prometheus, Loki, and others to infer the cause.
-Logs are collected with OpenTelemetry and stored in the Vector database for semantic search,
-Analytics results are delivered to external channels via webhooks.
+Meerkat is an observability platform where AI Agents directly analyze infrastructure logs and metrics to detect anomalies. Going beyond the limitations of traditional rule-based alerts, the AI independently understands context from natural language queries or events delivered via external webhooks, and queries tools like Prometheus and Loki to infer causes. Logs are collected with OpenTelemetry and stored in a vector database to support semantic-based search, and analysis results are delivered to external channels via webhooks.
 
-The system consists of two independent services, Analyzer and Vectors, deployed as Helm Chart in a Kubernetes environment.
-Analyzer is designed to be reliable for large log processing with an asynchronous worker pool, duplicate analysis prevention, and context overflow recovery mechanisms.
+The system is composed of two independent services, Analyzer and Vectors, and is deployed in a Kubernetes environment using Helm Charts. The Analyzer is designed to operate reliably even with large-scale log processing, featuring an asynchronous worker pool, duplicate analysis prevention, and context overflow recovery mechanisms.

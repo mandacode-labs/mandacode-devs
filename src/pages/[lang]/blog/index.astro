@@ -2,18 +2,25 @@
 import Layout from "@/components/layouts/Layout.astro";
 import BlogCard from "@/components/content/BlogCard.astro";
 import { getCollection } from "astro:content";
-import { useTranslations, type Lang } from "@/i18n/utils";
+import { useTranslations, type Lang } from "@/lib/i18n/utils";
+import { SUPPORTED_LANGUAGES, isValidLanguage } from "@/lib/config/languages";
 
 export async function getStaticPaths() {
-  return [{ params: { lang: "ko" } }, { params: { lang: "en" } }];
+  return SUPPORTED_LANGUAGES.map((lang) => ({ params: { lang } }));
 }
 
 const { lang } = Astro.params;
-const t = useTranslations(lang as Lang);
+
+if (!lang || !isValidLanguage(lang)) {
+  return Astro.redirect("/ko/blog");
+}
+
+const typedLang: Lang = lang;
+const t = useTranslations(typedLang);
 
 const posts = await getCollection(
   "blog",
-  (post) => post.data.lang === lang && !post.data.draft,
+  (post) => post.data.lang === typedLang && !post.data.draft,
 );
 posts.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
 ---
@@ -30,7 +37,7 @@ posts.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
         <ul class="flex flex-col gap-6">
           {posts.map((post) => (
             <li>
-              <BlogCard post={post} lang={lang as Lang} />
+              <BlogCard post={post} lang={typedLang} />
             </li>
           ))}
         </ul>

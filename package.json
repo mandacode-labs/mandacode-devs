@@ -6,10 +6,10 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "translate:ui": "node scripts/translate-ui.mjs",
-    "translate:content": "node scripts/translate-content.mjs",
+    "translate:ui": "node scripts/translate-openai.mjs ui",
+    "translate:content": "node scripts/translate-openai.mjs content",
+    "translate": "node scripts/translate-openai.mjs",
     "content:sync": "node scripts/sync-content.mjs",
-    "translate": "npm run translate:ui && npm run translate:content",
     "build": "astro build",
     "dev": "astro dev",
     "preview": "astro preview",
@@ -21,18 +21,22 @@
   "dependencies": {
     "@astrojs/cloudflare": "^13.6.0",
     "astro": "^6.4.2",
-    "astro-mermaid": "^2.0.2",
-    "deepl-node": "^1.27.0"
+    "astro-mermaid": "^2.0.2"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.9",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.3.0",
+    "@types/node": "^25.9.1",
     "gray-matter": "^4.0.3",
+    "openai": "^6.41.0",
     "prettier": "^3.8.3",
     "prettier-plugin-astro": "^0.14.1",
     "sharp": "^0.34.5",
     "tailwindcss": "^4.3.0",
-    "wrangler": "^4.95.0"
+    "typescript": "^6.0.3",
+    "wrangler": "^4.95.0",
+    "zod": "^4.4.3"
   },
   "overrides": {
     "vite": "^7"

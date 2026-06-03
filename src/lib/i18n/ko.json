@@ -22,6 +22,7 @@
   "status.completed": "완료됨",
   "duration": "개발 기간",
   "teamSize": "개발 인원",
+  "teamSize.unit": "명",
   "role": "역할",
   "techStack": "기술 스택",
   "certifications": "자격증",
