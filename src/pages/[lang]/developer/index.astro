@@ -1,6 +1,7 @@
 ---
 import Layout from "@/components/layouts/Layout.astro";
 import SocialLink from "@/components/ui/SocialLink.astro";
+import Button from "@/components/ui/Button.astro";
 import { getCollection, render } from "astro:content";
 import { useTranslations, type Lang } from "@/lib/i18n/utils";
 import { SUPPORTED_LANGUAGES, isValidLanguage } from "@/lib/config/languages";
@@ -38,7 +39,7 @@ const { Content } = await render(developer);
 
 <Layout title={name} description={bio}>
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-    <header class="flex flex-row items-start gap-4 sm:gap-6 mb-6">
+    <div class="flex flex-col sm:flex-row items-start gap-6 mb-6">
       <div class="flex-shrink-0">
         <img
           src={avatar}
@@ -47,43 +48,73 @@ const { Content } = await render(developer);
         />
       </div>
 
-      <div class="flex flex-col items-start gap-2 sm:gap-4">
-        <h2 class="text-2xl sm:text-4xl">
-          {name}
-        </h2>
-        <div class="flex flex-col items-start gap-2 ml-1">
-          <p class="text-base sm:text-lg text-accent font-medium">
+      <div class="flex-1 flex flex-col items-start gap-3">
+        <div>
+          <h2 class="text-2xl sm:text-4xl">
+            {name}
+          </h2>
+          <p class="text-base sm:text-lg text-accent font-medium mt-1">
             {role}
           </p>
-          <p class="text-sm sm:text-base text-text-secondary">{bio}</p>
+          <p class="text-sm sm:text-base text-text-secondary mt-1">{bio}</p>
+        </div>
+
+        <div class="flex items-center gap-3 w-full">
+          <div class="flex items-center gap-3">
+            {
+              developer.data.github && (
+                <SocialLink
+                  platform="github"
+                  href={developer.data.github}
+                  size="sm"
+                />
+              )
+            }
+            {
+              developer.data.email && (
+                <SocialLink
+                  platform="email"
+                  href={developer.data.email}
+                  size="sm"
+                />
+              )
+            }
+            {
+              developer.data.website && (
+                <SocialLink
+                  platform="website"
+                  href={developer.data.website}
+                  size="sm"
+                />
+              )
+            }
+          </div>
+
+          <div class="no-print ml-auto">
+            <Button
+              variant="secondary"
+              class="px-3 py-1.5 text-xs"
+              onclick="window.print()"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                ><polyline points="6 9 6 2 18 2 18 9"></polyline><path
+                  d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"
+                ></path><rect x="6" y="14" width="12" height="8"></rect></svg
+              >
+              <span>{t("print")}</span>
+            </Button>
+          </div>
         </div>
       </div>
-    </header>
-
-    <div class="flex items-center gap-3 mb-10">
-      {
-        developer.data.github && (
-          <SocialLink
-            platform="github"
-            href={developer.data.github}
-            size="sm"
-          />
-        )
-      }
-      {
-        developer.data.email && (
-          <SocialLink platform="email" href={developer.data.email} size="sm" />
-        )
-      }
-      {
-        developer.data.website && (
-          <SocialLink
-            platform="website"
-            href={developer.data.website}
-            size="sm"
-          />
-        )
-      }
     </div>
 
     {
@@ -108,7 +139,7 @@ const { Content } = await render(developer);
             <h3 class="mb-4">{t("certifications")}</h3>
             <ul class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {developer.data.certifications.map((cert) => (
-                <li class="flex items-start gap-4 p-4 bg-surface border border-border rounded-xl">
+                <li class="flex items-center gap-4 p-4 bg-surface border border-border rounded-xl">
                   {cert.badge && (
                     <img
                       src={cert.badge}

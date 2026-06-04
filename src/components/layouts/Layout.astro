@@ -40,10 +40,10 @@ const pageTitle = title ? `${title} | ${siteTitle}` : siteTitle;
     </style>
   </head>
   <body class="min-h-screen flex flex-col bg-bg-primary">
-    <Header currentLang={currentLang} />
+    <Header currentLang={currentLang} class="print:hidden" />
     <main class="flex-1">
       <slot />
     </main>
-    <Footer currentLang={currentLang} />
+    <Footer currentLang={currentLang} class="print:hidden" />
   </body>
 </html>
