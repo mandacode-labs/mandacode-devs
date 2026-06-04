@@ -3,14 +3,15 @@ import { useTranslations, type Lang } from "@/lib/i18n/utils";
 
 interface Props {
   currentLang: Lang;
+  class?: string;
 }
 
-const { currentLang } = Astro.props;
+const { currentLang, class: className = "" } = Astro.props;
 const t = useTranslations(currentLang);
 const year = new Date().getFullYear();
 ---
 
-<footer class="border-t border-border mt-auto">
+<footer class={`border-t border-border mt-auto ${className}`}>
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-2">

@@ -140,6 +140,19 @@ code {
   font-size: 0.875em;
 }
 
+/* Print styles */
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+
+  /* Hide elements not needed in print */
+  .no-print {
+    display: none !important;
+  }
+}
+
 /* Prose overrides for blog content */
 .prose {
   --tw-prose-headings: var(--color-text-primary);

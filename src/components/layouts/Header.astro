@@ -8,9 +8,10 @@ import {
 
 interface Props {
   currentLang: Lang;
+  class?: string;
 }
 
-const { currentLang } = Astro.props;
+const { currentLang, class: className = "" } = Astro.props;
 const t = useTranslations(currentLang);
 
 const navItems = [
@@ -23,7 +24,7 @@ const currentPath = Astro.url.pathname;
 ---
 
 <header
-  class="sticky top-0 z-50 border-b border-border bg-white/80 backdrop-blur-md"
+  class={`sticky top-0 z-50 border-b border-border bg-white/80 backdrop-blur-md ${className}`}
 >
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-14">
