@@ -66,8 +66,17 @@ const { Content } = await render(post);
 
     {
       image && (
-        <div class="flex w-full max-h-[30rem]! justify-center rounded-xl overflow-hidden bg-bg-secondary mb-8">
-          <img src={image} alt={title} class="w-full h-full object-contain" />
+        <div class="relative flex w-full max-h-[30rem]! justify-center rounded-xl overflow-hidden bg-bg-secondary mb-8">
+          <div class="shimmer absolute inset-0 z-10" />
+          <img
+            src={image}
+            alt={title}
+            class="relative w-full h-full object-contain opacity-0 transition-opacity duration-300"
+            style="z-index: 11;"
+            fetchpriority="high"
+            decoding="async"
+            onload="this.style.opacity='1'; this.previousElementSibling.style.display='none'"
+          />
         </div>
       )
     }

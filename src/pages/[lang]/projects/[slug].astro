@@ -66,15 +66,22 @@ const { Content } = await render(project);
     </a>
 
     <div
-      class="flex w-full max-h-[30rem]! justify-center mb-8 bg-bg-secondary rounded-lg overflow-hidden"
+      class="relative flex w-full max-h-[30rem]! justify-center mb-8 bg-bg-secondary rounded-lg overflow-hidden"
     >
       {
         coverImage ? (
-          <img
-            src={coverImage}
-            alt={title}
-            class="w-full h-full object-contain"
-          />
+          <>
+            <div class="shimmer absolute inset-0 z-10" />
+            <img
+              src={coverImage}
+              alt={title}
+              class="relative w-full h-full object-contain opacity-0 transition-opacity duration-300"
+              style="z-index: 11;"
+              fetchpriority="high"
+              decoding="async"
+              onload="this.style.opacity='1'; this.previousElementSibling.style.display='none'"
+            />
+          </>
         ) : (
           <div class="w-full h-full bg-gradient-to-br from-surface to-border flex items-center justify-center">
             <span class="text-text-muted text-xl font-medium">{title}</span>
