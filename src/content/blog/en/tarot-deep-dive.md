@@ -8,7 +8,7 @@ tags:
   - Caching
 lang: en
 coverImage: "https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png"
-title: "Tarot Core: Caching Strategy for AI Tarot Service"
+title: "Tarot Cards: Caching Strategy for AI Tarot Service"
 description: >-
   The caching design of a tarot service that optimizes OpenAI API costs and
   response speed while providing a new experience each time.
@@ -18,7 +18,7 @@ description: >-
 
 Content created by AI is always new, but calling the API with the same input repeatedly incurs costs. Tarot reading is especially like this. Even if the same card appears, different interpretations should be provided each time to keep users entertained. However, calling the OpenAI API every time will soon lead to a cost explosion.
 
-Tarot Core solves this dilemma with a bucket system. By generating cache keys with 78 cards x 2 directions x 10 buckets = 1,560 unique combinations, the same combination is immediately returned from Valkey. This enforces a JSON response format with Structured Outputs, addressing both cost and latency.
+Tarot Cards solves this dilemma with a bucket system. By generating cache keys with 78 cards x 2 directions x 10 buckets = 1,560 unique combinations, the same combination is immediately returned from Valkey. This enforces a JSON response format with Structured Outputs, addressing both cost and latency.
 
 ## Buckets: Balancing Diversity and Efficiency
 
@@ -48,14 +48,18 @@ flowchart LR
 
 ## Structured Outputs: Consistency in Response Format
 
-The most troublesome aspect of using the OpenAI API is the consistency of the response format. Tarot Core completely blocks this issue with the Structured Outputs API. By providing a Zod schema, the OpenAI API enforces a JSON format, eliminating client-side parsing errors.
+The most troublesome aspect of using the OpenAI API is the consistency of the response format. Tarot Cards completely blocks this issue with the Structured Outputs API. By providing a Zod schema, the OpenAI API enforces a JSON format, eliminating client-side parsing errors.
 
 ```typescript
-export const ReadResponseSchema = z.object({
-  title: z.string().min(1), // English card name
-  titleKR: z.string().min(1), // Korean card name
-  keywords: z.array(z.string()).min(1),
+export const llmReadResponseSchema = z.object({
   advice: z.string().min(1), // Advice message
+});
+
+export const readResponseSchema = z.object({
+  title: z.string().min(1), // Injected from server
+  titleKR: z.string().min(1), // Injected from server
+  keywords: z.array(z.string()).min(1), // Injected from server
+  advice: z.string().min(1),
 });
 ```
 
@@ -78,7 +82,8 @@ sequenceDiagram
         Cache-->>Service: Return stored result
     else Cache Miss
         Service->>AI: Request Structured Output
-        AI-->>Service: {title, titleKR, keywords, advice}
+        AI-->>Service: {advice}
+        Service->>Service: Inject card.name / card.nameKR / keywords
         Service->>Cache: Store result (ignore on failure)
     end
 
@@ -99,4 +104,4 @@ Currently, keywords are not included in the cache key, so if only keywords diffe
 
 ## Conclusion
 
-Tarot Core demonstrates a balance between caching and AI generation, reliable response formats created with Structured Outputs, and modern deployment using NestJS and Kubernetes. It stands out as a design that considers both cost and performance in a real operational environment, beyond just being a simple toy.
+Tarot Cards demonstrates a balance between caching and AI generation, reliable response formats created with Structured Outputs, and modern deployment using NestJS and Kubernetes. It stands out as a design that considers both cost and performance in a real operational environment, beyond just being a simple toy.

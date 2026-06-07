@@ -1,5 +1,5 @@
 ---
-title: "Tarot Core: AI 타로 서비스의 캐싱 전략"
+title: "타로카드: AI 타로 리딩 서비스의 캐싱 설계와 구현"
 description: "OpenAI API 비용과 응답 속도를 최적화하면서도 매번 새로운 경험을 제공하는 타로 서비스의 캐싱 설계"
 pubDate: 2026-06-02
 tags: ["TypeScript", "NestJS", "OpenAI", "Redis", "Caching"]
@@ -11,16 +11,15 @@ coverImage: "https://static.mandacode.com/mandacode-devs/projects/tarot/cover.pn
 
 AI가 만드는 콘텐츠는 매번 새롭지만
 같은 입력에 매번 API를 호출하면 비용이 쌓입니다.
-타로 리딩은 특히 그렇죠.
-같은 카드가 나와도 매번 다른 해석이 나와야
-사용자가 재미를 느끼는데,
-매번 OpenAI API를 호출하면 곧 비용 폭탄을 맞게 됩니다.
+타로카드 서비스에서도 카드 리딩을 위해 OpenAI API를 사용하지만
+비용과 응답 속도 문제로 매번 호출할 수는 없습니다.
+하지만 사용자는 매번 다른 리딩을 기대하기 때문에
+단순히 카드와 방향을 키로 하는 캐시로는 부족합니다.
 
-Tarot Core는 이 딜레마를 버킷 시스템으로 해결했습니다.
-78장 x 2 방향 x 10 버킷 = 1,560개 고유 조합으로 캐시 키를 생성하여
-같은 조합은 Valkey에서 즉시 반환하고
-Structured Outputs로 JSON 응답 형식을 강제하여
-비용과 지연 시간을 모두 잡습니다.
+이 문제를 해결하기 위해 타로카드는 버킷 시스템과 Structured Outputs를 활용한 캐싱 전략을 도입했습니다.
+78장의 카드와 정방향/역방향, 그리고 10개의 버킷을 조합하여 1,560개의 고유 캐시 키를 생성하고, 각 키에 대해 AI가 생성한 리딩을 저장합니다.
+서버에서 4개 키워드를 무작위로 선택해 AI에게 맥락으로 제공하며,
+같은 카드와 방향, 버킷이라도 키워드에 따라 다른 리딩이 나올 수 있도록 설계했습니다.
 
 ## 버킷: 다양성과 효율의 균형
 
@@ -29,11 +28,6 @@ Structured Outputs로 JSON 응답 형식을 강제하여
 캐시 키는 `tarot:read:{card}:{direction}:{bucket}` 형태이며,
 동일 키의 후속 요청은 Valkey에서 즉시 반환됩니다.
 캐시에 없을 때만 OpenAI API를 호출합니다.
-
-키워드는 캐시 키에 포함되지 않습니다.
-같은 버킷이라도 다른 키워드가 선택되면
-AI가 다른 맥락의 리딩을 생성합니다.
-이는 캐시 공간을 절약하면서도 단조로움을 방지하는 설계입니다.
 
 ```mermaid
 flowchart LR
@@ -59,16 +53,20 @@ flowchart LR
 
 OpenAI API 사용 시 가장 골치 아픈 것은
 응답 형식의 일관성입니다.
-Tarot Core는 Structured Outputs API로 이 문제를 원천 차단합니다.
+타로카드는 Structured Outputs API로 이 문제를 원천 차단합니다.
 Zod 스키마를 전달하면 OpenAI API가 JSON 형식을 강제하여
 클라이언트 측 파싱 오류를 없앱니다.
 
 ```typescript
-export const ReadResponseSchema = z.object({
-  title: z.string().min(1), // 영어 카드명
-  titleKR: z.string().min(1), // 한글 카드명
-  keywords: z.array(z.string()).min(1),
+export const llmReadResponseSchema = z.object({
   advice: z.string().min(1), // 조언 메시지
+});
+
+export const readResponseSchema = z.object({
+  title: z.string().min(1), // 서버에서 주입
+  titleKR: z.string().min(1), // 서버에서 주입
+  keywords: z.array(z.string()).min(1), // 서버에서 주입
+  advice: z.string().min(1),
 });
 ```
 
@@ -98,7 +96,8 @@ sequenceDiagram
         Cache-->>Service: 저장된 결과 반환
     else 캐시 미스
         Service->>AI: Structured Output 요청
-        AI-->>Service: {title, titleKR, keywords, advice}
+        AI-->>Service: {advice}
+        Service->>Service: card.name / card.nameKR / keywords 주입
         Service->>Cache: 결과 저장 (실패 시 무시)
     end
 
@@ -136,7 +135,7 @@ HPA를 통해 2~10개로 자동 확장됩니다.
 
 ## 마치며
 
-Tarot Core는 캐싱과 AI 생성의 균형,
+타로카드는 캐싱과 AI 생성의 균형,
 Structured Outputs로 만든 신뢰할 수 있는 응답 형식,
 그리고 NestJS와 Kubernetes를 활용한 현대적 배포를 보여줍니다.
 단순한 장난감이 아닌

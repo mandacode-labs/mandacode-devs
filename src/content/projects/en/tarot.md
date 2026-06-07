@@ -17,7 +17,7 @@ order: 3
 lang: en
 coverImage: "https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png"
 blogUrl: /ko/blog/tarot-deep-dive
-title: Tarot card
+title: Tarot Cards
 description: AI-based Tarot Card Reading Service
 duration: March 2025 - April 2025
 role: "Frontend, Backend Development"
