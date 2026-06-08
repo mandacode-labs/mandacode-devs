@@ -22,8 +22,7 @@ export default defineConfig({
   },
   integrations: [
     mermaid({
-      theme: "forest",
-      autoTheme: true,
+      theme: "default",
     }),
   ],
 });

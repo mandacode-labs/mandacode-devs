@@ -29,4 +29,3 @@ blogUrl: "/ko/blog/tarot-deep-dive"
 
 NestJS 기반의 백엔드는 구조화된 출력 형식으로 일관된 응답을 보장하며,
 YAML과 환경 변수 기반의 설정 시스템으로 유연한 환경 구성을 지원합니다.
-Docker와 Kubernetes Helm Chart를 통해 여러 인스턴스로 운영되며 부하에 따라 자동 확장됩니다.
