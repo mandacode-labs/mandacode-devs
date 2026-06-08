@@ -7,101 +7,140 @@ tags:
   - Redis
   - Caching
 lang: en
-coverImage: "https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png"
-title: "Tarot Cards: Caching Strategy for AI Tarot Service"
+coverImage: 'https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png'
+title: 'Tarot Cards: Design and Implementation of Caching for AI Tarot Reading Service'
 description: >-
-  The caching design of a tarot service that optimizes OpenAI API costs and
+  The caching design of the tarot service that optimizes OpenAI API costs and
   response speed while providing a new experience each time.
 ---
-
 ## Problem Awareness
 
-Content created by AI is always new, but calling the API with the same input repeatedly incurs costs. Tarot reading is especially like this. Even if the same card appears, different interpretations should be provided each time to keep users entertained. However, calling the OpenAI API every time will soon lead to a cost explosion.
+The advantage of AI-generated content is that it's always new, but calling the API repeatedly for the same input can quickly accumulate costs. This is also true for tarot card services. Although we use the OpenAI API for card readings, due to cost and response time issues, it's not practical to call the API for every request.
 
-Tarot Cards solves this dilemma with a bucket system. By generating cache keys with 78 cards x 2 directions x 10 buckets = 1,560 unique combinations, the same combination is immediately returned from Valkey. This enforces a JSON response format with Structured Outputs, addressing both cost and latency.
+A simple cache using only the card and direction as keys is insufficient. Users expect different readings even if they draw the same card. To bridge this gap, we introduced a **caching strategy using a bucket system**.
+
+---
 
 ## Buckets: Balancing Diversity and Efficiency
 
-78 cards x 2 directions x 10 buckets = 1,560 unique combinations. Each time a user makes a request, one of these combinations is randomly selected. The cache key is in the form `tarot:read:{card}:{direction}:{bucket}`, and subsequent requests with the same key are immediately returned from Valkey. The OpenAI API is only called when there is no cache.
+The core idea is simple. By combining 78 cards, upright/reversed directions, and 10 buckets, we create **1,560 unique cache keys** and store AI-generated readings for each key.
 
-Keywords are not included in the cache key. Even if the same bucket is selected, different keywords can lead AI to generate readings in different contexts. This design saves cache space while preventing monotony.
+```
+78 cards × 2 directions × 10 buckets = 1,560 unique combinations
+```
+
+Each time a user makes a request, one of these combinations is randomly selected. The cache key is in the form `tarot:read:{card}:{direction}:{bucket}`, and subsequent requests with the same key are immediately returned from Valkey. The OpenAI API is only called when there is a cache miss.
+
+We've added one more mechanism. The server randomly selects 4 keywords for each request and provides them to the AI as context. This allows for different readings even with the same card, direction, and bucket, depending on the keywords.
 
 ```mermaid
 flowchart LR
-    subgraph "Random Selection"
+    subgraph RandomSelect["Random Selection"]
         Card[78 Cards]
         Dir[Upright/Reversed]
         Bucket[Bucket 1~10]
         Keywords[4 Keywords]
     end
-
-    subgraph "Cache Key"
+    
+    subgraph CacheKey["Cache Key"]
         Key["tarot:read:{card}:{dir}:{bucket}"]
     end
-
+    
     Card --> Key
     Dir --> Key
     Bucket --> Key
+    
     Key --> Valkey[(Valkey)]
-    Keywords -.->|Reading Direction Setup| OpenAI[OpenAI API]
+    Key -.->|Cache Miss| OpenAI[OpenAI API]
+    Keywords -.->|Reading Direction| OpenAI
+
 ```
 
-## Structured Outputs: Consistency in Response Format
-
-The most troublesome aspect of using the OpenAI API is the consistency of the response format. Tarot Cards completely blocks this issue with the Structured Outputs API. By providing a Zod schema, the OpenAI API enforces a JSON format, eliminating client-side parsing errors.
-
-```typescript
-export const llmReadResponseSchema = z.object({
-  advice: z.string().min(1), // Advice message
-});
-
-export const readResponseSchema = z.object({
-  title: z.string().min(1), // Injected from server
-  titleKR: z.string().min(1), // Injected from server
-  keywords: z.array(z.string()).min(1), // Injected from server
-  advice: z.string().min(1),
-});
-```
-
-The system prompt includes constraints like "cold and natural like a fortune teller" and "no special characters allowed." Card information and 4 keywords are delivered as JSON in the user message, allowing AI to understand the context.
-
-Even in the event of a cache server failure, the service is not interrupted. All cache calls are wrapped in try/catch, treating lookup failures as cache misses and quietly ignoring storage failures. When Valkey is down, it gracefully falls back to direct OpenAI calls.
+The entire flow can be represented in a sequence diagram as follows.
 
 ```mermaid
 sequenceDiagram
-    participant Client as Client
+    autonumber
+    
+    actor Client as Client
     participant Service as TarotService
     participant Cache as Valkey
     participant AI as OpenAI
-
-    Client->>Service: Request for tarot reading
-    Service->>Service: Random selection of card/direction/bucket/keywords
-    Service->>Cache: Cache lookup
-
+    
+    Client->>Service: Request Tarot Reading
+    Note over Service: Randomly select card / direction / bucket / keywords
+    
+    Service->>Cache: Cache Lookup (`GET`)
+    
     alt Cache Hit
         Cache-->>Service: Return stored result
     else Cache Miss
-        Service->>AI: Request Structured Output
-        AI-->>Service: {advice}
-        Service->>Service: Inject card.name / card.nameKR / keywords
-        Service->>Cache: Store result (ignore on failure)
+        Service->>AI: Call OpenAI API
+        AI-->>Service: Return reading result ({advice})
+        Note over Service: Combine data<br/>(card.name / card.nameKR / keywords)
+        Service->>Cache: Store result (`SET`)
     end
+    
+    Service-->>Client: Respond with final reading result
 
-    Service-->>Client: Reading result
 ```
 
-## Module Design and Deployment
+---
 
-The design is intentionally simple. There is no database, and the card deck and keyword pool are all hardcoded in memory. The NestJS module structure consists of ConfigModule → ValkeyModule (global) → TarotModule, with TarotService handling all business logic. This simplicity reduces code volume and makes testing easier.
+## Deployment
 
-Configuration is managed in two layers: YAML files and environment variables. Basic settings are loaded with js-yaml and overwritten by 6 environment variables, including OPENAI_API_KEY. Zod schemas handle default values and validation simultaneously.
+The frontend is operated on Vercel, and the backend is run on a home Kubernetes cluster.
 
-The Dockerfile uses a three-stage multi-stage build, and the Helm Chart operates with 2 replicas by default, automatically scaling from 2 to 10 with HPA. In the security context, it runs non-root, applies a seccomp profile, and removes all capabilities.
+```mermaid
+flowchart TD
+    subgraph Front["Frontend"]
+        Vercel[Vercel]
+    end
+    
+    subgraph CICD["CI / CD"]
+        GH[GitHub]
+        Actions[GitHub Actions]
+        Harbor[(Harbor)]
+        ArgoCD[ArgoCD]
+    end
+    
+    subgraph K8s["Backend: Home K8s Cluster"]
+        Tunnel[Cloudflare Tunnel]
+        GW[Gateway API]
+        Service[K8s Service]
+        HPA[HPA: 2~10 Replicas]
+    end
 
-## Room for Improvement
+    %% Pipeline Flow
+    GH -->|Push Git Version Tag v*.*.*| Actions
+    Actions -->|Build/Push Image| Harbor
+    Harbor -->|Image Reference| ArgoCD
+    ArgoCD -->|GitOps Deployment| Service
+    
+    %% Traffic Flow
+    Vercel -->|API Request| Tunnel
+    Tunnel -->|External Traffic| GW
+    GW -->|Routing| Service
+    Service -->|Auto Scaling| HPA
 
-Currently, keywords are not included in the cache key, so if only keywords differ within the same bucket, a cache hit may result in an unintended reading. This is intentional by design, but without cache warming, OpenAI calls are concentrated during cold starts. We are considering pre-generating popular combinations in the future.
+```
+
+The deployment pipeline automatically starts **as soon as a new version tag (`v*.*.*`) is pushed to GitHub**. GitHub Actions builds the image based on the tag and pushes it to the in-house container registry, Harbor. ArgoCD detects changes through GitOps settings and automatically synchronizes the cluster state.
+
+The backend automatically scales from 2 to 10 replicas based on traffic via HPA, and user requests coming from outside are safely routed through the Cloudflare Tunnel to the internal Gateway API.
+
+---
+
+## Areas for Improvement
+
+There is an intentional trade-off in the current design. Since keywords are not included in the cache key, even if only the keywords differ in the same bucket, a cache hit may return an unintended reading. This design choice prioritizes cache efficiency over diversity.
+
+Another challenge is the cold start. Without cache warming in the current structure, initial requests may concentrate OpenAI calls. We plan to mitigate this by pre-generating popular combinations in the future.
+
+Currently, the service is simple and available to anyone without login, but we are considering adding a login feature to save user-specific reading history and provide a personalized experience.
+
+---
 
 ## Conclusion
 
-Tarot Cards demonstrates a balance between caching and AI generation, reliable response formats created with Structured Outputs, and modern deployment using NestJS and Kubernetes. It stands out as a design that considers both cost and performance in a real operational environment, beyond just being a simple toy.
+The tarot card service is a small project, but it involves solving practical problems of balancing AI generation and caching. The caching strategy using a bucket system offers a realistic compromise between cost and diversity, with ample room for future improvements.
