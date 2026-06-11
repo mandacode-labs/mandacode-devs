@@ -1,16 +1,30 @@
-/**
- * Central language configuration - single source of truth for all language settings
- * This file loads from root config/languages.json with TypeScript types
- */
+import { z } from "zod";
 
-import languagesConfig from "../../../config/languages.json";
+const languageConfigSchema = z.object({
+  code: z.string(),
+  label: z.string(),
+  locale: z.string(),
+  dir: z.enum(["ltr", "rtl"]),
+});
 
-export const SUPPORTED_LANGUAGES =
-  languagesConfig.supportedLanguages as readonly string[];
+const languagesConfigSchema = z.object({
+  supportedLanguages: z.array(z.string()).min(1),
+  defaultLanguage: z.string(),
+  languageConfigs: z.record(z.string(), languageConfigSchema),
+  translation: z.object({
+    source: z.string(),
+    targets: z.array(z.string()),
+  }),
+});
+
+import rawConfig from "../../../config/languages.json";
+
+const parsed = languagesConfigSchema.parse(rawConfig);
+
+export const SUPPORTED_LANGUAGES: readonly string[] = parsed.supportedLanguages;
 export type Language = (typeof SUPPORTED_LANGUAGES)[number];
 
-export const DEFAULT_LANGUAGE: Language =
-  languagesConfig.defaultLanguage as Language;
+export const DEFAULT_LANGUAGE: Language = parsed.defaultLanguage as Language;
 
 export interface LanguageConfig {
   code: Language;
@@ -20,7 +34,7 @@ export interface LanguageConfig {
 }
 
 export const LANGUAGE_CONFIGS: Record<Language, LanguageConfig> =
-  languagesConfig.languageConfigs as Record<Language, LanguageConfig>;
+  parsed.languageConfigs as Record<Language, LanguageConfig>;
 
 export function isValidLanguage(lang: string): lang is Language {
   return SUPPORTED_LANGUAGES.includes(lang);
@@ -30,17 +44,11 @@ export function getLanguageConfig(lang: Language): LanguageConfig {
   return LANGUAGE_CONFIGS[lang];
 }
 
-/**
- * Translation configuration
- */
-export const TRANSLATION_SOURCE: Language = languagesConfig.translation
+export const TRANSLATION_SOURCE: Language = parsed.translation
   .source as Language;
-export const TRANSLATION_TARGETS: Language[] = languagesConfig.translation
+export const TRANSLATION_TARGETS: Language[] = parsed.translation
   .targets as Language[];
 
-/**
- * Language-related utility functions
- */
 export function getLocaleFromPath(pathname: string): Language {
   const match = pathname.match(
     new RegExp(`^/(${SUPPORTED_LANGUAGES.join("|")})(?:/|$)`),

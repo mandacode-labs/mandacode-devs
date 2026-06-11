@@ -1,6 +1,6 @@
 ---
 import Layout from "@/components/layouts/Layout.astro";
-import { useTranslations, type Lang } from "@/lib/i18n/utils";
+import { useTranslations } from "@/lib/i18n/utils";
 import { SUPPORTED_LANGUAGES, isValidLanguage } from "@/lib/config/languages";
 
 export function getStaticPaths() {
@@ -13,8 +13,7 @@ if (!lang || !isValidLanguage(lang)) {
   return Astro.redirect("/ko");
 }
 
-const typedLang: Lang = lang;
-const t = useTranslations(typedLang);
+const t = useTranslations(lang);
 ---
 
 <Layout title={t("notFound")}>
@@ -24,7 +23,7 @@ const t = useTranslations(typedLang);
       <p class="text-xl text-text-secondary mb-8">{t("notFound")}</p>
       <a
         href={`/${lang}/`}
-        class="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white font-medium rounded-lg hover:bg-accent-hover transition-colors"
+        class="inline-flex items-center gap-2 px-6 py-3 bg-accent-subtle text-accent font-medium rounded-lg hover:bg-accent hover:text-white transition-colors"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -36,8 +35,11 @@ const t = useTranslations(typedLang);
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
-          ><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg
+          aria-hidden="true"
         >
+          <path d="M5 12h14"></path>
+          <path d="m12 5 7 7-7 7"></path>
+        </svg>
         <span>{t("goHome")}</span>
       </a>
     </div>

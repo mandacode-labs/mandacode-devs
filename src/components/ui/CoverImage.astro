@@ -1,0 +1,81 @@
+---
+interface Props {
+  src: string;
+  alt: string;
+  class?: string;
+  fit?: "cover" | "contain";
+  loading?: "lazy" | "eager";
+  fetchpriority?: "high" | "low" | "auto";
+}
+
+const {
+  src,
+  alt,
+  class: className = "",
+  fit = "cover",
+  loading = "lazy",
+  fetchpriority = "auto",
+} = Astro.props;
+---
+
+<div
+  class={`relative overflow-hidden bg-bg-secondary ${className}`}
+  data-cover-image
+>
+  <div class="shimmer absolute inset-0 z-10" data-shimmer></div>
+  <img
+    src={src}
+    alt={alt}
+    class="relative w-full h-full max-h-full opacity-0 transition-opacity duration-300"
+    class:list={{
+      "object-cover": fit === "cover",
+      "object-contain": fit === "contain",
+    }}
+    style="z-index: 11"
+    loading={loading}
+    decoding="async"
+    fetchpriority={fetchpriority}
+    data-lazy-image
+    onload="this.style.opacity='1'"
+    onerror="this.style.opacity='1'; this.previousElementSibling.style.display='none'"
+  />
+</div>
+
+<script>
+  function removeShimmer(img: HTMLImageElement) {
+    img
+      .closest("[data-cover-image]")
+      ?.querySelector("[data-shimmer]")
+      ?.remove();
+  }
+
+  document.querySelectorAll("[data-lazy-image]").forEach((el) => {
+    const img = el as HTMLImageElement;
+    if (img.complete) removeShimmer(img);
+  });
+
+  document.addEventListener(
+    "load",
+    (e) => {
+      if (
+        !(e.target instanceof HTMLImageElement) ||
+        !e.target.hasAttribute("data-lazy-image")
+      )
+        return;
+      removeShimmer(e.target);
+    },
+    true,
+  );
+  document.addEventListener(
+    "error",
+    (e) => {
+      if (
+        !(e.target instanceof HTMLImageElement) ||
+        !e.target.hasAttribute("data-lazy-image")
+      )
+        return;
+      removeShimmer(e.target);
+    },
+    true,
+  );
+</script>

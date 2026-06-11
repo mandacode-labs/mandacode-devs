@@ -21,9 +21,7 @@ const { title, description, href, icon, linkText } = Astro.props;
       <Icon name={icon} size={24} />
     </div>
 
-    <h3
-      class="text-text-primary mb-2 group-hover:text-accent transition-colors"
-    >
+    <h3 class="text-text-primary mb-2">
       {title}
     </h3>
 
@@ -31,9 +29,7 @@ const { title, description, href, icon, linkText } = Astro.props;
       {description}
     </p>
 
-    <div
-      class="flex items-center gap-1 text-sm font-medium text-accent group-hover:text-accent-hover transition-colors"
-    >
+    <div class="flex items-center gap-1 text-sm font-medium text-accent">
       <span>{linkText}</span>
       <Icon name="arrowRight" size={14} />
     </div>

@@ -2,6 +2,7 @@
 import type { CollectionEntry } from "astro:content";
 import Card from "../ui/Card.astro";
 import Badge from "../ui/Badge.astro";
+import CoverImage from "../ui/CoverImage.astro";
 import { useTranslations, type Lang } from "@/lib/i18n/utils";
 
 interface Props {
@@ -21,32 +22,19 @@ const statusKey = `status.${project.data.status}` as const;
 <Card href={`/${lang}/projects/${project.id.split("/").pop()}`} class="group">
   <div class="flex flex-col sm:flex-row">
     <div class="sm:w-48 md:w-56 flex-shrink-0">
-      <div
-        class="relative aspect-video sm:aspect-square overflow-hidden rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none bg-bg-secondary flex items-center justify-center"
-      >
-        {
-          coverImage ? (
-            <>
-              <div class="shimmer absolute inset-0 z-10" />
-              <img
-                src={coverImage}
-                alt={title}
-                class="relative w-full !h-full object-cover opacity-0 transition-all duration-300 group-hover:scale-105"
-                style="z-index: 11;"
-                loading="lazy"
-                decoding="async"
-                width="224"
-                height="224"
-                onload="this.style.opacity='1'; this.previousElementSibling.style.display='none'"
-              />
-            </>
-          ) : (
-            <div class="w-full h-full bg-gradient-to-br from-surface to-border flex items-center justify-center">
-              <span class="text-text-muted text-sm font-medium">{title}</span>
-            </div>
-          )
-        }
-      </div>
+      {
+        coverImage ? (
+          <CoverImage
+            src={coverImage}
+            alt={title}
+            class="flex aspect-video sm:aspect-square rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none"
+          />
+        ) : (
+          <div class="aspect-video sm:aspect-square relative overflow-hidden rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none bg-bg-secondary bg-gradient-to-br from-surface to-border flex items-center justify-center">
+            <span class="text-text-muted text-sm font-medium">{title}</span>
+          </div>
+        )
+      }
     </div>
 
     <div class="flex-1 p-4 sm:p-5 flex flex-col">

@@ -21,14 +21,25 @@ const navItems = [
 ];
 
 const currentPath = Astro.url.pathname;
+
+function navLinkClass(href: string, mobile: boolean): string {
+  const isActive = currentPath.startsWith(
+    getRelativeLocaleUrl(currentLang, href),
+  );
+  const base = mobile
+    ? "px-3 py-2 text-sm font-medium rounded-md transition-colors"
+    : "px-3 py-1.5 text-sm font-medium rounded-md transition-colors";
+  return isActive
+    ? `${base} text-accent bg-accent-subtle`
+    : `${base} text-text-secondary hover:text-text-primary hover:bg-bg-secondary`;
+}
 ---
 
 <header
-  class={`sticky top-0 z-50 border-b border-border bg-white/80 backdrop-blur-md ${className}`}
+  class={`sticky top-0 z-50 border-b border-border bg-bg-primary/80 backdrop-blur-md ${className}`}
 >
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-14">
-      <!-- Logo -->
       <a
         href={getRelativeLocaleUrl(currentLang, "/")}
         class="flex items-center gap-2"
@@ -45,39 +56,33 @@ const currentPath = Astro.url.pathname;
         mandacode
       </a>
 
-      <!-- Navigation -->
-      <nav class="hidden md:flex items-center gap-1">
+      <nav
+        class="hidden md:flex items-center gap-1"
+        aria-label="Main navigation"
+      >
         {
-          navItems.map((item) => {
-            const href = getRelativeLocaleUrl(currentLang, item.href);
-            const isActive = currentPath.startsWith(href);
-            return (
-              <a
-                href={href}
-                class={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                  isActive
-                    ? "text-accent bg-accent-subtle"
-                    : "text-text-secondary hover:text-text-primary hover:bg-bg-secondary"
-                }`}
-              >
-                {t(item.key)}
-              </a>
-            );
-          })
+          navItems.map((item) => (
+            <a
+              href={getRelativeLocaleUrl(currentLang, item.href)}
+              class={navLinkClass(item.href, false)}
+            >
+              {t(item.key)}
+            </a>
+          ))
         }
       </nav>
 
-      <!-- Right side -->
       <div class="flex items-center gap-2">
         <slot name="actions" />
         <LanguageSwitcher currentLang={currentLang} />
 
-        <!-- Mobile menu button -->
         <button
           type="button"
           class="md:hidden p-2 text-text-secondary hover:text-text-primary"
+          aria-controls="mobile-menu"
+          aria-expanded="false"
           aria-label="Open menu"
-          id="mobile-menu-btn"
+          data-mobile-btn
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -89,36 +94,32 @@ const currentPath = Astro.url.pathname;
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
-            ><line x1="4" x2="20" y1="12" y2="12"></line><line
-              x1="4"
-              x2="20"
-              y1="6"
-              y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg
+            aria-hidden="true"
           >
+            <line x1="4" x2="20" y1="12" y2="12"></line>
+            <line x1="4" x2="20" y1="6" y2="6"></line>
+            <line x1="4" x2="20" y1="18" y2="18"></line>
+          </svg>
         </button>
       </div>
     </div>
 
-    <!-- Mobile Navigation -->
-    <div id="mobile-menu" class="hidden md:hidden pb-4">
+    <div
+      id="mobile-menu"
+      class="hidden md:hidden pb-4"
+      role="navigation"
+      aria-label="Mobile navigation"
+    >
       <nav class="flex flex-col gap-1">
         {
-          navItems.map((item) => {
-            const href = getRelativeLocaleUrl(currentLang, item.href);
-            const isActive = currentPath.startsWith(href);
-            return (
-              <a
-                href={href}
-                class={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  isActive
-                    ? "text-accent bg-accent-subtle"
-                    : "text-text-secondary hover:text-text-primary hover:bg-bg-secondary"
-                }`}
-              >
-                {t(item.key)}
-              </a>
-            );
-          })
+          navItems.map((item) => (
+            <a
+              href={getRelativeLocaleUrl(currentLang, item.href)}
+              class={navLinkClass(item.href, true)}
+            >
+              {t(item.key)}
+            </a>
+          ))
         }
       </nav>
     </div>
@@ -126,10 +127,67 @@ const currentPath = Astro.url.pathname;
 </header>
 
 <script>
-  const btn = document.getElementById("mobile-menu-btn");
-  const menu = document.getElementById("mobile-menu");
+  const btn = document.querySelector<HTMLButtonElement>("[data-mobile-btn]");
+  const menu = document.getElementById("mobile-menu") as HTMLElement | null;
+  let menuOpen = false;
 
-  btn?.addEventListener("click", () => {
-    menu?.classList.toggle("hidden");
-  });
+  if (!btn || !menu) {
+    // Mobile menu elements not found; skip initialization
+  } else {
+    const _btn = btn;
+    const _menu = menu;
+    const links = [..._menu.querySelectorAll("a")] as HTMLAnchorElement[];
+
+    _btn.addEventListener("click", () => toggleMenu());
+
+    _btn.addEventListener("keydown", (e: KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggleMenu();
+      }
+    });
+
+    _menu.addEventListener("keydown", (e: KeyboardEvent) => {
+      const target = e.target as HTMLAnchorElement;
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeMenu();
+      }
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        const idx = links.indexOf(target);
+        links[(idx + 1) % links.length]?.focus();
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        const idx = links.indexOf(target);
+        links[(idx - 1 + links.length) % links.length]?.focus();
+      }
+    });
+
+    document.addEventListener("click", (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (!_btn.contains(target) && !_menu.contains(target)) closeMenu();
+    });
+
+    function toggleMenu() {
+      menuOpen ? closeMenu() : openMenu();
+    }
+
+    function openMenu() {
+      menuOpen = true;
+      _menu.classList.remove("hidden");
+      _btn.setAttribute("aria-expanded", "true");
+      _btn.setAttribute("aria-label", "Close menu");
+      links[0]?.focus();
+    }
+
+    function closeMenu() {
+      menuOpen = false;
+      _menu.classList.add("hidden");
+      _btn.setAttribute("aria-expanded", "false");
+      _btn.setAttribute("aria-label", "Open menu");
+      _btn.focus();
+    }
+  }
 </script>

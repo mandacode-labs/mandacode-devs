@@ -1,16 +1,33 @@
 ---
-import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "@/lib/config/languages";
+import {
+  SUPPORTED_LANGUAGES,
+  DEFAULT_LANGUAGE,
+  LANGUAGE_CONFIGS,
+} from "@/lib/config/languages";
 
 interface Props {
   title: string;
   description?: string;
   ogImage?: string;
   canonical?: string;
+  lang?: string;
 }
 
-const { title, description, ogImage, canonical } = Astro.props;
+const { title, description, ogImage, canonical, lang } = Astro.props;
 const site = Astro.site?.toString() || "https://dev.mandacode.com";
 const currentUrl = new URL(Astro.url.pathname, site).toString();
+const currentLang = lang || DEFAULT_LANGUAGE;
+const localeConfig = LANGUAGE_CONFIGS[currentLang];
+
+function alternateUrl(targetLang: string): string {
+  return new URL(
+    Astro.url.pathname.replace(
+      new RegExp(`^/(${SUPPORTED_LANGUAGES.join("|")})`),
+      `/${targetLang}`,
+    ),
+    site,
+  ).toString();
+}
 ---
 
 <meta charset="UTF-8" />
@@ -25,6 +42,14 @@ const currentUrl = new URL(Astro.url.pathname, site).toString();
 <meta property="og:title" content={title} />
 {description && <meta property="og:description" content={description} />}
 <meta property="og:url" content={canonical || currentUrl} />
+{
+  localeConfig && (
+    <meta
+      property="og:locale"
+      content={localeConfig.locale.replace("-", "_")}
+    />
+  )
+}
 {
   ogImage && (
     <meta property="og:image" content={new URL(ogImage, site).toString()} />
@@ -46,31 +71,17 @@ const currentUrl = new URL(Astro.url.pathname, site).toString();
 
 <!-- Alternate languages -->
 {
-  SUPPORTED_LANGUAGES.map((lang) => (
-    <link
-      rel="alternate"
-      hreflang={lang}
-      href={new URL(
-        Astro.url.pathname.replace(
-          new RegExp(`^/(${SUPPORTED_LANGUAGES.join("|")})/`),
-          `/${lang}/`,
-        ),
-        site,
-      ).toString()}
-    />
-  ))
+  [...SUPPORTED_LANGUAGES, "x-default"].map((hreflang) => {
+    const targetLang = hreflang === "x-default" ? DEFAULT_LANGUAGE : hreflang;
+    return (
+      <link
+        rel="alternate"
+        hreflang={hreflang}
+        href={alternateUrl(targetLang)}
+      />
+    );
+  })
 }
-<link
-  rel="alternate"
-  hreflang="x-default"
-  href={new URL(
-    Astro.url.pathname.replace(
-      new RegExp(`^/(${SUPPORTED_LANGUAGES.join("|")})/`),
-      `/${DEFAULT_LANGUAGE}/`,
-    ),
-    site,
-  ).toString()}
-/>
 
 <!-- Favicon -->
 <link rel="icon" type="image/x-icon" href="/favicon.ico" />
