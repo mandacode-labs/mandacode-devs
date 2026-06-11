@@ -21,25 +21,19 @@ const description = post.data.description;
 <Card href={`/${lang}/blog/${post.id.split("/").pop()}`} class="group">
   <div class="flex flex-col sm:flex-row">
     <div class="sm:w-48 md:w-56 flex-shrink-0">
-      <div
-        class="relative aspect-video sm:aspect-square overflow-hidden rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none bg-bg-secondary flex items-center justify-center"
-      >
-        {
-          post.data.coverImage ? (
-            <CoverImage
-              src={post.data.coverImage}
-              alt={title}
-              class="w-full h-full"
-              width={224}
-              height={224}
-            />
-          ) : (
-            <div class="w-full h-full flex items-center justify-center text-text-muted">
-              <ImagePlaceholder />
-            </div>
-          )
-        }
-      </div>
+      {
+        post.data.coverImage ? (
+          <CoverImage
+            src={post.data.coverImage}
+            alt={title}
+            class="flex aspect-video sm:aspect-square rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none"
+          />
+        ) : (
+          <div class="aspect-video sm:aspect-square relative overflow-hidden rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none bg-bg-secondary flex items-center justify-center text-text-muted">
+            <ImagePlaceholder />
+          </div>
+        )
+      }
     </div>
 
     <div class="flex-1 p-4 sm:p-5 flex flex-col">

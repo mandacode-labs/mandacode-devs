@@ -5,7 +5,7 @@ import Button from "@/components/ui/Button.astro";
 import CoverImage from "@/components/ui/CoverImage.astro";
 import BackLink from "@/components/ui/BackLink.astro";
 import { getCollection, render } from "astro:content";
-import { useTranslations, type Lang } from "@/lib/i18n/utils";
+import { useTranslations } from "@/lib/i18n/utils";
 import { isValidLanguage } from "@/lib/config/languages";
 
 export async function getStaticPaths() {
@@ -24,17 +24,16 @@ if (!lang || !isValidLanguage(lang)) {
   return Astro.redirect("/ko/projects");
 }
 
-const typedLang: Lang = lang;
-const t = useTranslations(typedLang);
+const t = useTranslations(lang);
 
 const projects = await getCollection(
   "projects",
-  (p) => p.data.lang === typedLang && p.id.endsWith(`/${slug}`),
+  (p) => p.data.lang === lang && p.id.endsWith(`/${slug}`),
 );
 const project = projects[0];
 
 if (!project) {
-  return Astro.redirect(`/${typedLang}/projects`);
+  return Astro.redirect(`/${lang}/projects`);
 }
 
 const title = project.data.title;
@@ -49,24 +48,20 @@ const { Content } = await render(project);
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
     <BackLink href={`/${lang}/projects`} label={t("projects.title")} />
 
-    <div
-      class="relative flex w-full max-h-[30rem] justify-center mb-8 bg-bg-secondary rounded-lg overflow-hidden"
-    >
-      {
-        coverImage ? (
-          <CoverImage
-            src={coverImage}
-            alt={title}
-            class="w-full h-full"
-            fetchpriority="high"
-          />
-        ) : (
-          <div class="w-full h-full bg-gradient-to-br from-surface to-border flex items-center justify-center p-12">
-            <span class="text-text-muted text-xl font-medium">{title}</span>
-          </div>
-        )
-      }
-    </div>
+    {
+      coverImage ? (
+        <CoverImage
+          src={coverImage}
+          alt={title}
+          class="flex w-full max-h-[30rem] rounded-lg mb-8"
+          fetchpriority="high"
+        />
+      ) : (
+        <div class="relative flex w-full h-[30rem] items-center justify-center p-12 mb-8 bg-gradient-to-br from-surface to-border rounded-lg overflow-hidden">
+          <span class="text-text-muted text-xl font-medium">{title}</span>
+        </div>
+      )
+    }
 
     <header class="mb-6">
       <div class="flex items-center gap-3 mb-3">

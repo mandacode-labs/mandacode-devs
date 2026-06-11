@@ -3,20 +3,18 @@ interface Props {
   src: string;
   alt: string;
   class?: string;
+  fit?: "cover" | "contain";
   loading?: "lazy" | "eager";
   fetchpriority?: "high" | "low" | "auto";
-  width?: number;
-  height?: number;
 }
 
 const {
   src,
   alt,
   class: className = "",
+  fit = "cover",
   loading = "lazy",
   fetchpriority = "auto",
-  width,
-  height,
 } = Astro.props;
 ---
 
@@ -28,12 +26,14 @@ const {
   <img
     src={src}
     alt={alt}
-    class="relative w-full h-full object-cover opacity-0 transition-opacity duration-300"
-    style="z-index: 11;"
+    class="relative w-full h-full max-h-full opacity-0 transition-opacity duration-300"
+    class:list={{
+      "object-cover": fit === "cover",
+      "object-contain": fit === "contain",
+    }}
+    style="z-index: 11"
     loading={loading}
     decoding="async"
-    {width}
-    {height}
     fetchpriority={fetchpriority}
     data-lazy-image
     onload="this.style.opacity='1'"
@@ -42,21 +42,36 @@ const {
 </div>
 
 <script>
-  const containers = document.querySelectorAll("[data-cover-image]");
-  for (const container of containers) {
-    const img = container.querySelector(
-      "[data-lazy-image]",
-    ) as HTMLElement | null;
-    const shimmer = container.querySelector(
-      "[data-shimmer]",
-    ) as HTMLElement | null;
-    if (img) {
-      img.addEventListener("load", () => {
-        if (shimmer) shimmer.style.display = "none";
-      });
-      img.addEventListener("error", () => {
-        if (shimmer) shimmer.style.display = "none";
-      });
-    }
-  }
+  document.addEventListener(
+    "load",
+    (e) => {
+      const img = e.target;
+      if (
+        !(img instanceof HTMLImageElement) ||
+        !img.hasAttribute("data-lazy-image")
+      )
+        return;
+      img
+        .closest("[data-cover-image]")
+        ?.querySelector("[data-shimmer]")
+        ?.remove();
+    },
+    true,
+  );
+  document.addEventListener(
+    "error",
+    (e) => {
+      const img = e.target;
+      if (
+        !(img instanceof HTMLImageElement) ||
+        !img.hasAttribute("data-lazy-image")
+      )
+        return;
+      img
+        .closest("[data-cover-image]")
+        ?.querySelector("[data-shimmer]")
+        ?.remove();
+    },
+    true,
+  );
 </script>
