@@ -1,14 +1,22 @@
-import ko from "./ko.json";
-import en from "./en.json";
+import type { UIKey } from "./types";
+import type { Language } from "../config/languages";
 
-export const ui = {
-  ko,
-  en,
-} as const;
+// Dynamically load all locale JSON files from ./locales/
+const modules = import.meta.glob("./locales/*.json", { eager: true });
 
-// UIKey: all languages must have the same keys for type safety
-export type UIKey = keyof (typeof ui)["ko"] & keyof (typeof ui)["en"];
+const ui: Record<Language, Record<UIKey, string>> = {} as Record<
+  Language,
+  Record<UIKey, string>
+>;
 
-// Re-export language types from central config
+for (const [path, mod] of Object.entries(modules)) {
+  const lang = path.match(/\/([a-z]+)\.json$/)?.[1] as Language | undefined;
+  if (lang) {
+    ui[lang] = (mod as any).default as Record<UIKey, string>;
+  }
+}
+
+export { ui };
+export type { UIKey };
 export type { Language, Language as Lang } from "../config/languages";
 export { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "../config/languages";

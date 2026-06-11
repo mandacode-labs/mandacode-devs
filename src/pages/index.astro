@@ -2,26 +2,27 @@
 import Layout from "@/components/layouts/Layout.astro";
 import NavigationCard from "@/components/content/NavigationCard.astro";
 import { useTranslations } from "@/lib/i18n/utils";
+import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "@/lib/config/languages";
 
-const t = useTranslations("ko");
+const t = useTranslations(DEFAULT_LANGUAGE);
 
 const cards = [
   {
     title: t("projects.title"),
     description: t("projects.subtitle"),
-    href: `/ko/projects`,
+    href: `/${DEFAULT_LANGUAGE}/projects`,
     icon: "folder",
   },
   {
     title: t("developer.title"),
     description: t("developer.subtitle"),
-    href: `/ko/developer`,
+    href: `/${DEFAULT_LANGUAGE}/developer`,
     icon: "user",
   },
   {
     title: t("blog.title"),
     description: t("blog.subtitle"),
-    href: `/ko/blog`,
+    href: `/${DEFAULT_LANGUAGE}/blog`,
     icon: "bookOpen",
   },
 ];
@@ -65,12 +66,9 @@ const cards = [
   </section>
 </Layout>
 
-<script>
+<script is:inline define:vars={{ SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE }}>
   // Detect browser language and redirect to appropriate locale
   (function () {
-    const SUPPORTED_LANGUAGES = ["ko", "en"];
-    const DEFAULT_LANGUAGE = "ko";
-
     const userLang =
       navigator.language || navigator.languages?.[0] || DEFAULT_LANGUAGE;
     const primaryLang = userLang.split("-")[0].toLowerCase();

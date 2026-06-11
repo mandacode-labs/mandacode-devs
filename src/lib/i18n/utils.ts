@@ -1,4 +1,4 @@
-import { ui, type UIKey } from "./index";
+import { ui, type UIKey, DEFAULT_LANGUAGE } from "./index";
 import type { Language } from "../config/languages";
 import { getLocaleFromPath, getRelativeLocaleUrl } from "../config/languages";
 
@@ -10,10 +10,10 @@ export function useTranslations(lang: Lang) {
     key: UIKey,
     vars?: Record<string, string | number>,
   ): string {
-    const translations = ui[lang as keyof typeof ui] || ui["ko"];
+    const translations = ui[lang] || ui[DEFAULT_LANGUAGE];
     let text =
-      translations[key as keyof typeof translations] ||
-      ui["ko"][key as keyof (typeof ui)["ko"]] ||
+      translations?.[key] ||
+      ui[DEFAULT_LANGUAGE]?.[key] ||
       key;
 
     if (vars) {

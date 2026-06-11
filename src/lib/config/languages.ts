@@ -30,10 +30,6 @@ export function getLanguageConfig(lang: Language): LanguageConfig {
   return LANGUAGE_CONFIGS[lang];
 }
 
-export function getOtherLanguage(lang: Language): Language {
-  return lang === "ko" ? "en" : "ko";
-}
-
 /**
  * Translation configuration
  */

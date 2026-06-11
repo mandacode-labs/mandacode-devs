@@ -1,6 +1,6 @@
 ---
 import { useTranslations, type Lang } from "@/lib/i18n/utils";
-import { getOtherLanguage, SUPPORTED_LANGUAGES } from "@/lib/config/languages";
+import { SUPPORTED_LANGUAGES, LANGUAGE_CONFIGS } from "@/lib/config/languages";
 
 interface Props {
   currentLang: Lang;
@@ -10,11 +10,19 @@ const { currentLang } = Astro.props;
 const t = useTranslations(currentLang);
 
 const currentPath = Astro.url.pathname;
-const otherLang = getOtherLanguage(currentLang);
-const otherUrl = currentPath.replace(
-  new RegExp(`^/(${SUPPORTED_LANGUAGES.join("|")})`),
-  `/${otherLang}`,
-);
+
+function getLocaleUrl(pathname: string, lang: Lang): string {
+  // Replace existing language prefix or add new one
+  const hasLangPrefix = SUPPORTED_LANGUAGES.some(l => pathname.startsWith(`/${l}/`) || pathname === `/${l}`);
+  if (hasLangPrefix) {
+    return pathname.replace(
+      new RegExp(`^/(${SUPPORTED_LANGUAGES.join("|")})`),
+      `/${lang}`,
+    );
+  }
+  // If no language prefix (e.g., root path), prepend language
+  return `/${lang}${pathname}`;
+}
 ---
 
 <div class="relative group">
@@ -23,7 +31,7 @@ const otherUrl = currentPath.replace(
     class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors rounded-md hover:bg-bg-secondary"
     aria-label="Change language"
   >
-    <span>{currentLang.toUpperCase()}</span>
+    <span>{LANGUAGE_CONFIGS[currentLang].label}</span>
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="14"
@@ -40,13 +48,17 @@ const otherUrl = currentPath.replace(
   </button>
 
   <div
-    class="absolute right-0 top-full mt-1 py-1 bg-white border border-border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all min-w-[120px]"
+    class="absolute right-0 top-full mt-1 py-1 bg-white border border-border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all min-w-[140px]"
   >
-    <a
-      href={otherUrl}
-      class="block px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-secondary transition-colors"
-    >
-      {t(otherLang === "ko" ? "lang.ko" : "lang.en")}
-    </a>
+    {
+      SUPPORTED_LANGUAGES.filter((lang) => lang !== currentLang).map((lang) => (
+        <a
+          href={getLocaleUrl(currentPath, lang)}
+          class="block px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-secondary transition-colors"
+        >
+          {t(`lang.${lang}` as any)}
+        </a>
+      ))
+    }
   </div>
 </div>

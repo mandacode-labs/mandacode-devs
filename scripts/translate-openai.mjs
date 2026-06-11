@@ -3,6 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import matter from "gray-matter";
 import OpenAI from "openai";
+
 // Load translation configuration from central language config
 const languagesConfig = JSON.parse(
   fs.readFileSync(
@@ -10,10 +11,13 @@ const languagesConfig = JSON.parse(
     "utf-8",
   ),
 );
+
 const TRANSLATION_CONFIG = {
   sourceLang: languagesConfig.translation.source,
   targetLangs: languagesConfig.translation.targets,
   contentDir: "src/content",
+  uiDir: "src/lib/i18n/locales",
+  typesFile: "src/lib/i18n/types.ts",
   cacheFile: ".translate-cache.json",
   collections: {
     blog: {
@@ -93,18 +97,31 @@ if (!OPENAI_API_KEY) {
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
 /**
+ * Get human-readable language name
+ */
+function getLanguageName(langCode) {
+  const names = {
+    ko: "Korean",
+    en: "English",
+    ja: "Japanese",
+    zh: "Chinese",
+    es: "Spanish",
+    fr: "French",
+    de: "German",
+  };
+  return names[langCode] || langCode;
+}
+
+/**
  * Generate translation prompt with source and target languages
- * @param {string} sourceLang - Source language code
- * @param {string} targetLang - Target language code
- * @returns {string}
  */
 function getTranslationStyle(sourceLang, targetLang) {
   return `You are a professional translator.
-Translate the following content from ${sourceLang} to ${targetLang}.
+Translate the following content from ${getLanguageName(sourceLang)} to ${getLanguageName(targetLang)}.
 
 Guidelines:
 - Maintain the original author's tone, style, and voice
-- Adapt expressions to sound natural for ${targetLang} speakers
+- Adapt expressions to sound natural for ${getLanguageName(targetLang)} speakers
 - Preserve technical terms, code blocks, URLs, and markdown formatting
 - Do not translate content inside backticks or code fences
 - Keep frontmatter metadata (dates, URLs, paths) unchanged`;
@@ -112,8 +129,6 @@ Guidelines:
 
 /**
  * Generate MD5 hash for content caching
- * @param {string} content
- * @returns {string}
  */
 function getHash(content) {
   return crypto.createHash("md5").update(content).digest("hex");
@@ -121,7 +136,6 @@ function getHash(content) {
 
 /**
  * Load translation cache from disk
- * @returns {Record<string, string>}
  */
 function loadCache() {
   try {
@@ -133,7 +147,6 @@ function loadCache() {
 
 /**
  * Save translation cache to disk
- * @param {Record<string, string>} cache
  */
 function saveCache(cache) {
   fs.writeFileSync(
@@ -144,9 +157,6 @@ function saveCache(cache) {
 
 /**
  * Extract translatable fields from frontmatter data
- * @param {string} collection - Collection name
- * @param {Record<string, any>} data - Frontmatter data
- * @returns {{ translatable: Record<string, any>, preserved: Record<string, any> }}
  */
 function extractTranslatableFields(collection, data) {
   const config = TRANSLATION_CONFIG.collections[collection];
@@ -161,7 +171,6 @@ function extractTranslatableFields(collection, data) {
     if (config.translatableFields.includes(key)) {
       translatable[key] = value;
     } else if (config.nestedTranslatableFields?.[key]) {
-      // Handle nested arrays with translatable fields
       translatable[key] = value;
     } else {
       preserved[key] = value;
@@ -173,10 +182,6 @@ function extractTranslatableFields(collection, data) {
 
 /**
  * Recursively translate nested objects in arrays
- * @param {any[]} items - Array of objects
- * @param {string[]} fields - Fields to translate
- * @param {string} targetLang - Target language
- * @returns {Promise<any[]>}
  */
 async function translateNestedItems(items, fields, targetLang) {
   if (!Array.isArray(items)) return items;
@@ -196,9 +201,6 @@ async function translateNestedItems(items, fields, targetLang) {
 
 /**
  * Translate a single text string using OpenAI
- * @param {string} text - Text to translate
- * @param {string} targetLang - Target language
- * @returns {Promise<string>}
  */
 async function translateText(text, targetLang) {
   if (!text || !text.trim()) return text;
@@ -216,7 +218,7 @@ async function translateText(text, targetLang) {
         },
         {
           role: "user",
-          content: `Translate the following ${TRANSLATION_CONFIG.sourceLang === "ko" ? "Korean" : TRANSLATION_CONFIG.sourceLang} text to ${targetLang === "en" ? "English" : targetLang}:\n\n${text}`,
+          content: `Translate the following ${getLanguageName(TRANSLATION_CONFIG.sourceLang)} text to ${getLanguageName(targetLang)}:\n\n${text}`,
         },
       ],
       temperature: 0.3,
@@ -231,9 +233,6 @@ async function translateText(text, targetLang) {
 
 /**
  * Translate frontmatter fields using OpenAI
- * @param {Record<string, any>} fields - Fields to translate
- * @param {string} targetLang - Target language
- * @returns {Promise<Record<string, any>>}
  */
 async function translateFrontmatterFields(fields, targetLang) {
   const translated = {};
@@ -251,9 +250,6 @@ async function translateFrontmatterFields(fields, targetLang) {
 
 /**
  * Translate markdown body content
- * @param {string} body - Markdown body
- * @param {string} targetLang - Target language
- * @returns {Promise<string>}
  */
 async function translateBody(body, targetLang) {
   if (!body || !body.trim()) return body;
@@ -271,7 +267,7 @@ async function translateBody(body, targetLang) {
         },
         {
           role: "user",
-          content: `Translate the following ${TRANSLATION_CONFIG.sourceLang === "ko" ? "Korean" : TRANSLATION_CONFIG.sourceLang} markdown content to ${targetLang === "en" ? "English" : targetLang}. Keep all markdown formatting, code blocks, and technical terms unchanged:\n\n${body}`,
+          content: `Translate the following ${getLanguageName(TRANSLATION_CONFIG.sourceLang)} markdown content to ${getLanguageName(targetLang)}. Keep all markdown formatting, code blocks, and technical terms unchanged:\n\n${body}`,
         },
       ],
       temperature: 0.3,
@@ -286,10 +282,6 @@ async function translateBody(body, targetLang) {
 
 /**
  * Merge translated fields with preserved fields
- * @param {Record<string, any>} translated - Translated fields
- * @param {Record<string, any>} preserved - Preserved fields
- * @param {string} targetLang - Target language
- * @returns {Record<string, any>}
  */
 function mergeFields(translated, preserved, targetLang) {
   const merged = { ...preserved, ...translated };
@@ -299,13 +291,10 @@ function mergeFields(translated, preserved, targetLang) {
 
 /**
  * Process and fix date fields in frontmatter
- * @param {Record<string, any>} data - Frontmatter data
- * @returns {Record<string, any>}
  */
 function fixDateFields(data) {
   const fixed = { ...data };
 
-  // Convert ISO date strings back to Date objects
   for (const [key, value] of Object.entries(fixed)) {
     if (
       typeof value === "string" &&
@@ -325,9 +314,6 @@ function fixDateFields(data) {
 
 /**
  * Translate a single markdown file
- * @param {string} filePath - Source file path
- * @param {string} targetLang - Target language
- * @param {Record<string, string>} cache - Translation cache
  */
 async function translateFile(filePath, targetLang, cache) {
   const fileName = path.basename(filePath);
@@ -344,19 +330,16 @@ async function translateFile(filePath, targetLang, cache) {
   const parsed = matter(content);
 
   try {
-    // Extract translatable and preserved fields
     const { translatable, preserved } = extractTranslatableFields(
       collection,
       parsed.data,
     );
 
-    // Translate top-level fields
     const translatedFields = await translateFrontmatterFields(
       translatable,
       targetLang,
     );
 
-    // Translate nested fields (certifications, education, etc.)
     const config = TRANSLATION_CONFIG.collections[collection];
     if (config?.nestedTranslatableFields) {
       for (const [nestedKey, nestedFields] of Object.entries(
@@ -372,17 +355,12 @@ async function translateFile(filePath, targetLang, cache) {
       }
     }
 
-    // Merge fields and fix dates
     let mergedData = mergeFields(translatedFields, preserved, targetLang);
     mergedData = fixDateFields(mergedData);
 
-    // Translate body
     const translatedBody = await translateBody(parsed.content, targetLang);
-
-    // Generate new markdown
     const newContent = matter.stringify(translatedBody, mergedData);
 
-    // Save to target directory
     const sourceDir = path.dirname(filePath);
     const targetDir = sourceDir.replace(
       `/${TRANSLATION_CONFIG.sourceLang}`,
@@ -450,76 +428,139 @@ async function translateContent() {
   console.log("\n✅ Content translation complete!");
 }
 
+// ========== UI TRANSLATION ==========
+
 /**
- * Translate UI strings (one-shot)
+ * Generate UIKey TypeScript type file from source locale keys
+ */
+function generateTypesFile(sourceData) {
+  const keys = Object.keys(sourceData)
+    .sort()
+    .map((key) => `  | "${key}"`)
+    .join("\n");
+
+  const content = `// Auto-generated by translate script. Do not edit manually.
+// Run \`npm run translate:ui\` to regenerate.
+
+export type UIKey =
+${keys};
+`;
+
+  fs.writeFileSync(TRANSLATION_CONFIG.typesFile, content);
+  console.log(`  📝 Generated types at ${TRANSLATION_CONFIG.typesFile}`);
+}
+
+/**
+ * Translate UI strings for a single target language
+ */
+async function translateUILanguage(sourceData, targetLang) {
+  const targetPath = path.join(
+    TRANSLATION_CONFIG.uiDir,
+    `${targetLang}.json`,
+  );
+
+  let existing = {};
+  try {
+    existing = JSON.parse(fs.readFileSync(targetPath, "utf-8"));
+  } catch {
+    console.log(`  Creating new ${targetLang}.json`);
+  }
+
+  // Find new keys to translate
+  const newKeys = Object.keys(sourceData).filter((key) => !existing[key]);
+
+  // Find keys to remove
+  const removedKeys = Object.keys(existing).filter((key) => !(key in sourceData));
+
+  if (newKeys.length === 0 && removedKeys.length === 0) {
+    console.log(`  ✓ ${targetLang}: All UI strings up to date`);
+    return;
+  }
+
+  if (removedKeys.length > 0) {
+    for (const key of removedKeys) {
+      delete existing[key];
+      console.log(`  🗑 ${key}: Removed (no longer in source)`);
+    }
+  }
+
+  if (newKeys.length > 0) {
+    console.log(`  Found ${newKeys.length} new strings to translate to ${targetLang}`);
+
+    const toTranslate = {};
+    newKeys.forEach((key) => {
+      toTranslate[key] = sourceData[key];
+    });
+
+    try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: getTranslationStyle(TRANSLATION_CONFIG.sourceLang, targetLang),
+          },
+          {
+            role: "user",
+            content: `Translate the following ${getLanguageName(TRANSLATION_CONFIG.sourceLang)} UI strings to ${getLanguageName(targetLang)}. Return a JSON object with the same keys but translated values. Do not change the keys, only translate the values:\n\n${JSON.stringify(toTranslate, null, 2)}`,
+          },
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.3,
+      });
+
+      const translated = JSON.parse(response.choices[0].message.content);
+
+      // Merge with existing
+      Object.assign(existing, translated);
+
+      console.log(`  ✓ Translated ${newKeys.length} strings to ${targetLang}`);
+    } catch (error) {
+      console.error(`  ✗ UI translation failed for ${targetLang}: ${error.message}`);
+      return;
+    }
+  }
+
+  // Ensure all source keys exist in target (fallback to source if translation failed)
+  for (const key of Object.keys(sourceData)) {
+    if (!(key in existing)) {
+      existing[key] = sourceData[key];
+      console.log(`  ⚠ ${key}: Using source text as fallback`);
+    }
+  }
+
+  fs.writeFileSync(targetPath, JSON.stringify(existing, null, 2) + "\n");
+  console.log(`  💾 Saved ${targetPath}`);
+}
+
+/**
+ * Translate UI strings for all target languages
  */
 async function translateUIStrings() {
   console.log("🌐 Translating UI strings...\n");
 
-  const KO_PATH = "src/lib/i18n/ko.json";
-  const EN_PATH = "src/lib/i18n/en.json";
+  const sourcePath = path.join(
+    TRANSLATION_CONFIG.uiDir,
+    `${TRANSLATION_CONFIG.sourceLang}.json`,
+  );
 
-  const ko = JSON.parse(fs.readFileSync(KO_PATH, "utf-8"));
-
-  let existingEn = {};
-  try {
-    existingEn = JSON.parse(fs.readFileSync(EN_PATH, "utf-8"));
-  } catch {
-    console.log("No existing en.json, creating new one");
-  }
-
-  // Only translate newly added keys
-  const newKeys = Object.keys(ko).filter((key) => !existingEn[key]);
-
-  if (newKeys.length === 0) {
-    console.log("  ✓ All UI strings are up to date");
+  if (!fs.existsSync(sourcePath)) {
+    console.error(`  ✗ Source file not found: ${sourcePath}`);
     return;
   }
 
-  console.log(`  Found ${newKeys.length} new strings to translate`);
+  const sourceData = JSON.parse(fs.readFileSync(sourcePath, "utf-8"));
 
-  const toTranslate = {};
-  newKeys.forEach((key) => {
-    toTranslate[key] = ko[key];
-  });
+  // Generate TypeScript types from source keys
+  generateTypesFile(sourceData);
 
-  try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: getTranslationStyle(TRANSLATION_CONFIG.sourceLang, "en"),
-        },
-        {
-          role: "user",
-          content: `Translate the following ${TRANSLATION_CONFIG.sourceLang === "ko" ? "Korean" : TRANSLATION_CONFIG.sourceLang} UI strings to English. Return a JSON object with the same keys but translated values:\n\n${JSON.stringify(toTranslate, null, 2)}`,
-        },
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.3,
-    });
-
-    const translated = JSON.parse(response.choices[0].message.content);
-
-    // Merge with existing translations
-    const updated = { ...existingEn, ...translated };
-
-    // Remove keys that no longer exist
-    for (const key of Object.keys(updated)) {
-      if (!(key in ko)) {
-        delete updated[key];
-        console.log(`  🗑 ${key}: Removed (no longer in ko.json)`);
-      }
-    }
-
-    fs.writeFileSync(EN_PATH, JSON.stringify(updated, null, 2) + "\n");
-    console.log(
-      `\n✅ UI translation complete! ${newKeys.length} strings translated`,
-    );
-  } catch (error) {
-    console.error(`  ✗ UI translation failed: ${error.message}`);
+  // Translate to each target language
+  for (const targetLang of TRANSLATION_CONFIG.targetLangs) {
+    if (targetLang === TRANSLATION_CONFIG.sourceLang) continue;
+    await translateUILanguage(sourceData, targetLang);
   }
+
+  console.log("\n✅ UI translation complete!");
 }
 
 // Main execution
