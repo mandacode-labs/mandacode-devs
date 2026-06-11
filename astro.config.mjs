@@ -5,6 +5,7 @@ import mermaid from "astro-mermaid";
 import path from "node:path";
 
 import cloudflare from "@astrojs/cloudflare";
+import sitemap from "@astrojs/sitemap";
 
 // https://astro.build/config
 export default defineConfig({
@@ -23,6 +24,17 @@ export default defineConfig({
   integrations: [
     mermaid({
       theme: "default",
+    }),
+    sitemap({
+      i18n: {
+        defaultLocale: "ko",
+        locales: {
+          ko: "ko",
+          en: "en",
+          ja: "ja",
+          zh: "zh",
+        },
+      },
     }),
   ],
 });
