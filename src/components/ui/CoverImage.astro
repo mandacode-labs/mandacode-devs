@@ -42,35 +42,39 @@ const {
 </div>
 
 <script>
+  function removeShimmer(img: HTMLImageElement) {
+    img
+      .closest("[data-cover-image]")
+      ?.querySelector("[data-shimmer]")
+      ?.remove();
+  }
+
+  document.querySelectorAll("[data-lazy-image]").forEach((el) => {
+    const img = el as HTMLImageElement;
+    if (img.complete) removeShimmer(img);
+  });
+
   document.addEventListener(
     "load",
     (e) => {
-      const img = e.target;
       if (
-        !(img instanceof HTMLImageElement) ||
-        !img.hasAttribute("data-lazy-image")
+        !(e.target instanceof HTMLImageElement) ||
+        !e.target.hasAttribute("data-lazy-image")
       )
         return;
-      img
-        .closest("[data-cover-image]")
-        ?.querySelector("[data-shimmer]")
-        ?.remove();
+      removeShimmer(e.target);
     },
     true,
   );
   document.addEventListener(
     "error",
     (e) => {
-      const img = e.target;
       if (
-        !(img instanceof HTMLImageElement) ||
-        !img.hasAttribute("data-lazy-image")
+        !(e.target instanceof HTMLImageElement) ||
+        !e.target.hasAttribute("data-lazy-image")
       )
         return;
-      img
-        .closest("[data-cover-image]")
-        ?.querySelector("[data-shimmer]")
-        ?.remove();
+      removeShimmer(e.target);
     },
     true,
   );
