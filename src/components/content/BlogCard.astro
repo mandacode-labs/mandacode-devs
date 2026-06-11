@@ -2,6 +2,7 @@
 import type { CollectionEntry } from "astro:content";
 import Card from "../ui/Card.astro";
 import Badge from "../ui/Badge.astro";
+import CoverImage from "../ui/CoverImage.astro";
 import ImagePlaceholder from "../icons/ImagePlaceholder.astro";
 import type { Lang } from "@/lib/i18n/utils";
 import { formatDate } from "@/lib/utils/date";
@@ -25,20 +26,13 @@ const description = post.data.description;
       >
         {
           post.data.coverImage ? (
-            <>
-              <div class="shimmer absolute inset-0 z-10" />
-              <img
-                src={post.data.coverImage}
-                alt={title}
-                class="relative w-full !h-full object-cover opacity-0 transition-all duration-300 group-hover:scale-105"
-                style="z-index: 11;"
-                loading="lazy"
-                decoding="async"
-                width="224"
-                height="224"
-                onload="this.style.opacity='1'; this.previousElementSibling.style.display='none'"
-              />
-            </>
+            <CoverImage
+              src={post.data.coverImage}
+              alt={title}
+              class="w-full h-full"
+              width={224}
+              height={224}
+            />
           ) : (
             <div class="w-full h-full flex items-center justify-center text-text-muted">
               <ImagePlaceholder />

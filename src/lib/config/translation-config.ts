@@ -12,6 +12,22 @@ interface CollectionConfig {
   nestedTranslatableFields?: Record<string, string[]>;
 }
 
+const SHARED_PRESERVED_FIELDS = [
+  "pubDate",
+  "updatedDate",
+  "lang",
+  "coverImage",
+  "ogImage",
+  "tags",
+  "draft",
+  "status",
+  "order",
+  "techStack",
+  "url",
+  "sourceUrl",
+  "blogUrl",
+] as const;
+
 export const TRANSLATION_CONFIG = {
   sourceLang: TRANSLATION_SOURCE,
   targetLangs: TRANSLATION_TARGETS,
@@ -19,42 +35,15 @@ export const TRANSLATION_CONFIG = {
     blog: {
       translatableFields: ["title", "description"],
       preservedFields: [
-        "pubDate",
-        "updatedDate",
-        "lang",
-        "coverImage",
-        "ogImage",
-        "tags",
-        "draft",
-        "status",
-        "order",
-        "techStack",
+        ...SHARED_PRESERVED_FIELDS,
         "duration",
         "teamSize",
         "role",
-        "url",
-        "sourceUrl",
-        "blogUrl",
       ],
     } as CollectionConfig,
     projects: {
       translatableFields: ["title", "description", "duration", "role"],
-      preservedFields: [
-        "pubDate",
-        "updatedDate",
-        "lang",
-        "coverImage",
-        "ogImage",
-        "tags",
-        "draft",
-        "status",
-        "order",
-        "techStack",
-        "teamSize",
-        "url",
-        "sourceUrl",
-        "blogUrl",
-      ],
+      preservedFields: [...SHARED_PRESERVED_FIELDS],
     } as CollectionConfig,
     developers: {
       translatableFields: ["name", "role", "bio"],

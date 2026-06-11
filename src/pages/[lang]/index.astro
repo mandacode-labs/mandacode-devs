@@ -14,8 +14,7 @@ if (!lang || !isValidLanguage(lang)) {
   return Astro.redirect("/ko");
 }
 
-const typedLang: Lang = lang;
-const t = useTranslations(typedLang);
+const t = useTranslations(lang);
 
 const cards = [
   {

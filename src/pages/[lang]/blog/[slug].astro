@@ -1,15 +1,18 @@
 ---
 import Layout from "@/components/layouts/Layout.astro";
 import Badge from "@/components/ui/Badge.astro";
+import CoverImage from "@/components/ui/CoverImage.astro";
+import BackLink from "@/components/ui/BackLink.astro";
 import { getCollection, render } from "astro:content";
 import { useTranslations, type Lang } from "@/lib/i18n/utils";
 import { formatDate } from "@/lib/utils/date";
-import { isValidLanguage } from "@/lib/config/languages";
+import { SUPPORTED_LANGUAGES, isValidLanguage } from "@/lib/config/languages";
 
 export async function getStaticPaths() {
   const posts = await getCollection("blog");
   const paths = [];
   for (const post of posts) {
+    if (post.data.draft) continue;
     const slug = post.id.split("/").pop();
     paths.push({ params: { lang: post.data.lang, slug } });
   }
@@ -27,7 +30,8 @@ const t = useTranslations(typedLang);
 
 const posts = await getCollection(
   "blog",
-  (p) => p.data.lang === typedLang && p.id.endsWith(`/${slug}`),
+  (p) =>
+    !p.data.draft && p.data.lang === typedLang && p.id.endsWith(`/${slug}`),
 );
 const post = posts[0];
 
@@ -44,40 +48,16 @@ const { Content } = await render(post);
 
 <Layout title={title} description={description} ogImage={image}>
   <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-    <a
-      href={`/${typedLang}/blog`}
-      class="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors mb-8"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="14"
-        height="14"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="rotate-180"
-        ><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg
-      >
-      <span>{t("blog.title")}</span>
-    </a>
+    <BackLink href={`/${typedLang}/blog`} label={t("blog.title")} />
 
     {
       image && (
-        <div class="relative flex w-full max-h-[30rem]! justify-center rounded-xl overflow-hidden bg-bg-secondary mb-8">
-          <div class="shimmer absolute inset-0 z-10" />
-          <img
-            src={image}
-            alt={title}
-            class="relative w-full h-full object-contain opacity-0 transition-opacity duration-300"
-            style="z-index: 11;"
-            fetchpriority="high"
-            decoding="async"
-            onload="this.style.opacity='1'; this.previousElementSibling.style.display='none'"
-          />
-        </div>
+        <CoverImage
+          src={image}
+          alt={title}
+          class="w-full max-h-[30rem] justify-center rounded-xl mb-8"
+          fetchpriority="high"
+        />
       )
     }
 

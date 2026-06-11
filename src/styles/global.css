@@ -11,9 +11,9 @@
   --color-border: #e5e5e5;
   --color-border-hover: #d4d4d4;
 
-  --color-accent: #ff8400;
-  --color-accent-hover: #e67800;
-  --color-accent-subtle: rgba(255, 132, 0, 0.1);
+  --color-accent: #c2410c;
+  --color-accent-hover: #9a3412;
+  --color-accent-subtle: rgba(194, 65, 12, 0.1);
 
   --font-sans:
     "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
