@@ -171,7 +171,7 @@ function extractTranslatableFields(collection, data) {
     if (config.translatableFields.includes(key)) {
       translatable[key] = value;
     } else if (config.nestedTranslatableFields?.[key]) {
-      translatable[key] = value;
+      preserved[key] = value;
     } else {
       preserved[key] = value;
     }
@@ -183,17 +183,48 @@ function extractTranslatableFields(collection, data) {
 /**
  * Recursively translate nested objects in arrays
  */
-async function translateNestedItems(items, fields, targetLang) {
+async function translateNestedItems(items, fields, targetLang, context = "information") {
   if (!Array.isArray(items)) return items;
 
   return Promise.all(
     items.map(async (item) => {
       const translatedItem = { ...item };
+
+      const toTranslate = {};
       for (const field of fields) {
         if (typeof item[field] === "string" && item[field].trim()) {
-          translatedItem[field] = await translateText(item[field], targetLang);
+          toTranslate[field] = item[field];
         }
       }
+
+      if (Object.keys(toTranslate).length === 0) return translatedItem;
+
+      try {
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: getTranslationStyle(
+                TRANSLATION_CONFIG.sourceLang,
+                targetLang,
+              ),
+            },
+            {
+              role: "user",
+              content: `Translate the following ${context} from ${getLanguageName(TRANSLATION_CONFIG.sourceLang)} to ${getLanguageName(targetLang)}. Return a JSON object with the same keys but translated values. Preserve proper names (like school names, certification acronyms) in their original form if they are universally recognized:\n\n${JSON.stringify(toTranslate, null, 2)}`,
+            },
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.3,
+        });
+
+        const translated = JSON.parse(response.choices[0].message.content);
+        Object.assign(translatedItem, translated);
+      } catch (error) {
+        console.warn(`  ⚠ Nested ${context} translation failed: ${error.message}`);
+      }
+
       return translatedItem;
     }),
   );
@@ -350,6 +381,7 @@ async function translateFile(filePath, targetLang, cache) {
             preserved[nestedKey],
             nestedFields,
             targetLang,
+            nestedKey,
           );
         }
       }

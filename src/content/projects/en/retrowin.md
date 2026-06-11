@@ -23,6 +23,6 @@ description: External Storage Integration File Management and Storage Service
 duration: October 2024 - December 2024
 role: Full-stack development
 ---
-Retrowin is a distributed file management system that integrates with external object storage to provide a POSIX-style file management interface. Users can handle files with familiar directory structures and permission systems, while the actual data is securely stored in S3 or MinIO. It ensures data consistency with presigned URL-based two-step uploads and atomic transactions, and secures the system with Keycloak OIDC authentication and Unix-style permission management.
+Retrowin is a distributed file management system that integrates with external object storage to provide a POSIX-style file management interface. Users can handle files with a familiar directory structure and permission system, while the actual data is securely stored in S3 or MinIO. It ensures data consistency with presigned URL-based two-step uploads and atomic transactions, and secures access with Keycloak OIDC authentication and Unix-style permission management.
 
-The Garbage Collection feature automatically cleans up unused files to reduce storage costs, and the retro UI in the style of Windows XP offers a nostalgic feel along with a modern user experience. Deployment using Kubernetes and Helm Chart ensures high scalability and stability.
+The Garbage Collection feature automatically cleans up unused files to reduce storage costs, and the retro UI styled after Windows XP offers a nostalgic feel alongside a modern user experience. Deployment using Kubernetes and Helm Chart ensures high scalability and stability.
