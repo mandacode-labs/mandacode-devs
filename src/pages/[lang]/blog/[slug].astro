@@ -71,13 +71,12 @@ const { Content } = await render(post);
       </div>
 
       <h2>{title}</h2>
-      {title}
     </header>
 
     <p class="text-lg text-text-secondary">{description}</p>
-  </div>
 
-  <div class="prose prose-neutral max-w-none">
-    <Content />
+    <div class="prose prose-neutral max-w-none mt-12">
+      <Content />
+    </div>
   </div>
 </Layout>

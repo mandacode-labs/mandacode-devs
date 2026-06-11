@@ -1,7 +1,7 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
-import mermaid from "astro-mermaid";
+import mermaid from "./src/integrations/mermaid";
 import path from "node:path";
 
 import cloudflare from "@astrojs/cloudflare";
