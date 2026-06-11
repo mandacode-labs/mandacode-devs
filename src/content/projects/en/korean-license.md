@@ -1,5 +1,5 @@
 ---
-sourceUrl: "https://github.com/sauce-git/korean-license-plate-detector"
+sourceUrl: 'https://github.com/sauce-git/korean-license-plate-detector'
 status: completed
 techStack:
   - Python
@@ -17,7 +17,6 @@ description: YOLO-based Korean License Plate Detection and Recognition System
 duration: April 2023 - April 2023
 role: Full-stack development
 ---
+The Korean vehicle license plate detector is a real-time image processing pipeline based on ONNX Runtime. It uses an object detection model to locate license plates and recognize individual characters. Instead of traditional character recognition methods, it adopts an approach that detects each character as an independent object, achieving high recognition rates even in challenging conditions such as blurry images, tilted angles, or partial obstructions. The pipeline consists of three specialized models applied sequentially to detect the license plate area, perform perspective correction, and finally recognize the characters.
 
-The Korean license plate detector is a real-time image processing pipeline based on ONNX Runtime, utilizing an object detection model to locate license plates and recognize individual characters. Instead of the traditional character recognition method, this approach detects each character as an independent object, achieving high recognition rates even in challenging conditions such as blurry images, tilted angles, and partial obstructions. It consists of a three-stage pipeline that sequentially applies three specialized models to detect the license plate area, perform perspective correction, and finally recognize the characters.
-
-With a GUI based on PySide6, it supports batch processing by directory and provides a flexible interface allowing users to manually input data in case of detection failure. The processing results are automatically saved in an Excel file, and the single executable file deployment using PyInstaller enables immediate use in real-world scenarios.
+With a GUI based on PySide6, it supports batch processing by directory and provides a flexible interface allowing users to manually input data if detection fails. The processing results are automatically saved in an Excel file, and with distribution as a single executable file using PyInstaller, it can be immediately used on-site.
