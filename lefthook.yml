@@ -1,0 +1,13 @@
+pre-commit:
+  commands:
+    format:
+      glob: "*.{astro,ts,mjs,js,css,json,yml,yaml,md}"
+      run: npx prettier --write {staged_files}
+      stage_fixed: true
+
+pre-push:
+  commands:
+    test:
+      run: npm test
+    check:
+      run: npm run check
