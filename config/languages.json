@@ -1,5 +1,10 @@
 {
-  "supportedLanguages": ["ko", "en"],
+  "supportedLanguages": [
+    "ko",
+    "en",
+    "ja",
+    "zh"
+  ],
   "defaultLanguage": "ko",
   "languageConfigs": {
     "ko": {
@@ -13,10 +18,26 @@
       "label": "English",
       "locale": "en-US",
       "dir": "ltr"
+    },
+    "ja": {
+      "code": "ja",
+      "label": "日本語",
+      "locale": "ja-JP",
+      "dir": "ltr"
+    },
+    "zh": {
+      "code": "zh",
+      "label": "中文",
+      "locale": "zh-CN",
+      "dir": "ltr"
     }
   },
   "translation": {
     "source": "ko",
-    "targets": ["en"]
+    "targets": [
+      "en",
+      "ja",
+      "zh"
+    ]
   }
 }

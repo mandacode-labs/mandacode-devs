@@ -8,16 +8,16 @@ tags:
   - Caching
 lang: en
 coverImage: 'https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png'
-title: 'Tarot Cards: Design and Implementation of Caching for AI Tarot Reading Service'
+title: 'Tarot Cards: Design and Implementation of Caching in AI Tarot Reading Service'
 description: >-
-  Caching Design for a Tarot Service that Optimizes OpenAI API Costs and
-  Response Speed While Providing a New Experience Each Time
+  The caching design of the Tarot service that optimizes OpenAI API costs and
+  response speed while providing a new experience each time.
 ---
 ## Problem Awareness
 
-The advantage of AI-generated content is its novelty, but repeatedly calling the API for the same input can quickly accumulate costs. This is also true for tarot card services. Although we use the OpenAI API for card readings, calling the API for every request isn't practical due to cost and response time issues.
+The advantage of AI-generated content is its novelty each time, but repeatedly calling the API for the same input can quickly accumulate costs. This is also true for tarot card services. We use the OpenAI API for card readings, but due to cost and response time issues, it's not practical to call the API for every request.
 
-A simple cache using only the card and direction as keys is insufficient because users expect different readings even if they draw the same card. To bridge this gap, we introduced a **caching strategy using a bucket system**.
+A simple cache using only the card and direction as keys is insufficient because users expect a different reading each time, even if they draw the same card. To bridge this gap, we introduced a **caching strategy using a bucket system**.
 
 ---
 
@@ -29,9 +29,9 @@ The core idea is simple. By combining 78 cards, upright/reversed directions, and
 78 cards × 2 directions × 10 buckets = 1,560 unique combinations
 ```
 
-Each time a user makes a request, one of these combinations is randomly selected. The cache key is in the form `tarot:read:{card}:{direction}:{bucket}`, and subsequent requests with the same key are immediately returned from Valkey. The OpenAI API is only called when the cache is missed.
+Each time a user makes a request, one of these combinations is selected randomly. The cache key is in the format `tarot:read:{card}:{direction}:{bucket}`, and subsequent requests with the same key are immediately returned from Valkey. The OpenAI API is only called when there is a cache miss.
 
-We added one more mechanism. The server randomly selects 4 keywords for each request and provides them as context to the AI. This allows for different readings based on keywords, even with the same card, direction, and bucket.
+We added one more mechanism. The server randomly selects 4 keywords for each request and provides them to the AI as context. This allows for different readings even with the same card, direction, and bucket, depending on the keywords.
 
 ```mermaid
 flowchart LR
@@ -52,11 +52,11 @@ flowchart LR
     
     Key --> Valkey[(Valkey)]
     Key -.->|Cache Miss| OpenAI[OpenAI API]
-    Keywords -.->|Reading Context| OpenAI
+    Keywords -.->|Reading Direction| OpenAI
 
 ```
 
-The entire flow can be represented in a sequence diagram as follows:
+The entire flow can be represented in a sequence diagram as follows.
 
 ```mermaid
 sequenceDiagram
@@ -67,17 +67,17 @@ sequenceDiagram
     participant Cache as Valkey
     participant AI as OpenAI
     
-    Client->>Service: Request for tarot reading
-    Note over Service: Random selection of card / direction / bucket
+    Client->>Service: Request Tarot Reading
+    Note over Service: Randomly select card / direction / bucket
     
-    Service->>Cache: Cache lookup (`GET`)
+    Service->>Cache: Check Cache (`GET`)
     
     alt Cache Hit
         Cache-->>Service: Return stored result
     else Cache Miss
         Service->>AI: Call OpenAI API
         AI-->>Service: Return reading result ({advice})
-        Note over Service: Data combination<br/>(card.name / card.nameKR / keywords)
+        Note over Service: Combine data<br/>(card.name / card.nameKR / keywords)
         Service->>Cache: Store result (`SET`)
     end
     
@@ -128,18 +128,18 @@ flowchart TD
 
 ```
 
-The deployment pipeline automatically starts **as soon as a new version tag (`v*.*.*`) is pushed to GitHub**. GitHub Actions build the image based on the tag and push it to the in-house container registry, Harbor. ArgoCD detects changes through GitOps settings and automatically synchronizes the cluster state. Additionally, the frontend is directly built and deployed to Vercel via GitHub Actions.
+The deployment pipeline automatically starts **as soon as a new version tag (`v*.*.*`) is pushed to GitHub**. GitHub Actions builds the image based on the tag and pushes it to the in-house container registry, Harbor. ArgoCD detects changes through GitOps settings and automatically synchronizes the cluster state. Additionally, the frontend is directly built and deployed to Vercel via GitHub Actions.
 
-The backend automatically scales from 2 to 10 replicas through HPA based on traffic, and external user requests are safely routed through the internal Gateway API.
+The backend automatically scales from 2 to 10 replicas based on traffic through HPA, and user requests from outside are safely routed through the internal Gateway API.
 
 ---
 
 ## Room for Improvement
 
-Currently, it's a simple service accessible to anyone without login, but we are considering adding a login feature to store user-specific reading history and provide a personalized experience.
+Currently, it is a simple service accessible to anyone without login, but we are considering adding a login feature to store user-specific reading history and provide a personalized experience.
 
 ---
 
 ## Conclusion
 
-The tarot card service is a small project, but it involves solving a practical problem of balancing AI generation and caching. The caching strategy using a bucket system offers a realistic compromise between cost and diversity, with plenty of room for future improvements.
+The tarot card service is a small project, but it embodies the process of solving practical problems of balancing AI generation and caching. The caching strategy using a bucket system offers a realistic compromise between cost and diversity, with ample room for future improvements.
