@@ -7,10 +7,11 @@ tags:
   - OpenTelemetry
   - RAG
 lang: zh
-coverImage: 'https://static.mandacode.com/mandacode-devs/projects/meerkat/cover.png'
-title: 'Meerkat: 通过AI代理改变日志分析的范式'
+coverImage: "https://static.mandacode.com/mandacode-devs/projects/meerkat/cover.png"
+title: "Meerkat: 通过AI代理改变日志分析的范式"
 description: 超越基于规则的通知限制，AI Agent直接分析基础设施的Meerkat设计哲学与实现故事
 ---
+
 ## 问题意识
 
 半夜响起的PagerDuty警报。“CPU超过90%。”
@@ -55,16 +56,16 @@ graph LR
 ### 模板提取的效果
 
 模板提取是消除日志重复的核心技术。
-例如，“User 123 logged in”和“User 456 logged in”被提取为相同的模板“User * logged in”。
+例如，“User 123 logged in”和“User 456 logged in”被提取为相同的模板“User \* logged in”。
 这样既保持了日志的多样性，又大大减少了需要向量化的唯一项的数量。
 
 模板提取方式如下：
 
-| 过滤模式           | 动作                         | 使用案例                     |
-| ------------------- | ---------------------------- | ----------------------------- |
-| **all**             | 向量化所有日志              | 小规模服务，开发环境          |
-| **severity**        | 处理指定级别以上的日志      | 运营环境，错误中心监控        |
-| **template** (默认) | 使用Drain算法去重           | 大规模服务，成本优化          |
+| 过滤模式            | 动作                   | 使用案例               |
+| ------------------- | ---------------------- | ---------------------- |
+| **all**             | 向量化所有日志         | 小规模服务，开发环境   |
+| **severity**        | 处理指定级别以上的日志 | 运营环境，错误中心监控 |
+| **template** (默认) | 使用Drain算法去重      | 大规模服务，成本优化   |
 
 提供三种模式以便根据服务规模和需求进行选择。
 all模式向量化所有日志，但成本较高，

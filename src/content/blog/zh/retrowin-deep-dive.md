@@ -7,11 +7,12 @@ tags:
   - Keycloak
   - PostgreSQL
 lang: zh
-coverImage: 'https://static.mandacode.com/mandacode-devs/projects/retrowin/cover.png'
-title: 'Retrowin: 在 S3 上构建 POSIX 文件系统'
+coverImage: "https://static.mandacode.com/mandacode-devs/projects/retrowin/cover.png"
+title: "Retrowin: 在 S3 上构建 POSIX 文件系统"
 description: 结合对象存储的可扩展性和POSIX的便利性的Retrowin的设计哲学和技术决策
 ---
-```markdown
+
+````markdown
 ## 问题意识
 
 S3 提供了卓越的耐用性和可扩展性，但对开发者来说仍然复杂。
@@ -48,6 +49,7 @@ graph TB
         ObjectService -- S3 API --> S3
     end
 ```
+````
 
 ## 大文件上传：临时 URL 和原子完成
 
@@ -120,11 +122,11 @@ OIDC 客户端延迟初始化，即使 Keycloak 短暂宕机也不会阻止服�
 控制所有者、组、其他用户的读/写/执行权限，
 root 可以执行所有操作。
 
-| 权限主体      | 读   | 写   | 执行 |
-| -------------- | ---- | ---- | ---- |
-| 所有者 (Owner) | ✅   | ✅   | ✅   |
-| 组 (Group)     | ✅   | ❌   | ✅   |
-| 其他 (Other)   | ❌   | ❌   | ❌   |
+| 权限主体       | 读  | 写  | 执行 |
+| -------------- | --- | --- | ---- |
+| 所有者 (Owner) | ✅  | ✅  | ✅   |
+| 组 (Group)     | ✅  | ❌  | ✅   |
+| 其他 (Other)   | ❌  | ❌  | ❌   |
 
 ## 垃圾回收
 
@@ -152,4 +154,7 @@ POSIX 文件系统的熟悉性的有趣实验。
 包括原子上传、OIDC 认证、GC 等考虑实际运营环境的元素，
 同时积极利用 Ent ORM 和 ogen 等 Go 生态系统的现代工具。
 复古 UI 展现了这一项目追求技术挑战和乐趣的身份。
+
+```
+
 ```

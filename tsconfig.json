@@ -6,6 +6,7 @@
     "verbatimModuleSyntax": true,
     "resolveJsonModule": true,
     "baseUrl": ".",
+    "types": ["@cloudflare/workers-types"],
     "paths": {
       "@/*": ["src/*"]
     }

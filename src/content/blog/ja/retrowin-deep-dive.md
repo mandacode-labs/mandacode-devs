@@ -7,11 +7,12 @@ tags:
   - Keycloak
   - PostgreSQL
 lang: ja
-coverImage: 'https://static.mandacode.com/mandacode-devs/projects/retrowin/cover.png'
-title: 'Retrowin: S3の上にPOSIXファイルシステムを載せる'
+coverImage: "https://static.mandacode.com/mandacode-devs/projects/retrowin/cover.png"
+title: "Retrowin: S3の上にPOSIXファイルシステムを載せる"
 description: オブジェクトストレージの拡張性とPOSIXの利便性を結合したRetrowinの設計哲学と技術的決定
 ---
-```markdown
+
+````markdown
 ## 問題意識
 
 S3は優れた耐久性と拡張性を提供しますが、
@@ -54,6 +55,7 @@ graph TB
         ObjectService -- S3 API --> S3
     end
 ```
+````
 
 ## 大容量ファイルアップロード: 一時URLとアトミック完了
 
@@ -132,11 +134,11 @@ Keycloakが一時的にダウンしてもサーバーの起動が止まりませ
 所有者、グループ、その他のユーザー別に読み/書き/実行権限を制御し、
 rootは全ての作業が可能です。
 
-| 権限主体       | 読み | 書き | 実行 |
-| -------------- | ---- | ---- | ---- |
-| 所有者 (Owner) | ✅   | ✅   | ✅   |
+| 権限主体         | 読み | 書き | 実行 |
+| ---------------- | ---- | ---- | ---- |
+| 所有者 (Owner)   | ✅   | ✅   | ✅   |
 | グループ (Group) | ✅   | ❌   | ✅   |
-| その他 (Other) | ❌   | ❌   | ❌   |
+| その他 (Other)   | ❌   | ❌   | ❌   |
 
 ## ガベージコレクション
 
@@ -166,4 +168,7 @@ POSIXファイルシステムの親しみやすさを結合した興味深い実
 Ent ORMやogenのようなGoエコシステムの現代的ツールを積極的に活用しました。
 レトロUIは技術的挑戦と楽しさを同時に追求する
 このプロジェクトのアイデンティティをよく示しています。
+
+```
+
 ```

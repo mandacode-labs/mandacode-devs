@@ -183,7 +183,12 @@ function extractTranslatableFields(collection, data) {
 /**
  * Recursively translate nested objects in arrays
  */
-async function translateNestedItems(items, fields, targetLang, context = "information") {
+async function translateNestedItems(
+  items,
+  fields,
+  targetLang,
+  context = "information",
+) {
   if (!Array.isArray(items)) return items;
 
   return Promise.all(
@@ -222,7 +227,9 @@ async function translateNestedItems(items, fields, targetLang, context = "inform
         const translated = JSON.parse(response.choices[0].message.content);
         Object.assign(translatedItem, translated);
       } catch (error) {
-        console.warn(`  ⚠ Nested ${context} translation failed: ${error.message}`);
+        console.warn(
+          `  ⚠ Nested ${context} translation failed: ${error.message}`,
+        );
       }
 
       return translatedItem;
@@ -486,10 +493,7 @@ ${keys};
  * Translate UI strings for a single target language
  */
 async function translateUILanguage(sourceData, targetLang) {
-  const targetPath = path.join(
-    TRANSLATION_CONFIG.uiDir,
-    `${targetLang}.json`,
-  );
+  const targetPath = path.join(TRANSLATION_CONFIG.uiDir, `${targetLang}.json`);
 
   let existing = {};
   try {
@@ -502,7 +506,9 @@ async function translateUILanguage(sourceData, targetLang) {
   const newKeys = Object.keys(sourceData).filter((key) => !existing[key]);
 
   // Find keys to remove
-  const removedKeys = Object.keys(existing).filter((key) => !(key in sourceData));
+  const removedKeys = Object.keys(existing).filter(
+    (key) => !(key in sourceData),
+  );
 
   if (newKeys.length === 0 && removedKeys.length === 0) {
     console.log(`  ✓ ${targetLang}: All UI strings up to date`);
@@ -517,7 +523,9 @@ async function translateUILanguage(sourceData, targetLang) {
   }
 
   if (newKeys.length > 0) {
-    console.log(`  Found ${newKeys.length} new strings to translate to ${targetLang}`);
+    console.log(
+      `  Found ${newKeys.length} new strings to translate to ${targetLang}`,
+    );
 
     const toTranslate = {};
     newKeys.forEach((key) => {
@@ -530,7 +538,10 @@ async function translateUILanguage(sourceData, targetLang) {
         messages: [
           {
             role: "system",
-            content: getTranslationStyle(TRANSLATION_CONFIG.sourceLang, targetLang),
+            content: getTranslationStyle(
+              TRANSLATION_CONFIG.sourceLang,
+              targetLang,
+            ),
           },
           {
             role: "user",
@@ -548,7 +559,9 @@ async function translateUILanguage(sourceData, targetLang) {
 
       console.log(`  ✓ Translated ${newKeys.length} strings to ${targetLang}`);
     } catch (error) {
-      console.error(`  ✗ UI translation failed for ${targetLang}: ${error.message}`);
+      console.error(
+        `  ✗ UI translation failed for ${targetLang}: ${error.message}`,
+      );
       return;
     }
   }

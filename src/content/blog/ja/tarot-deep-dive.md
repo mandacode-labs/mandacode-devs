@@ -7,10 +7,11 @@ tags:
   - Redis
   - Caching
 lang: ja
-coverImage: 'https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png'
-title: 'タロットカード: AIタロットリーディングサービスのキャッシング設計と実装'
+coverImage: "https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png"
+title: "タロットカード: AIタロットリーディングサービスのキャッシング設計と実装"
 description: OpenAI APIの費用と応答速度を最適化しつつ、毎回新しい体験を提供するタロサービスのキャッシュ設計
 ---
+
 ```markdown
 ## 問題意識
 
@@ -25,10 +26,11 @@ AIが生成するコンテンツは毎回新しいというのが利点ですが
 ## バケット: 多様性と効率のバランス
 
 核心アイデアは簡単です。78枚のカード、正位置/逆位置、そして10個のバケットを組み合わせて、**1,560個のユニークなキャッシュキー**を作り、各キーに対してAIが生成したリーディングを保存しておくことです。
+```
 
-```
 78枚 × 2方向 × 10バケット = 1,560個のユニークな組み合わせ
-```
+
+````
 
 ユーザーがリクエストするたびに、この組み合わせの中から1つがランダムに選ばれます。キャッシュキーは `tarot:read:{card}:{direction}:{bucket}` の形式で、同じキーで入ってくる後続のリクエストはValkeyから即座に返されます。
 キャッシュにない場合のみOpenAI APIを呼び出します。
@@ -44,37 +46,37 @@ flowchart LR
         Bucket[バケット 1~10]
         Keywords[キーワード 4つ]
     end
-    
+
     subgraph CacheKey["キャッシュキー"]
         Key["tarot:read:{card}:{dir}:{bucket}"]
     end
-    
+
     Card --> Key
     Dir --> Key
     Bucket --> Key
-    
+
     Key --> Valkey[(Valkey)]
     Key -.->|キャッシュミス| OpenAI[OpenAI API]
     Keywords -.->|リーディング方向| OpenAI
 
-```
+````
 
 全体の流れをシーケンスダイアグラムで示すと次のようになります。
 
 ```mermaid
 sequenceDiagram
     autonumber
-    
+
     actor Client as クライアント
     participant Service as TarotService
     participant Cache as Valkey
     participant AI as OpenAI
-    
+
     Client->>Service: タロットリーディングリクエスト
     Note over Service: カード / 方向 / バケット ランダム選択
-    
+
     Service->>Cache: キャッシュ照会 (`GET`)
-    
+
     alt キャッシュヒット (Hit)
         Cache-->>Service: 保存された結果を返す
     else キャッシュミス (Miss)
@@ -83,7 +85,7 @@ sequenceDiagram
         Note over Service: データ結合<br/>(card.name / card.nameKR / keywords)
         Service->>Cache: 結果保存 (`SET`)
     end
-    
+
     Service-->>Client: 最終リーディング結果応答
 
 ```
@@ -99,7 +101,7 @@ flowchart TD
     subgraph Front["Vercel"]
         Vercel[タロットカード Next.js アプリ]
     end
-    
+
     subgraph CICD["CI / CD"]
         GH[GitHub]
         Actions[GitHub Actions]
@@ -107,7 +109,7 @@ flowchart TD
         ArgoCD[ArgoCD]
         S3[(S3)]
     end
-    
+
     subgraph K8s["ホームK8sクラスター"]
         GW[Gateway API]
         Service[タロットカードサービス]
@@ -123,7 +125,7 @@ flowchart TD
 
     %% フロントエンドパイプラインの流れ
     Actions -->|フロントエンドビルド/デプロイ| Vercel
-    
+
     %% トラフィックの流れ
     Vercel --> |外部トラフィック| GW
     GW -->|ルーティング| Service
@@ -152,4 +154,7 @@ ArgoCDがGitOps設定を通じて変更を検知し、クラスターの状態�
 
 タロットカードサービスは小さなプロジェクトですが、AI生成とキャッシングのバランスという実質的な問題を解決していく過程が含まれています。
 バケットシステムを活用したキャッシング戦略は、コストと多様性の間で現実的な妥協点を提供し、今後の改善の余地も十分に残されています。
+
+```
+
 ```

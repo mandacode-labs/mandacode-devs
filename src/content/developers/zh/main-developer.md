@@ -1,8 +1,8 @@
 ---
-avatar: 'https://static.mandacode.com/mandacode-devs/developers/avatar.webp'
-github: 'https://github.com/sauce-git'
+avatar: "https://static.mandacode.com/mandacode-devs/developers/avatar.webp"
+github: "https://github.com/sauce-git"
 email: sauce@mandacode.com
-website: 'https://dev.mandacode.com'
+website: "https://dev.mandacode.com"
 lang: zh
 techStack:
   - Go
@@ -22,15 +22,15 @@ certifications:
   - name: CKA (认证的Kubernetes管理员)
     issuer: Linux基金会
     date: 2026-03
-    badge: 'https://static.mandacode.com/mandacode-devs/certifications/cka.png'
+    badge: "https://static.mandacode.com/mandacode-devs/certifications/cka.png"
   - name: 信息处理工程师
     issuer: 韩国产业人力公团
     date: 2023-11
-    badge: 'https://static.mandacode.com/mandacode-devs/certifications/q-net.png'
+    badge: "https://static.mandacode.com/mandacode-devs/certifications/q-net.png"
 education:
   - period: 2015.03 - 2018.01
     institution: 구리고등학교
-    department: ''
+    department: ""
     status: 毕业
   - period: 2018.03 - 2025.08
     institution: 江原大学
@@ -40,6 +40,7 @@ name: 李贤宇
 role: DevOps
 bio: 从前端到后端，再到基础设施，我是一位亲身体验并理解整个服务的开发者。
 ---
+
 ## 自我介绍
 
 你好。我是李贤宇，一名从前端到基础设施都有亲身经验、理解整个服务的开发者。<br>

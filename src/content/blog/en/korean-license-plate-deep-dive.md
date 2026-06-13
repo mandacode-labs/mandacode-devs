@@ -14,6 +14,7 @@ description: >-
   A Practical License Plate Recognition System Using a YOLO-Based 3-Step
   Pipeline to Overcome the Limitations of Traditional OCR
 ---
+
 ## Problem Awareness
 
 Traditional OCR works well on clean documents but is vulnerable to blurry and tilted images like license plates. The recognition rate drops sharply if the character spacing is irregular or partially obscured. Additionally, Korean car license plates have diverse arrangements of characters, mixing region names and numbers, which posed limitations for general OCR models.
@@ -24,11 +25,11 @@ This project adopts a perspective that views characters as objects rather than t
 
 The entire flow is controlled by a single function, `get_num()`, in `detect.py`. Three ONNX models handle their respective areas of expertise.
 
-| Step | Model               | Role                                |
-| ---- | ------------------- | ----------------------------------- |
-| 1    | `plate_detect_v1`   | Detects license plate area in the entire image |
-| 2    | `vertex_detect_v1`  | Detects four corners and performs perspective correction |
-| 3    | `syllable_detect_v1`| Detects individual characters with 75 classes |
+| Step | Model                | Role                                                     |
+| ---- | -------------------- | -------------------------------------------------------- |
+| 1    | `plate_detect_v1`    | Detects license plate area in the entire image           |
+| 2    | `vertex_detect_v1`   | Detects four corners and performs perspective correction |
+| 3    | `syllable_detect_v1` | Detects individual characters with 75 classes            |
 
 The first model finds one license plate area in the entire image, selecting the most reliable candidate among several and cropping it. The second model detects the four corners in the cropped image and performs perspective correction. The third model detects individual characters as objects with 75 classes. Unlike traditional OCR, which reads text lines, it finds the position of each character within the license plate, allowing recognition even if character spacing is irregular or partially obscured.
 

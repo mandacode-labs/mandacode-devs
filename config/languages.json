@@ -1,10 +1,5 @@
 {
-  "supportedLanguages": [
-    "ko",
-    "en",
-    "ja",
-    "zh"
-  ],
+  "supportedLanguages": ["ko", "en", "ja", "zh"],
   "defaultLanguage": "ko",
   "languageConfigs": {
     "ko": {
@@ -34,10 +29,6 @@
   },
   "translation": {
     "source": "ko",
-    "targets": [
-      "en",
-      "ja",
-      "zh"
-    ]
+    "targets": ["en", "ja", "zh"]
   }
 }

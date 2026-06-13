@@ -4,10 +4,11 @@ tags:
   - Proxmox
   - Home Lab
 lang: ja
-coverImage: 'https://static.mandacode.com/mandacode-devs/blog/home-cluster-1/blog-cover.png'
-title: 'ホームクラスター構築1: ハードウェアの選択とネットワーク構成'
+coverImage: "https://static.mandacode.com/mandacode-devs/blog/home-cluster-1/blog-cover.png"
+title: "ホームクラスター構築1: ハードウェアの選択とネットワーク構成"
 description: Proxmox VEベースのホームクラスター構築におけるハードウェア選定とネットワーク構成
 ---
+
 以下の韓国語のMarkdownコンテンツを日本語に翻訳します。すべてのMarkdown形式、コードブロック、および技術用語はそのままにしてください。
 
 ---

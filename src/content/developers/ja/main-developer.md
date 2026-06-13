@@ -1,8 +1,8 @@
 ---
-avatar: 'https://static.mandacode.com/mandacode-devs/developers/avatar.webp'
-github: 'https://github.com/sauce-git'
+avatar: "https://static.mandacode.com/mandacode-devs/developers/avatar.webp"
+github: "https://github.com/sauce-git"
 email: sauce@mandacode.com
-website: 'https://dev.mandacode.com'
+website: "https://dev.mandacode.com"
 lang: ja
 techStack:
   - Go
@@ -22,15 +22,15 @@ certifications:
   - name: CKA (Certified Kubernetes Administrator)
     issuer: Linux Foundation
     date: 2026-03
-    badge: 'https://static.mandacode.com/mandacode-devs/certifications/cka.png'
+    badge: "https://static.mandacode.com/mandacode-devs/certifications/cka.png"
   - name: 情報処理技術者
     issuer: 韓国産業人力公団
     date: 2023-11
-    badge: 'https://static.mandacode.com/mandacode-devs/certifications/q-net.png'
+    badge: "https://static.mandacode.com/mandacode-devs/certifications/q-net.png"
 education:
   - period: 2015.03 - 2018.01
     institution: 구리고등학교
-    department: ''
+    department: ""
     status: 卒業
   - period: 2018.03 - 2025.08
     institution: 강원대학교
@@ -40,6 +40,7 @@ name: イ・ヒョヌ
 role: DevOps
 bio: フロントエンドからバックエンド、インフラまで直接経験し、サービス全般を理解する開発者です。
 ---
+
 ## 自己紹介
 
 こんにちは。フロントエンドからインフラまで直接経験し、サービス全体を理解する開発者のイ・ヒョヌです。<br>
