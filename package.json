@@ -6,10 +6,11 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "translate:ui": "node scripts/translate-openai.mjs ui",
-    "translate:content": "node scripts/translate-openai.mjs content",
-    "translate": "node scripts/translate-openai.mjs",
-    "content:sync": "node scripts/sync-content.mjs",
+    "translate:ui": "tsx scripts/translate/index.ts ui",
+    "translate:content": "tsx scripts/translate/index.ts content",
+    "translate": "tsx scripts/translate/index.ts all",
+    "proofread": "tsx scripts/proofread/index.ts",
+    "style": "tsx scripts/style/index.ts",
     "build": "astro build",
     "dev": "astro dev",
     "preview": "wrangler dev",
@@ -39,6 +40,7 @@
     "prettier-plugin-astro": "^0.14.1",
     "sharp": "^0.34.5",
     "tailwindcss": "^4.3.0",
+    "tsx": "^4.22.4",
     "typescript": "^6.0.3",
     "vitest": "^4.1.8",
     "wrangler": "^4.95.0",

@@ -1,10 +1,17 @@
 import { defineCollection } from "astro:content";
 import { z } from "astro/zod";
 import { glob } from "astro/loaders";
-import { SUPPORTED_LANGUAGES } from "./lib/config/languages";
 
 const projects = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: "./src/content/projects" }),
+  loader: glob({
+    pattern: "**/*.md",
+    base: "./src/content/projects",
+    generateId: ({ entry, data }) => {
+      const slug = entry.replace(/\/[^/]+\.md$/, "");
+      const lang = entry.match(/\/([a-z]+)\.md$/)?.[1] ?? data.lang;
+      return `${lang}/${slug}`;
+    },
+  }),
   schema: z.object({
     title: z.string(),
     description: z.string(),
@@ -18,12 +25,19 @@ const projects = defineCollection({
     teamSize: z.number(),
     role: z.string(),
     order: z.number(),
-    lang: z.enum(SUPPORTED_LANGUAGES),
   }),
 });
 
 const developers = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: "./src/content/developers" }),
+  loader: glob({
+    pattern: "**/*.md",
+    base: "./src/content/developers",
+    generateId: ({ entry, data }) => {
+      const slug = entry.replace(/\/[^/]+\.md$/, "");
+      const lang = entry.match(/\/([a-z]+)\.md$/)?.[1] ?? data.lang;
+      return `${lang}/${slug}`;
+    },
+  }),
   schema: z.object({
     name: z.string(),
     role: z.string(),
@@ -32,7 +46,6 @@ const developers = defineCollection({
     github: z.url().optional(),
     email: z.email().optional(),
     website: z.url().optional(),
-    lang: z.enum(SUPPORTED_LANGUAGES),
     techStack: z.array(z.string()).optional(),
     certifications: z
       .array(
@@ -59,7 +72,15 @@ const developers = defineCollection({
 });
 
 const blog = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: "./src/content/blog" }),
+  loader: glob({
+    pattern: "**/*.md",
+    base: "./src/content/blog",
+    generateId: ({ entry, data }) => {
+      const slug = entry.replace(/\/[^/]+\.md$/, "");
+      const lang = entry.match(/\/([a-z]+)\.md$/)?.[1] ?? data.lang;
+      return `${lang}/${slug}`;
+    },
+  }),
   schema: z.object({
     title: z.string(),
     description: z.string(),
@@ -68,7 +89,6 @@ const blog = defineCollection({
     draft: z.boolean().default(false),
     coverImage: z.string().optional(),
     ogImage: z.string().optional(),
-    lang: z.enum(SUPPORTED_LANGUAGES),
   }),
 });
 

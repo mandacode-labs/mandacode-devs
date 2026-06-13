@@ -17,9 +17,10 @@ const title = project.data.title;
 const description = project.data.description;
 const coverImage = project.data.coverImage;
 const statusKey = `status.${project.data.status}` as const;
+const slug = project.id.split("/").pop()!;
 ---
 
-<Card href={`/${lang}/projects/${project.id.split("/").pop()}`} class="group">
+<Card href={`/${lang}/projects/${slug}`} class="group">
   <div class="flex flex-col sm:flex-row">
     <div class="sm:w-48 md:w-56 flex-shrink-0">
       {
