@@ -7,12 +7,13 @@ tags:
   - Redis
   - Caching
 lang: en
-coverImage: 'https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png'
-title: 'Tarot Cards: Design and Implementation of Caching in AI Tarot Reading Service'
+coverImage: "https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png"
+title: "Tarot Cards: Design and Implementation of Caching in AI Tarot Reading Service"
 description: >-
   The caching design of the Tarot service that optimizes OpenAI API costs and
   response speed while providing a new experience each time.
 ---
+
 ## Problem Awareness
 
 The advantage of AI-generated content is its novelty each time, but repeatedly calling the API for the same input can quickly accumulate costs. This is also true for tarot card services. We use the OpenAI API for card readings, but due to cost and response time issues, it's not practical to call the API for every request.
@@ -41,15 +42,15 @@ flowchart LR
         Bucket[Bucket 1~10]
         Keywords[4 Keywords]
     end
-    
+
     subgraph CacheKey["Cache Key"]
         Key["tarot:read:{card}:{dir}:{bucket}"]
     end
-    
+
     Card --> Key
     Dir --> Key
     Bucket --> Key
-    
+
     Key --> Valkey[(Valkey)]
     Key -.->|Cache Miss| OpenAI[OpenAI API]
     Keywords -.->|Reading Direction| OpenAI
@@ -61,17 +62,17 @@ The entire flow can be represented in a sequence diagram as follows.
 ```mermaid
 sequenceDiagram
     autonumber
-    
+
     actor Client as Client
     participant Service as TarotService
     participant Cache as Valkey
     participant AI as OpenAI
-    
+
     Client->>Service: Request Tarot Reading
     Note over Service: Randomly select card / direction / bucket
-    
+
     Service->>Cache: Check Cache (`GET`)
-    
+
     alt Cache Hit
         Cache-->>Service: Return stored result
     else Cache Miss
@@ -80,7 +81,7 @@ sequenceDiagram
         Note over Service: Combine data<br/>(card.name / card.nameKR / keywords)
         Service->>Cache: Store result (`SET`)
     end
-    
+
     Service-->>Client: Respond with final reading result
 
 ```
@@ -96,7 +97,7 @@ flowchart TD
     subgraph Front["Vercel"]
         Vercel[Tarot Card Next.js App]
     end
-    
+
     subgraph CICD["CI / CD"]
         GH[GitHub]
         Actions[GitHub Actions]
@@ -104,7 +105,7 @@ flowchart TD
         ArgoCD[ArgoCD]
         S3[(S3)]
     end
-    
+
     subgraph K8s["Home K8s Cluster"]
         GW[Gateway API]
         Service[Tarot Card Service]
@@ -120,7 +121,7 @@ flowchart TD
 
     %% Frontend pipeline flow
     Actions -->|Build/Deploy Frontend| Vercel
-    
+
     %% Traffic flow
     Vercel --> |External Traffic| GW
     GW -->|Routing| Service

@@ -4,12 +4,13 @@ tags:
   - Proxmox
   - Home Lab
 lang: en
-coverImage: 'https://static.mandacode.com/mandacode-devs/blog/home-cluster-1/blog-cover.png'
-title: 'Setting Up a Home Cluster 1: Choosing Hardware and Configuring the Network'
+coverImage: "https://static.mandacode.com/mandacode-devs/blog/home-cluster-1/blog-cover.png"
+title: "Setting Up a Home Cluster 1: Choosing Hardware and Configuring the Network"
 description: >-
   Hardware Selection and Network Configuration in Building a Home Cluster Based
   on Proxmox VE
 ---
+
 I wanted to handle various project operations, development and testing workloads, as well as personal learning and experiments, all on AWS EKS.
 
 However... the cloud is expensive.~~(Very much so.)~~

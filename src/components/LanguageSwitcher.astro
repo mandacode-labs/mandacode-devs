@@ -196,4 +196,18 @@ const otherLangs = SUPPORTED_LANGUAGES.filter((lang) => lang !== currentLang);
   )) {
     new LanguageSwitcher(el);
   }
+
+  function setLanguageCookie(lang: string) {
+    const maxAge = 60 * 60 * 24 * 365;
+    document.cookie = `lang=${lang}; Path=/; Max-Age=${maxAge}; SameSite=Lax; Secure`;
+  }
+
+  for (const link of document.querySelectorAll<HTMLAnchorElement>(
+    "[data-language-switcher] a[role=option]",
+  )) {
+    link.addEventListener("click", () => {
+      const lang = link.getAttribute("href")?.split("/")[1];
+      if (lang) setLanguageCookie(lang);
+    });
+  }
 </script>

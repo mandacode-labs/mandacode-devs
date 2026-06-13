@@ -12,24 +12,23 @@
     "content:sync": "node scripts/sync-content.mjs",
     "build": "astro build",
     "dev": "astro dev",
-    "preview": "astro preview",
+    "preview": "wrangler dev",
     "astro": "astro",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "astro check",
-    "generate-types": "wrangler types",
     "test": "vitest run",
     "test:watch": "vitest",
     "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^13.6.0",
     "@astrojs/sitemap": "^3.7.3",
     "astro": "^6.4.2",
     "mermaid": "^11.15.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
+    "@cloudflare/workers-types": "^4.20260613.1",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.3.0",
     "@types/node": "^25.9.1",

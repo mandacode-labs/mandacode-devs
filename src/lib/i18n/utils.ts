@@ -11,10 +11,7 @@ export function useTranslations(lang: Lang) {
     vars?: Record<string, string | number>,
   ): string {
     const translations = ui[lang] || ui[DEFAULT_LANGUAGE];
-    let text =
-      translations?.[key] ||
-      ui[DEFAULT_LANGUAGE]?.[key] ||
-      key;
+    let text = translations?.[key] || ui[DEFAULT_LANGUAGE]?.[key] || key;
 
     if (vars) {
       Object.entries(vars).forEach(([k, v]) => {

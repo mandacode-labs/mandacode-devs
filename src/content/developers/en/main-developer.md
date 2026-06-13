@@ -1,8 +1,8 @@
 ---
-avatar: 'https://static.mandacode.com/mandacode-devs/developers/avatar.webp'
-github: 'https://github.com/sauce-git'
+avatar: "https://static.mandacode.com/mandacode-devs/developers/avatar.webp"
+github: "https://github.com/sauce-git"
 email: sauce@mandacode.com
-website: 'https://dev.mandacode.com'
+website: "https://dev.mandacode.com"
 lang: en
 techStack:
   - Go
@@ -22,15 +22,15 @@ certifications:
   - name: CKA (Certified Kubernetes Administrator)
     issuer: Linux Foundation
     date: 2026-03
-    badge: 'https://static.mandacode.com/mandacode-devs/certifications/cka.png'
+    badge: "https://static.mandacode.com/mandacode-devs/certifications/cka.png"
   - name: Information Processing Engineer
     issuer: Korea Industrial Human Resources Corporation
     date: 2023-11
-    badge: 'https://static.mandacode.com/mandacode-devs/certifications/q-net.png'
+    badge: "https://static.mandacode.com/mandacode-devs/certifications/q-net.png"
 education:
   - period: 2015.03 - 2018.01
     institution: Guri High School
-    department: ''
+    department: ""
     status: Graduated
   - period: 2018.03 - 2025.08
     institution: Kangwon National University
@@ -42,6 +42,7 @@ bio: >-
   I am a developer who understands the entire service by gaining hands-on
   experience from frontend to backend and infrastructure.
 ---
+
 ## Introduction
 
 Hello. I am Hyunwoo Lee, a developer who understands the entire service spectrum from frontend to infrastructure through hands-on experience.<br>

@@ -1,0 +1,71 @@
+---
+import NavigationCard from "@/components/content/NavigationCard.astro";
+import { useTranslations } from "@/lib/i18n/utils";
+import type { Lang } from "@/lib/i18n/utils";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const cards = [
+  {
+    title: t("projects.title"),
+    description: t("projects.subtitle"),
+    href: `/${lang}/projects`,
+    icon: "folder",
+  },
+  {
+    title: t("developer.title"),
+    description: t("developer.subtitle"),
+    href: `/${lang}/developer`,
+    icon: "user",
+  },
+  {
+    title: t("blog.title"),
+    description: t("blog.subtitle"),
+    href: `/${lang}/blog`,
+    icon: "bookOpen",
+  },
+];
+---
+
+<section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+  <header class="text-center mb-16">
+    <div class="flex justify-center mb-6">
+      <img
+        src="https://static.mandacode.com/mandacode-devs/mandacode.webp"
+        alt="Mandacode"
+        width="200"
+        height="200"
+        class="opacity-90"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </div>
+
+    <h2 class="mb-4">
+      {t("hero.title")}
+    </h2>
+
+    <p class="text-lg text-text-secondary max-w-xl mx-auto">
+      {t("hero.subtitle")}
+    </p>
+  </header>
+
+  <nav class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    {
+      cards.map((card) => (
+        <NavigationCard
+          title={card.title}
+          description={card.description}
+          href={card.href}
+          icon={card.icon}
+          linkText={t("viewDetail")}
+        />
+      ))
+    }
+  </nav>
+</section>

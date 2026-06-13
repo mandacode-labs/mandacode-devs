@@ -4,10 +4,11 @@ tags:
   - Proxmox
   - Home Lab
 lang: zh
-coverImage: 'https://static.mandacode.com/mandacode-devs/blog/home-cluster-1/blog-cover.png'
+coverImage: "https://static.mandacode.com/mandacode-devs/blog/home-cluster-1/blog-cover.png"
 title: 构建家庭集群1：硬件选择与网络配置
 description: 在基于Proxmox VE的家庭集群构建过程中进行硬件选择和网络配置
 ---
+
 为了处理各种项目运营、开发和测试工作负载，以及个人学习和实验，我决定在AWS EKS上进行所有操作。
 
 但是……云服务很贵。~~（非常贵。）~~

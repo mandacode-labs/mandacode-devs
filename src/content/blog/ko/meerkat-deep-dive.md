@@ -51,7 +51,7 @@ graph LR
 ### 템플릿 추출이 주는 효과
 
 템플릿 추출은 로그의 중복을 제거하는 핵심 기술입니다.
-예를 들어 "User 123 logged in"과 "User 456 logged in"은 같은 템플릿 "User * logged in"으로 추출됩니다.
+예를 들어 "User 123 logged in"과 "User 456 logged in"은 같은 템플릿 "User \* logged in"으로 추출됩니다.
 이렇게 하면 로그의 다양성은 유지하면서도 벡터화할 고유 항목의 수를 크게 줄일 수 있습니다.
 
 템플릿 추출 방식은 다음과 같습니다.

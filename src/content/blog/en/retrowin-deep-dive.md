@@ -7,12 +7,13 @@ tags:
   - Keycloak
   - PostgreSQL
 lang: en
-coverImage: 'https://static.mandacode.com/mandacode-devs/projects/retrowin/cover.png'
-title: 'Retrowin: Implementing a POSIX Filesystem on S3'
+coverImage: "https://static.mandacode.com/mandacode-devs/projects/retrowin/cover.png"
+title: "Retrowin: Implementing a POSIX Filesystem on S3"
 description: >-
   The design philosophy and technical decisions of Retrowin, which combines the
   scalability of object storage with the convenience of POSIX
 ---
+
 ## Problem Awareness
 
 S3 offers excellent durability and scalability, but it remains complex for developers to handle directly. It lacks directories, has rough permission management, and requires manual implementation for large file uploads.
@@ -97,11 +98,11 @@ Permission management is crucial for filesystems. By using Keycloak as an OIDC p
 
 File permissions follow standard Unix permission bits, controlling read/write/execute access for owners, groups, and others, with root having full access.
 
-| Subject        | Read | Write | Execute |
-| -------------- | ---- | ----- | ------- |
-| Owner          | ✅   | ✅    | ✅      |
-| Group          | ✅   | ❌    | ✅      |
-| Other          | ❌   | ❌    | ❌      |
+| Subject | Read | Write | Execute |
+| ------- | ---- | ----- | ------- |
+| Owner   | ✅   | ✅    | ✅      |
+| Group   | ✅   | ❌    | ✅      |
+| Other   | ❌   | ❌    | ❌      |
 
 ## Garbage Collection
 
