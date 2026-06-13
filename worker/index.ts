@@ -1,4 +1,4 @@
-import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "@/lib/config/languages";
+import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
 
 interface Env {
   ASSETS: Fetcher;
@@ -13,21 +13,9 @@ const SECURITY_HEADERS = {
     "camera=(), microphone=(), geolocation=(), interest-cohort=()",
 };
 
-function detectLanguage(request: Request): string {
-  const acceptLang = request.headers.get("Accept-Language");
-  if (!acceptLang) return DEFAULT_LANGUAGE;
-
-  const primaryLang = acceptLang.split(",")[0]?.split("-")[0]?.toLowerCase();
-  if (primaryLang && SUPPORTED_LANGUAGES.includes(primaryLang)) {
-    return primaryLang;
-  }
-
-  return DEFAULT_LANGUAGE;
-}
-
 function getLanguageFromPath(pathname: string): string {
   const firstSegment = pathname.split("/")[1];
-  if (firstSegment && SUPPORTED_LANGUAGES.includes(firstSegment)) {
+  if (firstSegment && /^[a-z]{2}$/.test(firstSegment)) {
     return firstSegment;
   }
   return DEFAULT_LANGUAGE;
@@ -50,11 +38,6 @@ function applySecurityHeaders(response: Response): Response {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-
-    if (url.pathname === "/") {
-      const lang = detectLanguage(request);
-      return Response.redirect(`${url.origin}/${lang}/`, 302);
-    }
 
     let response: Response;
     try {
