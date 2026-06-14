@@ -18,8 +18,8 @@ techStack:
   - Proxmox VE
   - Terraform
   - ArgoCD
+  - AWS
   - Github Actions
-  - Ceph
 certifications:
   - name: CKA (Certified Kubernetes Administrator)
     issuer: Linux Foundation
