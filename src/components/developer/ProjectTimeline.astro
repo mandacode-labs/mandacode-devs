@@ -1,0 +1,115 @@
+---
+import Badge from "@/components/ui/Badge.astro";
+import Button from "@/components/ui/Button.astro";
+import ArrowRight from "@/components/icons/ArrowRight.astro";
+import ExternalLink from "@/components/icons/ExternalLink.astro";
+import { useTranslations } from "@/lib/i18n/utils";
+import type { Lang } from "@/types";
+import type { CollectionEntry } from "astro:content";
+import { getProjectSlug } from "@/lib/content/projects";
+
+interface Props {
+  projects: CollectionEntry<"projects">[];
+  lang: Lang;
+}
+
+const { projects, lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<section class="mb-10">
+  <h3 class="mb-8">{t("projects.title")}</h3>
+
+  <div class="relative">
+    <div
+      class="absolute left-3 md:left-1/2 top-0 bottom-0 w-px bg-border md:-translate-x-1/2"
+      aria-hidden="true"
+    >
+    </div>
+
+    <ul class="relative space-y-6">
+      {
+        projects.map((project, index) => {
+          const statusKey = `status.${project.data.status}` as const;
+          const slug = getProjectSlug(project);
+          const isEven = index % 2 === 0;
+
+          return (
+            <li class="relative pl-10 md:pl-0">
+              <div
+                class={`absolute left-0 md:left-1/2 top-1.5 w-6 h-6 rounded-full border-2 border-accent bg-bg-primary md:-translate-x-1/2 z-10`}
+                aria-hidden="true"
+              />
+
+              <div
+                class={`md:w-[calc(50%-1.5rem)] ${isEven ? "md:mr-auto" : "md:ml-auto"}`}
+              >
+                <div class="bg-surface border border-border rounded-xl p-5 hover:border-border-hover transition-colors">
+                  <div
+                    class={`flex flex-col gap-1 mb-2 ${isEven ? "md:items-end" : "md:items-start"}`}
+                  >
+                    <span class="text-xs text-text-muted">
+                      {project.data.duration}
+                    </span>
+                    <div
+                      class={`flex items-center gap-2 flex-wrap ${isEven ? "md:flex-row-reverse" : ""}`}
+                    >
+                      <h4 class="text-text-primary">{project.data.title}</h4>
+                      <Badge variant="status" status={project.data.status}>
+                        {t(statusKey)}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <p
+                    class={`text-sm text-text-secondary mb-4 ${isEven ? "md:text-right" : ""}`}
+                  >
+                    {project.data.description}
+                  </p>
+
+                  <div
+                    class={`flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-muted mb-4 ${isEven ? "md:justify-end" : ""}`}
+                  >
+                    <span>
+                      {t("teamSize")}: {project.data.teamSize}
+                      {t("teamSize.unit")}
+                    </span>
+                    <span class="text-border">·</span>
+                    <span>
+                      {t("role")}: {project.data.role}
+                    </span>
+                  </div>
+
+                  <div
+                    class={`flex flex-wrap items-center gap-2 ${isEven ? "md:justify-end" : ""}`}
+                  >
+                    <Button
+                      href={`/${lang}/projects/${slug}`}
+                      variant="secondary"
+                      class="text-xs px-3 py-1.5"
+                    >
+                      <span>{t("viewDetail")}</span>
+                      <ArrowRight size={14} />
+                    </Button>
+                    {project.data.url && (
+                      <Button
+                        href={project.data.url}
+                        variant="ghost"
+                        class="text-xs px-3 py-1.5"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <ExternalLink size={14} />
+                        <span>{t("projects.visitSite")}</span>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </div>
+</section>
