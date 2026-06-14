@@ -24,6 +24,8 @@
   "teamSize": "開発人数",
   "teamSize.unit": "名",
   "role": "役割",
+  "teamSize.label": "人数",
+  "role.label": "役割",
   "techStack": "技術スタック",
   "certifications": "資格",
   "education": "学歴",

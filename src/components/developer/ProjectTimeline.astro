@@ -1,0 +1,106 @@
+---
+import Button from "@/components/ui/Button.astro";
+import ArrowRight from "@/components/icons/ArrowRight.astro";
+import ExternalLink from "@/components/icons/ExternalLink.astro";
+import { useTranslations } from "@/lib/i18n/utils";
+import type { Lang } from "@/types";
+import type { CollectionEntry } from "astro:content";
+import { getProjectSlug } from "@/lib/content/projects";
+
+interface Props {
+  projects: CollectionEntry<"projects">[];
+  lang: Lang;
+}
+
+const { projects, lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<section class="mb-10">
+  <h3 class="mb-8">{t("projects.title")}</h3>
+
+  <div class="relative">
+    <div
+      class="absolute left-3 md:left-1/2 top-1.5 bottom-1.5 w-px bg-border md:-translate-x-1/2"
+      aria-hidden="true"
+    >
+    </div>
+
+    <ul class="relative flex flex-col gap-6">
+      {
+        projects.map((project, index) => {
+          const { title, description, duration, teamSize, role, url } =
+            project.data;
+          const slug = getProjectSlug(project);
+          const isLeft = index % 2 === 0;
+          const meta = `${teamSize}${t("teamSize.unit")} · ${role}`;
+
+          return (
+            <li class="relative pl-10 md:pl-0 md:flex md:justify-center">
+              <div
+                class="absolute left-0 md:left-1/2 top-1.5 size-4 rounded-full border-2 border-accent bg-bg-primary md:-translate-x-1/2"
+                aria-hidden="true"
+              />
+
+              <article
+                class={`md:w-[calc(50%-1.5rem)] ${isLeft ? "md:mr-auto" : "md:ml-auto"}`}
+              >
+                <div class="bg-surface border border-border rounded-xl p-5 hover:border-border-hover transition-colors">
+                  <header
+                    class={`flex flex-col gap-1 mb-3 ${isLeft ? "md:items-end" : "md:items-start"}`}
+                  >
+                    <span class="text-xs text-text-muted">{duration}</span>
+                    <div class="flex items-center gap-2 flex-wrap">
+                      {isLeft ? (
+                        <>
+                          <span class="text-xs text-text-muted">{meta}</span>
+                          <h4 class="text-text-primary">{title}</h4>
+                        </>
+                      ) : (
+                        <>
+                          <h4 class="text-text-primary">{title}</h4>
+                          <span class="text-xs text-text-muted">{meta}</span>
+                        </>
+                      )}
+                    </div>
+                  </header>
+
+                  <p
+                    class={`text-sm text-text-secondary mb-4 ${isLeft ? "md:text-right" : ""}`}
+                  >
+                    {description}
+                  </p>
+
+                  <footer
+                    class={`flex flex-wrap gap-2 ${isLeft ? "md:flex-row-reverse md:justify-start" : ""}`}
+                  >
+                    <Button
+                      href={`/${lang}/projects/${slug}`}
+                      variant="secondary"
+                      class="text-xs px-3 py-1.5"
+                    >
+                      <span>{t("viewDetail")}</span>
+                      <ArrowRight size={14} />
+                    </Button>
+                    {url && (
+                      <Button
+                        href={url}
+                        variant="ghost"
+                        class="text-xs px-3 py-1.5"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <ExternalLink size={14} />
+                        <span>{t("projects.visitSite")}</span>
+                      </Button>
+                    )}
+                  </footer>
+                </div>
+              </article>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </div>
+</section>

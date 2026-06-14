@@ -1,0 +1,23 @@
+---
+import BookOpenIcon from "@/components/icons/BookOpen.astro";
+import { useTranslations } from "@/lib/i18n/utils";
+import type { Lang } from "@/types";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<div class="text-center py-20">
+  <div
+    class="w-16 h-16 mx-auto mb-4 rounded-full bg-bg-secondary flex items-center justify-center"
+  >
+    <BookOpenIcon size={24} class="text-text-muted" />
+  </div>
+  <p class="text-lg text-text-secondary font-medium">
+    {t("blog.comingSoon")}
+  </p>
+</div>

@@ -1,0 +1,25 @@
+---
+import CoverImage from "@/components/ui/CoverImage.astro";
+
+interface Props {
+  title: string;
+  coverImage?: string;
+}
+
+const { title, coverImage } = Astro.props;
+---
+
+{
+  coverImage ? (
+    <CoverImage
+      src={coverImage}
+      alt={title}
+      class="flex w-full max-h-[30rem] rounded-lg mb-8"
+      fetchpriority="high"
+    />
+  ) : (
+    <div class="relative flex w-full h-[30rem] items-center justify-center p-12 mb-8 bg-gradient-to-br from-surface to-border rounded-lg overflow-hidden">
+      <span class="text-text-muted text-xl font-medium">{title}</span>
+    </div>
+  )
+}

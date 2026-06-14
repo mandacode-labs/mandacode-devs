@@ -1,0 +1,82 @@
+---
+import SocialLink from "@/components/ui/SocialLink.astro";
+import Button from "@/components/ui/Button.astro";
+import PrintIcon from "@/components/icons/Print.astro";
+import { useTranslations } from "@/lib/i18n/utils";
+import type { Lang } from "@/types";
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  developer: CollectionEntry<"developers">;
+  lang: Lang;
+}
+
+const { developer, lang } = Astro.props;
+const t = useTranslations(lang);
+
+const name = developer.data.name;
+const role = developer.data.role;
+const bio = developer.data.bio;
+const avatar =
+  developer.data.avatar || "https://avatars.githubusercontent.com/u/0";
+---
+
+<div class="flex flex-col sm:flex-row gap-6 mb-10">
+  <img
+    src={avatar}
+    alt={name}
+    class="shrink-0 h-40 w-32 rounded-lg border-2 border-border object-cover bg-surface"
+  />
+
+  <div class="flex flex-1 flex-col justify-center">
+    <div class="flex flex-wrap items-baseline gap-2">
+      <h2 class="text-2xl sm:text-4xl">{name}</h2>
+      <span class="text-base sm:text-lg text-accent font-medium">{role}</span>
+    </div>
+
+    <p class="text-sm sm:text-base text-text-secondary mt-1">{bio}</p>
+
+    <div class="flex items-center gap-3 mt-4">
+      <div class="flex items-center gap-3">
+        {
+          developer.data.github && (
+            <SocialLink
+              platform="github"
+              href={developer.data.github}
+              size="sm"
+            />
+          )
+        }
+        {
+          developer.data.email && (
+            <SocialLink
+              platform="email"
+              href={developer.data.email}
+              size="sm"
+            />
+          )
+        }
+        {
+          developer.data.website && (
+            <SocialLink
+              platform="website"
+              href={developer.data.website}
+              size="sm"
+            />
+          )
+        }
+      </div>
+
+      <div class="no-print ml-auto">
+        <Button
+          variant="secondary"
+          class="px-3 py-1.5 text-xs"
+          onclick="window.print()"
+        >
+          <PrintIcon size={14} />
+          <span>{t("print")}</span>
+        </Button>
+      </div>
+    </div>
+  </div>
+</div>

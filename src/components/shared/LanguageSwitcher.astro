@@ -1,5 +1,5 @@
 ---
-import { type Lang } from "@/lib/i18n/utils";
+import { type Lang } from "@/types";
 import { SUPPORTED_LANGUAGES, LANGUAGE_CONFIGS } from "@/lib/config/languages";
 
 interface Props {
@@ -63,7 +63,7 @@ const otherLangs = SUPPORTED_LANGUAGES.filter((lang) => lang !== currentLang);
     {
       otherLangs.map((lang) => (
         <a
-          href={getLocaleUrl(currentPath, lang)}
+          href={getLocaleUrl(currentPath, lang as Lang)}
           role="option"
           class="block px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-secondary transition-colors"
         >

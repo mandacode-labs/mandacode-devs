@@ -1,9 +1,11 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import Card from "../ui/Card.astro";
-import Badge from "../ui/Badge.astro";
-import CoverImage from "../ui/CoverImage.astro";
-import { useTranslations, type Lang } from "@/lib/i18n/utils";
+import Card from "@/components/ui/Card.astro";
+import Badge from "@/components/ui/Badge.astro";
+import CoverImage from "@/components/ui/CoverImage.astro";
+import { useTranslations } from "@/lib/i18n/utils";
+import type { Lang } from "@/types";
+import { getProjectSlug } from "@/lib/content/projects";
 
 interface Props {
   project: CollectionEntry<"projects">;
@@ -17,7 +19,7 @@ const title = project.data.title;
 const description = project.data.description;
 const coverImage = project.data.coverImage;
 const statusKey = `status.${project.data.status}` as const;
-const slug = project.id.split("/").pop()!;
+const slug = getProjectSlug(project);
 ---
 
 <Card href={`/${lang}/projects/${slug}`} class="group">

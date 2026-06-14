@@ -1,7 +1,8 @@
 ---
 import Layout from "@/components/layouts/Layout.astro";
-import BlogCard from "@/components/content/BlogCard.astro";
-import { getCollection } from "astro:content";
+import BlogCard from "@/components/blog/BlogCard.astro";
+import EmptyBlog from "@/components/blog/EmptyBlog.astro";
+import { getPublishedPostsByLang } from "@/lib/content/blog";
 import { useTranslations } from "@/lib/i18n/utils";
 import { SUPPORTED_LANGUAGES, isValidLanguage } from "@/lib/config/languages";
 
@@ -16,12 +17,7 @@ if (!lang || !isValidLanguage(lang)) {
 }
 
 const t = useTranslations(lang);
-
-const posts = await getCollection(
-  "blog",
-  (post) => post.id.startsWith(`${lang}/`) && !post.data.draft,
-);
-posts.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+const posts = await getPublishedPostsByLang(lang);
 ---
 
 <Layout title={t("blog.title")} description={t("blog.subtitle")}>
@@ -41,29 +37,7 @@ posts.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
           ))}
         </ul>
       ) : (
-        <div class="text-center py-20">
-          <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-bg-secondary flex items-center justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="text-text-muted"
-              aria-hidden="true"
-            >
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-            </svg>
-          </div>
-          <p class="text-lg text-text-secondary font-medium">
-            {t("blog.comingSoon")}
-          </p>
-        </div>
+        <EmptyBlog lang={lang} />
       )
     }
   </section>

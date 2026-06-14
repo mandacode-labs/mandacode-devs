@@ -1,5 +1,6 @@
 ---
 import Layout from "@/components/layouts/Layout.astro";
+import ArrowRight from "@/components/icons/ArrowRight.astro";
 import { useTranslations } from "@/lib/i18n/utils";
 import { SUPPORTED_LANGUAGES, isValidLanguage } from "@/lib/config/languages";
 
@@ -25,22 +26,8 @@ const t = useTranslations(lang);
         href={`/${lang}/`}
         class="inline-flex items-center gap-2 px-6 py-3 bg-accent-subtle text-accent font-medium rounded-lg hover:bg-accent hover:text-white transition-colors"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M5 12h14"></path>
-          <path d="m12 5 7 7-7 7"></path>
-        </svg>
         <span>{t("goHome")}</span>
+        <ArrowRight size={18} />
       </a>
     </div>
   </div>

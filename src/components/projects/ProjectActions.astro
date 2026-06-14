@@ -1,0 +1,44 @@
+---
+import Button from "@/components/ui/Button.astro";
+import ExternalLinkIcon from "@/components/icons/ExternalLink.astro";
+import GithubIcon from "@/components/icons/Github.astro";
+import BookOpenIcon from "@/components/icons/BookOpen.astro";
+import { useTranslations } from "@/lib/i18n/utils";
+import type { Lang } from "@/types";
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  project: CollectionEntry<"projects">;
+  lang: Lang;
+}
+
+const { project, lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<div class="flex flex-wrap items-center gap-3">
+  {
+    project.data.url && (
+      <Button href={project.data.url} variant="primary">
+        <span>{t("projects.visitSite")}</span>
+        <ExternalLinkIcon size={16} />
+      </Button>
+    )
+  }
+  {
+    project.data.sourceUrl && (
+      <Button href={project.data.sourceUrl} variant="secondary">
+        <GithubIcon size={16} />
+        <span>Source</span>
+      </Button>
+    )
+  }
+  {
+    project.data.blogUrl && (
+      <Button href={project.data.blogUrl} variant="secondary">
+        <BookOpenIcon size={16} />
+        <span>Blog</span>
+      </Button>
+    )
+  }
+</div>

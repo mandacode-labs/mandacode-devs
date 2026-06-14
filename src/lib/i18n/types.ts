@@ -26,11 +26,13 @@ export type UIKey =
   | "projects.title"
   | "projects.visitSite"
   | "role"
+  | "role.label"
   | "status.completed"
   | "status.development"
   | "status.planning"
   | "status.production"
   | "teamSize"
+  | "teamSize.label"
   | "teamSize.unit"
   | "techStack"
   | "viewDetail";
