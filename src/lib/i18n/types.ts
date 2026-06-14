@@ -14,8 +14,6 @@ export type UIKey =
   | "goHome"
   | "hero.subtitle"
   | "hero.title"
-  | "lang.en"
-  | "lang.ko"
   | "nav.blog"
   | "nav.developer"
   | "nav.home"

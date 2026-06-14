@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import { chat } from "../lib/openai.js";
 import {
   PATHS,
@@ -7,9 +8,14 @@ import {
   TARGET_LANGUAGES,
   getLanguageName,
 } from "../lib/config.js";
+import { getCacheHash, setCacheHash, getUICacheKey } from "../lib/cache.js";
 
 function getTargetPath(lang: string): string {
   return path.join(PATHS.uiDir, `${lang}.json`);
+}
+
+function getHash(content: string): string {
+  return crypto.createHash("md5").update(content).digest("hex");
 }
 
 function loadLocale(lang: string): Record<string, string> {
@@ -48,7 +54,9 @@ async function translateUILanguage(
   console.log(`Translating UI to ${getLanguageName(targetLang)}...`);
 
   const existing = loadLocale(targetLang);
-  const newKeys = Object.keys(sourceData).filter((key) => !existing[key]);
+  const newKeys = Object.keys(sourceData).filter(
+    (key) => !existing[key] || existing[key] !== sourceData[key],
+  );
   const removedKeys = Object.keys(existing).filter(
     (key) => !(key in sourceData),
   );
@@ -68,17 +76,22 @@ async function translateUILanguage(
     return;
   }
 
-  const toTranslate: Record<string, string> = {};
-  for (const key of newKeys) {
-    toTranslate[key] = sourceData[key];
-  }
+  const toTranslate = sourceData;
 
-  const system = `You are a professional translator.
-Translate UI strings from ${getLanguageName(SOURCE_LANGUAGE)} to ${getLanguageName(targetLang)}.
-Return a JSON object with the same keys but translated values.
-Preserve technical terms, brand names, and placeholders like {name}.`;
+  const system = `You are a professional UI translator.
+Translate the following UI strings from ${getLanguageName(SOURCE_LANGUAGE)} to ${getLanguageName(targetLang)}.
+These are interface labels, navigation items, button text, headings, and short messages.
 
-  const user = `Translate these strings:\n\n${JSON.stringify(toTranslate, null, 2)}`;
+Guidelines:
+- Return a JSON object with the exact same keys but translated values.
+- Keep translations concise, natural, and suitable for a software UI.
+- Use consistent terminology across related keys (e.g., nav.x, x.title, x.subtitle).
+- Do not translate brand names such as "Mandacode".
+- Preserve placeholders like {year} exactly as they appear.`;
+
+  const user = `Translate all of these UI strings:
+
+${JSON.stringify(toTranslate, null, 2)}`;
 
   const response = await chat({
     system,
@@ -88,12 +101,12 @@ Preserve technical terms, brand names, and placeholders like {name}.`;
   });
   const translated = JSON.parse(response) as Record<string, string>;
 
-  for (const key of newKeys) {
+  for (const key of Object.keys(sourceData)) {
     existing[key] = translated[key] || sourceData[key];
   }
 
   saveLocale(targetLang, existing);
-  console.log(`  ✓ Translated ${newKeys.length} strings`);
+  console.log(`  ✓ Translated ${Object.keys(sourceData).length} strings`);
 }
 
 export async function translateUI(): Promise<void> {
@@ -102,9 +115,24 @@ export async function translateUI(): Promise<void> {
   const sourceData = loadLocale(SOURCE_LANGUAGE);
   generateTypesFile(Object.keys(sourceData));
 
+  const sourceJson = JSON.stringify(sourceData, null, 2) + "\n";
+  const sourceHash = getHash(sourceJson);
+
   for (const targetLang of TARGET_LANGUAGES) {
     if (targetLang === SOURCE_LANGUAGE) continue;
+
+    const cacheKey = getUICacheKey(targetLang, "translate");
+    const cachedHash = getCacheHash("translate", cacheKey);
+
+    if (cachedHash === sourceHash) {
+      console.log(
+        `  ✓ ${getLanguageName(targetLang)} UI strings up to date (hash match)`,
+      );
+      continue;
+    }
+
     await translateUILanguage(sourceData, targetLang);
+    setCacheHash("translate", cacheKey, sourceHash);
   }
 
   console.log("\n✅ UI translation complete!");
