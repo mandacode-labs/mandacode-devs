@@ -18,8 +18,8 @@ techStack:
   - Proxmox VE
   - Terraform
   - ArgoCD
+  - AWS
   - Github Actions
-  - Ceph
 certifications:
   - name: CKA (Certified Kubernetes Administrator)
     issuer: Linux Foundation
@@ -42,6 +42,6 @@ education:
 
 ## 소개
 
-Go, React & NodeJS (TypeScript), Kubernetes, AWS 를 다루며 인프라 구성과 서비스 개발을 모두 경험하는 개발자 이현우입니다.  
-개발자 경험이 업무의 효율성과 직결된다는 생각으로, 테스트코드 작성부터 CI/CD 파이프라인 구성, 그리고 실제 서비스 운영에 필요한 인프라 구성과 확장성, 안정성을 고려하여, Terraform을 이용한 Kubernetes 클러스터 구성 자동화, 온프레미스 서버 구성, GitOps 워크플로우 및 Github ARC 운영 등 다양한 경험을 쌓았습니다.  
+Go, React & NodeJS (TypeScript), Kubernetes, AWS 를 다루며 인프라 구성과 서비스 개발을 모두 경험한 개발자입니다.  
+개발자 경험이 업무의 효율과 직결된다는 생각으로, 테스트 코드 작성부터 CI/CD 파이프라인 구성, Terraform을 이용한 온프레미스 서버 기반 Kubernetes 클러스터 구성 자동화, GitOps 워크플로우에 대한 경험을 쌓았으며, AWS나 Github, Cloudflare등 다양한 외부 서비스를 활용하여 서비스의 안정성과 확장성, 비용 효율성을 고려한 인프라 운영 경험도 보유하고 있습니다.  
 사용자 경험 또한 중요하게 생각하여, 여러 풀스택 개발 경험을 통해 사용자의 관점에서 사고할 수 있도록 노력하며 인프라부터 프론트엔드까지 서비스 전반을 이해하는 개발자로 성장해왔습니다.

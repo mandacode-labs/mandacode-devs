@@ -1,4 +1,7 @@
 ---
+name: Hyunwoo Lee
+role: DevOps
+bio: "A developer who understands the entire service by directly experiencing everything from frontend to backend and infrastructure."
 avatar: "https://static.mandacode.com/mandacode-devs/developers/avatar.webp"
 github: "https://github.com/sauce-git"
 email: sauce@mandacode.com
@@ -15,15 +18,15 @@ techStack:
   - Proxmox VE
   - Terraform
   - ArgoCD
+  - AWS
   - Github Actions
-  - Ceph
 certifications:
   - name: CKA (Certified Kubernetes Administrator)
     issuer: Linux Foundation
     date: 2026-03
     badge: "https://static.mandacode.com/mandacode-devs/certifications/cka.png"
   - name: Information Processing Engineer
-    issuer: Korea Industrial Human Resources Corporation
+    issuer: Korea Industrial Manpower Corporation
     date: 2023-11
     badge: "https://static.mandacode.com/mandacode-devs/certifications/q-net.png"
 education:
@@ -33,23 +36,11 @@ education:
     status: Graduated
   - period: 2018.03 - 2025.08
     institution: Kangwon National University
-    department: Department of Computer Engineering
+    department: Department of Computer Science
     status: Graduated
-name: Hyunwoo Lee
-role: DevOps
-bio: >-
-  I am a developer who understands the entire service by gaining hands-on
-  experience from frontend to backend and infrastructure.
 ---
 
 ## Introduction
 
-Hello. I am Hyunwoo Lee, a developer who understands the entire service spectrum from frontend to infrastructure through hands-on experience.<br>
-Starting with creating mods for my favorite games and sharing them with friends as a child, I have grown by finding ways to execute my ideas whenever I wanted to create something.
-
-From building various services like log analysis systems, file management services, and AI-based services, to operating them on-premises and in the cloud, I have gained experience across the board, allowing me to grow into a developer who understands the entire service spectrum from frontend to backend to infrastructure.<br>
-In particular, I have a strong interest in operating Kubernetes clusters, gaining diverse experiences such as automating cluster configuration using Terraform, setting up on-premises servers, and reducing costs through operating the Github Action Runner Controller. I was also able to expand my knowledge by obtaining the CKA certification.<br>
-In service development, I have experience in automating code management and deployment by setting up CI/CD pipelines, and I have maximized operational convenience by developing an AI-based automatic log monitoring and analysis system.<br>
-In Alibaba's OpenSandbox open-source project, I discovered security issues with the existing configuration file-based method in real deployment environments like Kubernetes and improved operational convenience and security by switching to an environment variable-based method.
-
-As a developer, my goal is to enjoy technical challenges and continuously grow. I love learning and applying new technologies, and through this, I aim to create better services. Additionally, I value collaborating and growing together with my team members.
+I am a developer experienced in both infrastructure setup and service development, working with Go, React & NodeJS (TypeScript), Kubernetes, and AWS. Believing that developer experience is directly linked to work efficiency, I have gained experience in writing test codes, setting up CI/CD pipelines, automating on-premises server-based Kubernetes cluster setup using Terraform, and GitOps workflows. I also have experience in operating infrastructure considering stability, scalability, and cost-efficiency of services by utilizing various external services such as AWS, Github, and Cloudflare.  
+I value user experience and strive to think from the user's perspective through various full-stack development experiences, growing as a developer who understands the entire service from infrastructure to frontend.
