@@ -31,4 +31,4 @@ pnpm-debug.log*
 
 .playwright-mcp/
 
-.translate-cache.json
+.ai-cache.json

@@ -2,7 +2,7 @@
 import Layout from "@/components/layouts/Layout.astro";
 import SocialLink from "@/components/ui/SocialLink.astro";
 import Button from "@/components/ui/Button.astro";
-import { getCollection, render } from "astro:content";
+import { getEntry, render } from "astro:content";
 import { useTranslations } from "@/lib/i18n/utils";
 import { SUPPORTED_LANGUAGES, isValidLanguage } from "@/lib/config/languages";
 
@@ -18,11 +18,7 @@ if (!lang || !isValidLanguage(lang)) {
 
 const t = useTranslations(lang);
 
-const developers = await getCollection(
-  "developers",
-  (dev) => dev.data.lang === lang,
-);
-const developer = developers[0];
+const developer = await getEntry("developers", `${lang}/main-developer`);
 
 if (!developer) {
   return Astro.redirect(`/${lang}`);

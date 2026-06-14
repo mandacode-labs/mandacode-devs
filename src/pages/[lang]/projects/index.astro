@@ -17,9 +17,8 @@ if (!lang || !isValidLanguage(lang)) {
 
 const t = useTranslations(lang);
 
-const projects = await getCollection(
-  "projects",
-  (project) => project.data.lang === lang,
+const projects = await getCollection("projects", (project) =>
+  project.id.startsWith(`${lang}/`),
 );
 projects.sort((a, b) => a.data.order - b.data.order);
 ---

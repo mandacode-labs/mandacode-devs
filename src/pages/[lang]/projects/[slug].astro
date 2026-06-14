@@ -4,7 +4,7 @@ import Badge from "@/components/ui/Badge.astro";
 import Button from "@/components/ui/Button.astro";
 import CoverImage from "@/components/ui/CoverImage.astro";
 import BackLink from "@/components/ui/BackLink.astro";
-import { getCollection, render } from "astro:content";
+import { getCollection, getEntry, render } from "astro:content";
 import { useTranslations } from "@/lib/i18n/utils";
 import { isValidLanguage } from "@/lib/config/languages";
 
@@ -12,8 +12,8 @@ export async function getStaticPaths() {
   const projects = await getCollection("projects");
   const paths = [];
   for (const project of projects) {
-    const slug = project.id.split("/").pop();
-    paths.push({ params: { lang: project.data.lang, slug } });
+    const [lang, slug] = project.id.split("/");
+    paths.push({ params: { lang, slug } });
   }
   return paths;
 }
@@ -26,11 +26,7 @@ if (!lang || !isValidLanguage(lang)) {
 
 const t = useTranslations(lang);
 
-const projects = await getCollection(
-  "projects",
-  (p) => p.data.lang === lang && p.id.endsWith(`/${slug}`),
-);
-const project = projects[0];
+const project = await getEntry("projects", `${lang}/${slug}`);
 
 if (!project) {
   return Astro.redirect(`/${lang}/projects`);

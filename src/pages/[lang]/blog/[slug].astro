@@ -3,7 +3,7 @@ import Layout from "@/components/layouts/Layout.astro";
 import Badge from "@/components/ui/Badge.astro";
 import CoverImage from "@/components/ui/CoverImage.astro";
 import BackLink from "@/components/ui/BackLink.astro";
-import { getCollection, render } from "astro:content";
+import { getCollection, getEntry, render } from "astro:content";
 import { useTranslations } from "@/lib/i18n/utils";
 import { formatDate } from "@/lib/utils/date";
 import { isValidLanguage } from "@/lib/config/languages";
@@ -13,8 +13,8 @@ export async function getStaticPaths() {
   const paths = [];
   for (const post of posts) {
     if (post.data.draft) continue;
-    const slug = post.id.split("/").pop();
-    paths.push({ params: { lang: post.data.lang, slug } });
+    const [lang, slug] = post.id.split("/");
+    paths.push({ params: { lang, slug } });
   }
   return paths;
 }
@@ -27,13 +27,9 @@ if (!lang || !isValidLanguage(lang)) {
 
 const t = useTranslations(lang);
 
-const posts = await getCollection(
-  "blog",
-  (p) => !p.data.draft && p.data.lang === lang && p.id.endsWith(`/${slug}`),
-);
-const post = posts[0];
+const post = await getEntry("blog", `${lang}/${slug}`);
 
-if (!post) {
+if (!post || post.data.draft) {
   return Astro.redirect(`/${lang}/blog`);
 }
 
