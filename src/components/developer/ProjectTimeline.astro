@@ -1,5 +1,4 @@
 ---
-import Badge from "@/components/ui/Badge.astro";
 import Button from "@/components/ui/Button.astro";
 import ArrowRight from "@/components/icons/ArrowRight.astro";
 import ExternalLink from "@/components/icons/ExternalLink.astro";
@@ -22,66 +21,58 @@ const t = useTranslations(lang);
 
   <div class="relative">
     <div
-      class="absolute left-3 md:left-1/2 top-0 bottom-0 w-px bg-border md:-translate-x-1/2"
+      class="absolute left-3 md:left-1/2 top-1.5 bottom-1.5 w-px bg-border md:-translate-x-1/2"
       aria-hidden="true"
     >
     </div>
 
-    <ul class="relative space-y-6">
+    <ul class="relative flex flex-col gap-6">
       {
         projects.map((project, index) => {
-          const statusKey = `status.${project.data.status}` as const;
+          const { title, description, duration, teamSize, role, url } =
+            project.data;
           const slug = getProjectSlug(project);
-          const isEven = index % 2 === 0;
+          const isLeft = index % 2 === 0;
+          const meta = `${teamSize}${t("teamSize.unit")} · ${role}`;
 
           return (
-            <li class="relative pl-10 md:pl-0">
+            <li class="relative pl-10 md:pl-0 md:flex md:justify-center">
               <div
-                class={`absolute left-0 md:left-1/2 top-1.5 w-6 h-6 rounded-full border-2 border-accent bg-bg-primary md:-translate-x-1/2 z-10`}
+                class="absolute left-0 md:left-1/2 top-1.5 size-4 rounded-full border-2 border-accent bg-bg-primary md:-translate-x-1/2"
                 aria-hidden="true"
               />
 
-              <div
-                class={`md:w-[calc(50%-1.5rem)] ${isEven ? "md:mr-auto" : "md:ml-auto"}`}
+              <article
+                class={`md:w-[calc(50%-1.5rem)] ${isLeft ? "md:mr-auto" : "md:ml-auto"}`}
               >
                 <div class="bg-surface border border-border rounded-xl p-5 hover:border-border-hover transition-colors">
-                  <div
-                    class={`flex flex-col gap-1 mb-2 ${isEven ? "md:items-end" : "md:items-start"}`}
+                  <header
+                    class={`flex flex-col gap-1 mb-3 ${isLeft ? "md:items-end" : "md:items-start"}`}
                   >
-                    <span class="text-xs text-text-muted">
-                      {project.data.duration}
-                    </span>
-                    <div
-                      class={`flex items-center gap-2 flex-wrap ${isEven ? "md:flex-row-reverse" : ""}`}
-                    >
-                      <h4 class="text-text-primary">{project.data.title}</h4>
-                      <Badge variant="status" status={project.data.status}>
-                        {t(statusKey)}
-                      </Badge>
+                    <span class="text-xs text-text-muted">{duration}</span>
+                    <div class="flex items-center gap-2 flex-wrap">
+                      {isLeft ? (
+                        <>
+                          <span class="text-xs text-text-muted">{meta}</span>
+                          <h4 class="text-text-primary">{title}</h4>
+                        </>
+                      ) : (
+                        <>
+                          <h4 class="text-text-primary">{title}</h4>
+                          <span class="text-xs text-text-muted">{meta}</span>
+                        </>
+                      )}
                     </div>
-                  </div>
+                  </header>
 
                   <p
-                    class={`text-sm text-text-secondary mb-4 ${isEven ? "md:text-right" : ""}`}
+                    class={`text-sm text-text-secondary mb-4 ${isLeft ? "md:text-right" : ""}`}
                   >
-                    {project.data.description}
+                    {description}
                   </p>
 
-                  <div
-                    class={`flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-muted mb-4 ${isEven ? "md:justify-end" : ""}`}
-                  >
-                    <span>
-                      {t("teamSize")}: {project.data.teamSize}
-                      {t("teamSize.unit")}
-                    </span>
-                    <span class="text-border">·</span>
-                    <span>
-                      {t("role")}: {project.data.role}
-                    </span>
-                  </div>
-
-                  <div
-                    class={`flex flex-wrap items-center gap-2 ${isEven ? "md:justify-end" : ""}`}
+                  <footer
+                    class={`flex flex-wrap gap-2 ${isLeft ? "md:flex-row-reverse md:justify-start" : ""}`}
                   >
                     <Button
                       href={`/${lang}/projects/${slug}`}
@@ -91,9 +82,9 @@ const t = useTranslations(lang);
                       <span>{t("viewDetail")}</span>
                       <ArrowRight size={14} />
                     </Button>
-                    {project.data.url && (
+                    {url && (
                       <Button
-                        href={project.data.url}
+                        href={url}
                         variant="ghost"
                         class="text-xs px-3 py-1.5"
                         target="_blank"
@@ -103,9 +94,9 @@ const t = useTranslations(lang);
                         <span>{t("projects.visitSite")}</span>
                       </Button>
                     )}
-                  </div>
+                  </footer>
                 </div>
-              </div>
+              </article>
             </li>
           );
         })

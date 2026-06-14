@@ -24,6 +24,8 @@
   "teamSize": "开发人数",
   "teamSize.unit": "人",
   "role": "角色",
+  "teamSize.label": "人数",
+  "role.label": "角色",
   "techStack": "技术栈",
   "certifications": "证书",
   "education": "学历",

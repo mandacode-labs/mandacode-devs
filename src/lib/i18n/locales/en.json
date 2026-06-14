@@ -24,6 +24,8 @@
   "teamSize": "Team Size",
   "teamSize.unit": "people",
   "role": "Role",
+  "teamSize.label": "Team",
+  "role.label": "Role",
   "techStack": "Tech Stack",
   "certifications": "Certifications",
   "education": "Education",
