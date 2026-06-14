@@ -6,10 +6,7 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "translate:ui": "tsx scripts/translate/index.ts ui",
-    "translate:content": "tsx scripts/translate/index.ts content",
-    "translate": "tsx scripts/translate/index.ts all",
-    "proofread": "tsx scripts/proofread/index.ts",
+    "translate": "tsx scripts/translate/index.ts",
     "style": "tsx scripts/style/index.ts",
     "build": "astro build",
     "dev": "astro dev",
