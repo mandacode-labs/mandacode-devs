@@ -1,4 +1,6 @@
 ---
+title: "Tarot Cards: Design and Implementation of Caching for an AI Tarot Reading Service"
+description: Caching design for a tarot service that optimizes OpenAI API costs and response speed while providing a fresh experience each time
 pubDate: 2026-06-02T00:00:00.000Z
 tags:
   - TypeScript
@@ -7,17 +9,13 @@ tags:
   - Redis
   - Caching
 coverImage: "https://static.mandacode.com/mandacode-devs/projects/tarot/cover.png"
-title: "Tarot Cards: Design and Implementation of Caching in AI Tarot Reading Service"
-description: >-
-  The caching design of the Tarot service that optimizes OpenAI API costs and
-  response speed while providing a new experience each time.
 ---
 
 ## Problem Awareness
 
-The advantage of AI-generated content is its novelty each time, but repeatedly calling the API for the same input can quickly accumulate costs. This is also true for tarot card services. We use the OpenAI API for card readings, but due to cost and response time issues, it's not practical to call the API for every request.
+The advantage of AI-generated content is its novelty, but calling the API every time for the same input can quickly accumulate costs. The same goes for the tarot card service. While using the OpenAI API for card readings, it's not practical to call the API for every request due to cost and response speed issues.
 
-A simple cache using only the card and direction as keys is insufficient because users expect a different reading each time, even if they draw the same card. To bridge this gap, we introduced a **caching strategy using a bucket system**.
+However, a simple cache using only the card and direction as keys is insufficient. Users expect a different reading each time, even if they draw the same card. To bridge this gap, we introduced a **caching strategy using a bucket system**.
 
 ---
 
@@ -29,7 +27,7 @@ The core idea is simple. By combining 78 cards, upright/reversed directions, and
 78 cards × 2 directions × 10 buckets = 1,560 unique combinations
 ```
 
-Each time a user makes a request, one of these combinations is selected randomly. The cache key is in the format `tarot:read:{card}:{direction}:{bucket}`, and subsequent requests with the same key are immediately returned from Valkey. The OpenAI API is only called when there is a cache miss.
+Each time a user makes a request, one of these combinations is randomly selected. The cache key takes the form `tarot:read:{card}:{direction}:{bucket}`, and subsequent requests with the same key are immediately returned from Valkey. The OpenAI API is called only when there is a cache miss.
 
 We added one more mechanism. The server randomly selects 4 keywords for each request and provides them to the AI as context. This allows for different readings even with the same card, direction, and bucket, depending on the keywords.
 
@@ -52,8 +50,7 @@ flowchart LR
 
     Key --> Valkey[(Valkey)]
     Key -.->|Cache Miss| OpenAI[OpenAI API]
-    Keywords -.->|Reading Direction| OpenAI
-
+    Keywords -.->|Reading Context| OpenAI
 ```
 
 The entire flow can be represented in a sequence diagram as follows.
@@ -70,7 +67,7 @@ sequenceDiagram
     Client->>Service: Request Tarot Reading
     Note over Service: Randomly select card / direction / bucket
 
-    Service->>Cache: Check Cache (`GET`)
+    Service->>Cache: Cache Lookup (`GET`)
 
     alt Cache Hit
         Cache-->>Service: Return stored result
@@ -82,7 +79,6 @@ sequenceDiagram
     end
 
     Service-->>Client: Respond with final reading result
-
 ```
 
 ---
@@ -111,26 +107,25 @@ flowchart TD
         HPA[HPA: 2~10 Replicas]
     end
 
-    %% Deployment pipeline flow
-    GH -->|Push Git version tag v*.*.*| Actions
+    %% Deployment Pipeline Flow
+    GH -->|Push Git Version Tag v*.*.*| Actions
     Actions -->|Build/Push Image| Harbor
     Harbor -->|Store Image| S3
     Harbor -->|Reference Image| ArgoCD
     ArgoCD -->|GitOps Deployment| Service
 
-    %% Frontend pipeline flow
+    %% Frontend Pipeline Flow
     Actions -->|Build/Deploy Frontend| Vercel
 
-    %% Traffic flow
+    %% Traffic Flow
     Vercel --> |External Traffic| GW
     GW -->|Routing| Service
-    Service -->|Auto-scaling| HPA
-
+    Service -->|Auto Scaling| HPA
 ```
 
 The deployment pipeline automatically starts **as soon as a new version tag (`v*.*.*`) is pushed to GitHub**. GitHub Actions builds the image based on the tag and pushes it to the in-house container registry, Harbor. ArgoCD detects changes through GitOps settings and automatically synchronizes the cluster state. Additionally, the frontend is directly built and deployed to Vercel via GitHub Actions.
 
-The backend automatically scales from 2 to 10 replicas based on traffic through HPA, and user requests from outside are safely routed through the internal Gateway API.
+The backend automatically scales from 2 to 10 replicas based on traffic through HPA, and incoming user requests are safely routed through the internal Gateway API.
 
 ---
 
@@ -142,4 +137,4 @@ Currently, it is a simple service accessible to anyone without login, but we are
 
 ## Conclusion
 
-The tarot card service is a small project, but it embodies the process of solving practical problems of balancing AI generation and caching. The caching strategy using a bucket system offers a realistic compromise between cost and diversity, with ample room for future improvements.
+The tarot card service is a small project, but it embodies the process of solving practical issues of balancing AI generation and caching. The caching strategy using a bucket system offers a realistic compromise between cost and diversity, leaving ample room for future improvements.

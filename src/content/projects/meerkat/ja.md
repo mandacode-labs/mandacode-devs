@@ -1,4 +1,6 @@
 ---
+title: ミーアキャット
+description: AIエージェントベースのログ分析およびモニタリングシステム
 sourceUrl: "https://github.com/serengeti-sh/meerkat"
 status: production
 techStack:
@@ -12,16 +14,12 @@ techStack:
   - Kubernetes
   - Helm
   - Ent ORM
+duration: 2026.04 - 2026.06
 teamSize: 1
+role: フルスタック開発
 order: 2
 coverImage: "https://static.mandacode.com/mandacode-devs/projects/meerkat/cover.png"
 blogUrl: /ko/blog/meerkat-deep-dive
-title: ミーアキャット
-description: AIエージェント基盤のログ分析およびモニタリングシステム
-duration: 2026.04 - 2026.06
-role: フルスタック開発
 ---
 
-MeerkatはAIエージェントが直接インフラのログとメトリクスを分析し、異常兆候を検出するオブザーバビリティプラットフォームです。従来のルールベースのアラートの限界を超え、自然言語クエリや外部Webhookを通じて伝達されたイベントをAIが自ら文脈を把握し、PrometheusやLokiなどのツールを直接クエリして原因を推論します。OpenTelemetryで収集されたログをベクターデータベースに保存し、意味ベースの検索をサポートし、分析結果はWebhookで外部チャンネルに伝達されます。
-
-システムはAnalyzerとVectorsの2つの独立したサービスで構成されており、Kubernetes環境でHelm Chartでデプロイされます。Analyzerは非同期ワーカープールと重複分析防止、コンテキストオーバーフローメカニズムなどを通じて大規模なログ処理にも安定的に動作するよう設計されています。Vectorsはテンプレート抽出を通じてログの重複を除去し、OpenAIの埋め込みを経てMilvusに保存し、効率的な意味検索が可能になるよう実装されています。
+ミーアキャットは、ログをベクトル化して保存し、AIエージェントが保存されたデータとリアルタイムで収集されるログを活用して異常を検出するオブザーバビリティプラットフォームです。従来のルールベースのアラートシステムとは異なり、LLMを活用してエージェントが自然言語クエリや外部イベントを通じて提供された情報に基づいてログとメトリクスを直接分析し、異常を検出します。OpenTelemetryのようなデータ収集ツールと組み合わせて使用するように設計されており、分析結果はWebhookを通じてSlackなどの外部チャネルに配信されます。
