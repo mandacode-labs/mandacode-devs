@@ -1,7 +1,7 @@
 ---
 name: 李贤宇
 role: DevOps
-bio: "是一名从前端到后端及基础设施都有亲身经验，理解整个服务的开发者。"
+bio: "从前端到后端，再到基础设施，亲身体验并理解服务全局的开发者。"
 avatar: "https://static.mandacode.com/mandacode-devs/developers/avatar.webp"
 github: "https://github.com/sauce-git"
 email: sauce@mandacode.com
@@ -42,6 +42,6 @@ education:
 
 ## 介绍
 
-我是李贤宇，一名使用 Go, React & NodeJS (TypeScript), Kubernetes, AWS 的开发者，拥有基础设施构建和服务开发的全面经验。  
-我认为开发者的经验直接关系到工作的效率，因此从编写测试代码到构建 CI/CD 流水线，再到实际服务运营所需的基础设施构建、扩展性和稳定性，我积累了丰富的经验，包括使用 Terraform 自动化 Kubernetes 集群构建、配置本地服务器、GitOps 工作流程及 Github ARC 运营等。  
-我也非常重视用户体验，通过多次全栈开发经验，努力从用户的角度思考，成长为一名理解从基础设施到前端的整个服务的开发者。
+我是一名开发者，拥有处理 Go、React & NodeJS (TypeScript)、Kubernetes、AWS 的经验，能够同时进行基础设施配置和服务开发。  
+我相信开发者的经验直接关系到工作的效率，因此积累了从编写测试代码到构建 CI/CD 管道、利用 Terraform 自动化基于本地服务器的 Kubernetes 集群配置、GitOps 工作流程的经验，并且在使用 AWS、Github、Cloudflare 等多种外部服务时，考虑到了服务的稳定性、扩展性和成本效益的基础设施运营经验。  
+我同样重视用户体验，通过多次全栈开发经验，努力从用户的角度思考，成长为一名能够理解从基础设施到前端的服务全局的开发者。
