@@ -1,11 +1,12 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import Card from "../ui/Card.astro";
-import Badge from "../ui/Badge.astro";
-import CoverImage from "../ui/CoverImage.astro";
-import ImagePlaceholder from "../icons/ImagePlaceholder.astro";
-import type { Lang } from "@/lib/i18n/utils";
+import Card from "@/components/ui/Card.astro";
+import Badge from "@/components/ui/Badge.astro";
+import CoverImage from "@/components/ui/CoverImage.astro";
+import ImagePlaceholder from "@/components/icons/ImagePlaceholder.astro";
+import type { Lang } from "@/types";
 import { formatDate } from "@/lib/utils/date";
+import { getBlogSlug } from "@/lib/content/blog";
 
 interface Props {
   post: CollectionEntry<"blog">;
@@ -16,7 +17,7 @@ const { post, lang } = Astro.props;
 
 const title = post.data.title;
 const description = post.data.description;
-const slug = post.id.split("/").pop()!;
+const slug = getBlogSlug(post);
 ---
 
 <Card href={`/${lang}/blog/${slug}`} class="group">

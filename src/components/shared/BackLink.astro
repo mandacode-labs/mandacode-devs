@@ -1,0 +1,19 @@
+---
+import ArrowLeft from "@/components/icons/ArrowLeft.astro";
+
+interface Props {
+  href: string;
+  label: string;
+  class?: string;
+}
+
+const { href, label, class: className = "" } = Astro.props;
+---
+
+<a
+  href={href}
+  class={`inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors mb-8 ${className}`}
+>
+  <ArrowLeft size={14} />
+  <span>{label}</span>
+</a>

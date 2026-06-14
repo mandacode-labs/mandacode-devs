@@ -1,0 +1,55 @@
+---
+import { useTranslations } from "@/lib/i18n/utils";
+import type { Lang } from "@/types";
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  developer: CollectionEntry<"developers">;
+  lang: Lang;
+}
+
+const { developer, lang } = Astro.props;
+const t = useTranslations(lang);
+
+const certifications = developer.data.certifications;
+---
+
+{
+  certifications && certifications.length > 0 && (
+    <section class="mb-10">
+      <h3 class="mb-4">{t("certifications")}</h3>
+      <ul class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {certifications.map((cert) => (
+          <li class="flex items-center gap-4 p-4 bg-surface border border-border rounded-xl">
+            {cert.badge && (
+              <img
+                src={cert.badge}
+                alt={cert.name}
+                class="w-16 h-16 object-contain flex-shrink-0"
+                loading="lazy"
+              />
+            )}
+            <div class="flex-1 min-w-0">
+              <h6 class="mb-1">
+                {cert.url ? (
+                  <a
+                    href={cert.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="hover:text-accent transition-colors"
+                  >
+                    {cert.name}
+                  </a>
+                ) : (
+                  cert.name
+                )}
+              </h6>
+              <p class="text-xs text-text-muted mb-1">{cert.issuer}</p>
+              <p class="text-xs text-text-secondary">{cert.date}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}

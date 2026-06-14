@@ -1,7 +1,7 @@
 ---
-import NavigationCard from "@/components/content/NavigationCard.astro";
+import NavigationCard from "@/components/home/NavigationCard.astro";
 import { useTranslations } from "@/lib/i18n/utils";
-import type { Lang } from "@/lib/i18n/utils";
+import type { Lang } from "@/types";
 
 interface Props {
   lang: Lang;
@@ -15,19 +15,19 @@ const cards = [
     title: t("projects.title"),
     description: t("projects.subtitle"),
     href: `/${lang}/projects`,
-    icon: "folder",
+    icon: "folder" as const,
   },
   {
     title: t("developer.title"),
     description: t("developer.subtitle"),
     href: `/${lang}/developer`,
-    icon: "user",
+    icon: "user" as const,
   },
   {
     title: t("blog.title"),
     description: t("blog.subtitle"),
     href: `/${lang}/blog`,
-    icon: "bookOpen",
+    icon: "bookOpen" as const,
   },
 ];
 ---

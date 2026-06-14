@@ -1,8 +1,8 @@
 import { ui, type UIKey, DEFAULT_LANGUAGE } from "./index";
-import type { Language } from "../config/languages";
 import { getLocaleFromPath, getRelativeLocaleUrl } from "../config/languages";
+import type { Lang } from "@/types";
 
-export type Lang = Language;
+export type { Lang };
 export { getLocaleFromPath, getRelativeLocaleUrl };
 
 export function useTranslations(lang: Lang) {

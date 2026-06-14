@@ -1,11 +1,11 @@
 ---
 import Layout from "@/components/layouts/Layout.astro";
-import Badge from "@/components/ui/Badge.astro";
 import CoverImage from "@/components/ui/CoverImage.astro";
-import BackLink from "@/components/ui/BackLink.astro";
-import { getCollection, getEntry, render } from "astro:content";
+import BackLink from "@/components/shared/BackLink.astro";
+import BlogHeader from "@/components/blog/BlogHeader.astro";
+import { getCollection, render } from "astro:content";
+import { getPostBySlug } from "@/lib/content/blog";
 import { useTranslations } from "@/lib/i18n/utils";
-import { formatDate } from "@/lib/utils/date";
 import { isValidLanguage } from "@/lib/config/languages";
 
 export async function getStaticPaths() {
@@ -26,8 +26,7 @@ if (!lang || !isValidLanguage(lang)) {
 }
 
 const t = useTranslations(lang);
-
-const post = await getEntry("blog", `${lang}/${slug}`);
+const post = await getPostBySlug(lang, slug!);
 
 if (!post || post.data.draft) {
   return Astro.redirect(`/${lang}/blog`);
@@ -55,21 +54,7 @@ const { Content } = await render(post);
       )
     }
 
-    <header class="mb-8">
-      <div class="flex items-center gap-2 mb-4">
-        <time class="text-sm text-text-muted"
-          >{formatDate(post.data.pubDate, lang)}</time
-        >
-        <span class="text-text-muted">·</span>
-        <div class="flex items-center gap-1.5">
-          {post.data.tags.map((tag) => <Badge variant="default">{tag}</Badge>)}
-        </div>
-      </div>
-
-      <h2>{title}</h2>
-    </header>
-
-    <p class="text-lg text-text-secondary">{description}</p>
+    <BlogHeader post={post} lang={lang} />
 
     <div class="prose prose-neutral max-w-none mt-12">
       <Content />

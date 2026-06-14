@@ -1,0 +1,56 @@
+---
+import Badge from "@/components/ui/Badge.astro";
+import { useTranslations } from "@/lib/i18n/utils";
+import type { Lang } from "@/types";
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  project: CollectionEntry<"projects">;
+  lang: Lang;
+}
+
+const { project, lang } = Astro.props;
+const t = useTranslations(lang);
+const statusKey = `status.${project.data.status}` as const;
+---
+
+<header class="mb-6">
+  <div class="flex items-center gap-3 mb-3">
+    <h2>{project.data.title}</h2>
+    <Badge variant="status" status={project.data.status}>{t(statusKey)}</Badge>
+  </div>
+  <p class="text-lg text-text-secondary">{project.data.description}</p>
+</header>
+
+<section class="mb-8">
+  <h6 class="text-text-muted uppercase tracking-wider mb-3">
+    {t("techStack")}
+  </h6>
+  <div class="flex flex-wrap gap-2">
+    {project.data.techStack.map((tech) => <Badge variant="tech">{tech}</Badge>)}
+  </div>
+</section>
+
+<section class="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+  <div>
+    <h6 class="text-text-muted uppercase tracking-wider mb-2">
+      {t("duration")}
+    </h6>
+    <p class="text-text-primary">{project.data.duration}</p>
+  </div>
+  <div>
+    <h6 class="text-text-muted uppercase tracking-wider mb-2">
+      {t("teamSize")}
+    </h6>
+    <p class="text-text-primary">
+      {project.data.teamSize}
+      {t("teamSize.unit")}
+    </p>
+  </div>
+  <div>
+    <h6 class="text-text-muted uppercase tracking-wider mb-2">
+      {t("role")}
+    </h6>
+    <p class="text-text-primary">{project.data.role}</p>
+  </div>
+</section>

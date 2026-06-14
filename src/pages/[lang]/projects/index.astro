@@ -1,7 +1,7 @@
 ---
 import Layout from "@/components/layouts/Layout.astro";
-import ProjectCard from "@/components/content/ProjectCard.astro";
-import { getCollection } from "astro:content";
+import ProjectCard from "@/components/projects/ProjectCard.astro";
+import { getProjectsByLang } from "@/lib/content/projects";
 import { useTranslations } from "@/lib/i18n/utils";
 import { SUPPORTED_LANGUAGES, isValidLanguage } from "@/lib/config/languages";
 
@@ -16,11 +16,7 @@ if (!lang || !isValidLanguage(lang)) {
 }
 
 const t = useTranslations(lang);
-
-const projects = await getCollection("projects", (project) =>
-  project.id.startsWith(`${lang}/`),
-);
-projects.sort((a, b) => a.data.order - b.data.order);
+const projects = await getProjectsByLang(lang);
 ---
 
 <Layout title={t("projects.title")} description={t("projects.subtitle")}>

@@ -1,0 +1,30 @@
+---
+import { useTranslations } from "@/lib/i18n/utils";
+import type { Lang } from "@/types";
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  developer: CollectionEntry<"developers">;
+  lang: Lang;
+}
+
+const { developer, lang } = Astro.props;
+const t = useTranslations(lang);
+
+const techStack = developer.data.techStack;
+---
+
+{
+  techStack && techStack.length > 0 && (
+    <section class="mb-10">
+      <h3 class="mb-4">{t("techStack")}</h3>
+      <ul class="flex flex-wrap gap-2">
+        {techStack.map((tech) => (
+          <li class="px-3 py-1.5 bg-surface border border-border rounded-lg text-sm text-text-secondary">
+            {tech}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}

@@ -1,0 +1,91 @@
+---
+import SocialLink from "@/components/ui/SocialLink.astro";
+import Button from "@/components/ui/Button.astro";
+import PrintIcon from "@/components/icons/Print.astro";
+import { useTranslations } from "@/lib/i18n/utils";
+import type { Lang } from "@/types";
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  developer: CollectionEntry<"developers">;
+  lang: Lang;
+}
+
+const { developer, lang } = Astro.props;
+const t = useTranslations(lang);
+
+const name = developer.data.name;
+const role = developer.data.role;
+const bio = developer.data.bio;
+const avatar =
+  developer.data.avatar || "https://avatars.githubusercontent.com/u/0";
+---
+
+<div class="flex flex-col sm:flex-row items-center gap-6 mb-6">
+  <div class="shrink-0">
+    <div
+      class="w-28 sm:w-32 aspect-[35/45] rounded-lg overflow-hidden border-2 border-border bg-surface"
+    >
+      <img
+        src={avatar}
+        alt={name}
+        class="w-full h-full object-cover object-center"
+      />
+    </div>
+  </div>
+
+  <div class="flex-1 flex flex-col items-start gap-3">
+    <div>
+      <h2 class="text-2xl sm:text-4xl">
+        {name}
+      </h2>
+      <p class="text-base sm:text-lg text-accent font-medium mt-1">
+        {role}
+      </p>
+      <p class="text-sm sm:text-base text-text-secondary mt-1">{bio}</p>
+    </div>
+
+    <div class="flex items-center gap-3 w-full">
+      <div class="flex items-center gap-3">
+        {
+          developer.data.github && (
+            <SocialLink
+              platform="github"
+              href={developer.data.github}
+              size="sm"
+            />
+          )
+        }
+        {
+          developer.data.email && (
+            <SocialLink
+              platform="email"
+              href={developer.data.email}
+              size="sm"
+            />
+          )
+        }
+        {
+          developer.data.website && (
+            <SocialLink
+              platform="website"
+              href={developer.data.website}
+              size="sm"
+            />
+          )
+        }
+      </div>
+
+      <div class="no-print ml-auto">
+        <Button
+          variant="secondary"
+          class="px-3 py-1.5 text-xs"
+          onclick="window.print()"
+        >
+          <PrintIcon size={14} />
+          <span>{t("print")}</span>
+        </Button>
+      </div>
+    </div>
+  </div>
+</div>

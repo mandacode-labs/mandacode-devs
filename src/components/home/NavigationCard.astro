@@ -1,16 +1,28 @@
 ---
-import Card from "../ui/Card.astro";
-import Icon from "../ui/Icon.astro";
+import Card from "@/components/ui/Card.astro";
+import FolderIcon from "@/components/icons/Folder.astro";
+import UserIcon from "@/components/icons/User.astro";
+import BookOpenIcon from "@/components/icons/BookOpen.astro";
+import ArrowRightIcon from "@/components/icons/ArrowRight.astro";
+
+type IconName = "folder" | "user" | "bookOpen";
 
 interface Props {
   title: string;
   description: string;
   href: string;
-  icon: string;
+  icon: IconName;
   linkText: string;
 }
 
+const iconMap: Record<IconName, typeof FolderIcon> = {
+  folder: FolderIcon,
+  user: UserIcon,
+  bookOpen: BookOpenIcon,
+};
+
 const { title, description, href, icon, linkText } = Astro.props;
+const IconComponent = iconMap[icon];
 ---
 
 <Card href={href} class="group h-full">
@@ -18,7 +30,7 @@ const { title, description, href, icon, linkText } = Astro.props;
     <div
       class="w-12 h-12 rounded-lg bg-accent-subtle flex items-center justify-center mb-4 group-hover:bg-accent group-hover:text-white transition-colors text-accent"
     >
-      <Icon name={icon} size={24} />
+      <IconComponent size={24} />
     </div>
 
     <h3 class="text-text-primary mb-2">
@@ -31,7 +43,7 @@ const { title, description, href, icon, linkText } = Astro.props;
 
     <div class="flex items-center gap-1 text-sm font-medium text-accent">
       <span>{linkText}</span>
-      <Icon name="arrowRight" size={14} />
+      <ArrowRightIcon size={14} />
     </div>
   </div>
 </Card>
