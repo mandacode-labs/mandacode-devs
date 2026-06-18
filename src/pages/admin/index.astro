@@ -1,43 +1,41 @@
 ---
 import Layout from "@/components/layouts/Layout.astro";
 import { getAuthenticatedUser } from "@/lib/auth";
+import { useTranslations } from "@/lib/i18n/utils";
+import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
 
 const user = getAuthenticatedUser(Astro);
+const t = useTranslations(DEFAULT_LANGUAGE);
 ---
 
-<Layout title="Admin Dashboard">
+<Layout title={t("admin.title")}>
   <div class="max-w-6xl mx-auto px-4 py-12">
-    <h1 class="text-3xl font-bold mb-8">Admin Dashboard</h1>
-
-    {
-      user ? (
-        <p class="mb-6 text-text-secondary">Logged in as {user.email}</p>
-      ) : (
-        <p class="mb-6 text-text-secondary">Not authenticated</p>
-      )
-    }
+    <div class="flex items-center justify-between mb-8">
+      <h1 class="text-3xl font-bold">{t("admin.dashboard")}</h1>
+      {user && <p class="text-text-secondary">{user.email}</p>}
+    </div>
 
     <nav class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <a
-        href="/admin/posts/new"
+        href="/admin/posts"
         class="p-6 border border-border rounded-xl hover:border-border-hover bg-bg-primary"
       >
-        <h2 class="text-xl font-semibold">New Post</h2>
-        <p class="text-text-secondary mt-2">Create a new blog post</p>
+        <h2 class="text-xl font-semibold">{t("admin.posts")}</h2>
+        <p class="text-text-secondary mt-2">Manage blog posts</p>
       </a>
       <a
-        href="/admin/projects/new"
+        href="/admin/projects"
         class="p-6 border border-border rounded-xl hover:border-border-hover bg-bg-primary"
       >
-        <h2 class="text-xl font-semibold">New Project</h2>
-        <p class="text-text-secondary mt-2">Create a new project</p>
+        <h2 class="text-xl font-semibold">{t("admin.projects")}</h2>
+        <p class="text-text-secondary mt-2">Manage projects</p>
       </a>
       <a
-        href="/admin/developers/new"
+        href="/admin/developers"
         class="p-6 border border-border rounded-xl hover:border-border-hover bg-bg-primary"
       >
-        <h2 class="text-xl font-semibold">New Developer</h2>
-        <p class="text-text-secondary mt-2">Create a new developer profile</p>
+        <h2 class="text-xl font-semibold">{t("admin.developer")}</h2>
+        <p class="text-text-secondary mt-2">Manage developer profile</p>
       </a>
     </nav>
   </div>
