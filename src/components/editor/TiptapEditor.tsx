@@ -3,7 +3,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
-import { useEffect } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 interface TiptapEditorProps {
   content: string;
@@ -12,14 +12,40 @@ interface TiptapEditorProps {
   insertedImageUrl?: string;
 }
 
+function parseTiptapContent(content: string): Record<string, unknown> {
+  try {
+    const parsed = JSON.parse(content);
+    if (parsed && typeof parsed === "object" && parsed.type === "doc") {
+      return parsed as Record<string, unknown>;
+    }
+  } catch {
+    // fall through to empty doc
+  }
+  return { type: "doc", content: [] };
+}
+
 export default function TiptapEditor({
   content,
   onChange,
   placeholder = "Write something...",
   insertedImageUrl,
 }: TiptapEditorProps) {
-  const editor = useEditor({
-    extensions: [
+  const [mounted, setMounted] = useState(false);
+  const lastJsonRef = useRef<string>("");
+  const echoGuardRef = useRef(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onChangeRef = useRef(onChange);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const extensions = useMemo(
+    () => [
       StarterKit,
       Image.configure({
         allowBase64: false,
@@ -31,11 +57,59 @@ export default function TiptapEditor({
         placeholder,
       }),
     ],
-    content,
-    onUpdate: ({ editor }) => {
-      onChange(JSON.stringify(editor.getJSON()));
+    [placeholder],
+  );
+
+  const scheduleNotify = useCallback((editorInstance: {
+    getJSON: () => Record<string, unknown>;
+  }) => {
+    const json = JSON.stringify(editorInstance.getJSON());
+    if (json === lastJsonRef.current) return;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      lastJsonRef.current = json;
+      echoGuardRef.current = true;
+      onChangeRef.current(json);
+    }, 150);
+  }, []);
+
+  const initialContent = useMemo(() => parseTiptapContent(content), []);
+
+  const editor = useEditor({
+    extensions,
+    content: initialContent,
+    immediatelyRender: false,
+    shouldRerenderOnTransaction: false,
+    autofocus: false,
+    injectCSS: false,
+    onCreate: ({ editor: e }) => {
+      lastJsonRef.current = JSON.stringify(e.getJSON());
+    },
+    onUpdate: ({ editor: e }) => {
+      scheduleNotify(e);
     },
   });
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) return;
+    if (echoGuardRef.current) {
+      echoGuardRef.current = false;
+      return;
+    }
+    const parsed = parseTiptapContent(content);
+    const current = editor.getJSON();
+    const parsedJson = JSON.stringify(parsed);
+    if (JSON.stringify(current) !== parsedJson) {
+      editor.commands.setContent(parsed, { emitUpdate: false });
+      lastJsonRef.current = parsedJson;
+    }
+  }, [editor, content]);
 
   useEffect(() => {
     if (editor && insertedImageUrl) {
@@ -43,8 +117,37 @@ export default function TiptapEditor({
     }
   }, [editor, insertedImageUrl]);
 
-  if (!editor) {
-    return null;
+  if (!mounted || !editor) {
+    return (
+      <div className="border border-border rounded-lg overflow-hidden">
+        <div className="flex flex-wrap gap-1 p-2 border-b border-border bg-bg-secondary">
+          {[
+            "Bold",
+            "Italic",
+            "H2",
+            "H3",
+            "Bullet",
+            "Numbered",
+            "Link",
+            "Image URL",
+          ].map((label) => (
+            <button
+              key={label}
+              type="button"
+              disabled
+              className="px-3 py-1 rounded text-sm bg-bg-primary text-text-muted opacity-50"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="prose prose-neutral max-w-none p-4 min-h-[300px] bg-bg-primary whitespace-pre-wrap">
+          <p className="is-empty is-editor-empty" data-placeholder={placeholder}>
+            <br />
+          </p>
+        </div>
+      </div>
+    );
   }
 
   const addImage = () => {
@@ -155,7 +258,7 @@ export default function TiptapEditor({
       </div>
       <EditorContent
         editor={editor}
-        className="prose prose-neutral max-w-none p-4 min-h-[300px] bg-bg-primary"
+        className="prose prose-neutral max-w-none p-4 min-h-[300px] bg-bg-primary whitespace-pre-wrap"
       />
     </div>
   );
