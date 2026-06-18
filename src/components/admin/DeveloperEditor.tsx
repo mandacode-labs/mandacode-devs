@@ -1,13 +1,8 @@
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import TiptapEditor from "@/components/editor/TiptapEditor";
 import ImageUploadButton from "@/components/editor/ImageUploadButton";
-
-const LOCALES = [
-  { code: "ko", label: "한국어" },
-  { code: "en", label: "English" },
-  { code: "ja", label: "日本語" },
-  { code: "zh", label: "中文" },
-];
+import DeleteModal from "@/components/admin/DeleteModal";
+import { LANGUAGE_CONFIGS } from "@/lib/config/languages";
 
 export interface DeveloperEditorInitialData {
   id: string;
@@ -27,6 +22,11 @@ export interface DeveloperEditorInitialData {
 
 interface DeveloperEditorProps {
   initialData?: DeveloperEditorInitialData;
+}
+
+interface Toast {
+  type: "success" | "error";
+  message: string;
 }
 
 export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
@@ -51,6 +51,9 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
   );
   const [targetLocales, setTargetLocales] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [toast, setToast] = useState<Toast | null>(null);
 
   useEffect(() => {
     if (initialData) {
@@ -68,9 +71,21 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
     }
   }, [initialData]);
 
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
   const handleTiptapImage = (url: string) => {
     setInsertedImageUrl(url);
   };
+
+  const handleTiptapChange = useCallback((json: string) => {
+    setTiptapJson(json);
+  }, []);
+
+  const editorKey = `${id || "new"}-${locale}`;
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -110,11 +125,44 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
         throw new Error(data.error || "Failed to save");
       }
 
-      alert("Saved successfully");
+      setToast({ type: "success", message: "Saved successfully" });
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Failed to save");
+      setToast({
+        type: "error",
+        message: error instanceof Error ? error.message : "Failed to save",
+      });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (allLocales: boolean) => {
+    if (!id || !locale) return;
+    setIsDeleting(true);
+    try {
+      const params = new URLSearchParams();
+      params.set("confirmation", "delete");
+      if (!allLocales) params.set("locale", locale);
+      else params.set("all", "true");
+
+      const response = await fetch(
+        `/api/admin/developers/${id}?${params.toString()}`,
+        { method: "DELETE" },
+      );
+
+      if (!response.ok) {
+        const data = (await response.json()) as { error?: string };
+        throw new Error(data.error || "Failed to delete");
+      }
+
+      window.location.href = "/admin/developers";
+    } catch (error) {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+      setToast({
+        type: "error",
+        message: error instanceof Error ? error.message : "Failed to delete",
+      });
     }
   };
 
@@ -124,172 +172,287 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
     );
   };
 
+  const Section = ({
+    title,
+    children,
+  }: {
+    title: string;
+    children: React.ReactNode;
+  }) => (
+    <div className="border-b border-border last:border-0 pb-6 last:pb-0">
+      <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide mb-4">
+        {title}
+      </h3>
+      {children}
+    </div>
+  );
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <label className="block">
-          <span className="text-sm font-medium">ID (Slug)</span>
-          <input
-            type="text"
-            value={id}
-            onChange={(e) => setId(e.target.value)}
-            disabled={isEditMode}
+    <form onSubmit={handleSubmit} className="space-y-8">
+      {toast && (
+        <div
+          className={`fixed top-4 right-4 z-[100] px-4 py-3 rounded-lg shadow-lg border text-sm font-medium transition-all ${
+            toast.type === "success"
+              ? "bg-green-50 text-green-800 border-green-200"
+              : "bg-red-50 text-red-800 border-red-200"
+          }`}
+        >
+          {toast.message}
+        </div>
+      )}
+
+      <Section title="Basic Information">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label className="block">
+            <span className="text-sm font-medium text-text-primary">
+              ID (Slug)
+            </span>
+            <input
+              type="text"
+              value={id}
+              onChange={(e) => setId(e.target.value)}
+              disabled={isEditMode}
+              required
+              className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-medium text-text-primary">
+              Locale
+            </span>
+            <select
+              value={locale}
+              onChange={(e) => setLocale(e.target.value)}
+              disabled={isEditMode}
+              className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+            >
+              {Object.values(LANGUAGE_CONFIGS).map((loc) => (
+                <option key={loc.code} value={loc.code}>
+                  {loc.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <label className="block">
+            <span className="text-sm font-medium text-text-primary">Name</span>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-medium text-text-primary">Role</span>
+            <input
+              type="text"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              required
+              className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+            />
+          </label>
+        </div>
+
+        <label className="block mt-4">
+          <span className="text-sm font-medium text-text-primary">Bio</span>
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            rows={4}
             required
-            className="w-full mt-1 px-3 py-2 border border-border rounded bg-bg-primary disabled:opacity-60"
+            className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent resize-y"
           />
         </label>
+      </Section>
 
+      <Section title="Media">
         <label className="block">
-          <span className="text-sm font-medium">Locale</span>
-          <select
-            value={locale}
-            onChange={(e) => setLocale(e.target.value)}
-            disabled={isEditMode}
-            className="w-full mt-1 px-3 py-2 border border-border rounded bg-bg-primary disabled:opacity-60"
-          >
-            {LOCALES.map((loc) => (
-              <option key={loc.code} value={loc.code}>
-                {loc.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <label className="block">
-          <span className="text-sm font-medium">Name</span>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            className="w-full mt-1 px-3 py-2 border border-border rounded bg-bg-primary"
-          />
-        </label>
-
-        <label className="block">
-          <span className="text-sm font-medium">Role</span>
-          <input
-            type="text"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            required
-            className="w-full mt-1 px-3 py-2 border border-border rounded bg-bg-primary"
-          />
-        </label>
-      </div>
-
-      <label className="block">
-        <span className="text-sm font-medium">Bio</span>
-        <textarea
-          value={bio}
-          onChange={(e) => setBio(e.target.value)}
-          rows={4}
-          required
-          className="w-full mt-1 px-3 py-2 border border-border rounded bg-bg-primary"
-        />
-      </label>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <label className="block">
-          <span className="text-sm font-medium">Avatar URL</span>
-          <div className="flex gap-2 mt-1">
+          <span className="text-sm font-medium text-text-primary">
+            Avatar URL
+          </span>
+          <div className="flex gap-2 mt-1.5">
             <input
               type="url"
               value={avatarUrl}
               onChange={(e) => setAvatarUrl(e.target.value)}
-              className="flex-1 px-3 py-2 border border-border rounded bg-bg-primary"
+              className="flex-1 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
             />
             <ImageUploadButton onUpload={setAvatarUrl} />
           </div>
         </label>
+      </Section>
 
-        <label className="block">
-          <span className="text-sm font-medium">GitHub URL</span>
-          <input
-            type="url"
-            value={githubUrl}
-            onChange={(e) => setGithubUrl(e.target.value)}
-            className="w-full mt-1 px-3 py-2 border border-border rounded bg-bg-primary"
-          />
-        </label>
-      </div>
+      <Section title="Links">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label className="block">
+            <span className="text-sm font-medium text-text-primary">
+              GitHub URL
+            </span>
+            <input
+              type="url"
+              value={githubUrl}
+              onChange={(e) => setGithubUrl(e.target.value)}
+              className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+            />
+          </label>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <label className="block">
-          <span className="text-sm font-medium">Email</span>
+          <label className="block">
+            <span className="text-sm font-medium text-text-primary">
+              Website URL
+            </span>
+            <input
+              type="url"
+              value={websiteUrl}
+              onChange={(e) => setWebsiteUrl(e.target.value)}
+              className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+            />
+          </label>
+        </div>
+
+        <label className="block mt-4">
+          <span className="text-sm font-medium text-text-primary">Email</span>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full mt-1 px-3 py-2 border border-border rounded bg-bg-primary"
+            className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
           />
         </label>
+      </Section>
 
+      <Section title="Tech Stack">
         <label className="block">
-          <span className="text-sm font-medium">Website URL</span>
+          <span className="text-sm font-medium text-text-primary">
+            Tech Stack (comma separated)
+          </span>
           <input
-            type="url"
-            value={websiteUrl}
-            onChange={(e) => setWebsiteUrl(e.target.value)}
-            className="w-full mt-1 px-3 py-2 border border-border rounded bg-bg-primary"
+            type="text"
+            value={techStack}
+            onChange={(e) => setTechStack(e.target.value)}
+            placeholder="React, TypeScript, Node.js"
+            className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
           />
         </label>
-      </div>
+      </Section>
 
-      <label className="block">
-        <span className="text-sm font-medium">
-          Tech Stack (comma separated)
-        </span>
-        <input
-          type="text"
-          value={techStack}
-          onChange={(e) => setTechStack(e.target.value)}
-          className="w-full mt-1 px-3 py-2 border border-border rounded bg-bg-primary"
-        />
-      </label>
-
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">Content</span>
-          <ImageUploadButton onUpload={handleTiptapImage} />
+      <Section title="Content">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-text-primary">Body</span>
+            <ImageUploadButton onUpload={handleTiptapImage} />
+          </div>
+          <TiptapEditor
+            key={editorKey}
+            content={tiptapJson}
+            onChange={handleTiptapChange}
+            placeholder="Write additional content..."
+            insertedImageUrl={insertedImageUrl}
+          />
         </div>
-        <TiptapEditor
-          content={tiptapJson}
-          onChange={setTiptapJson}
-          placeholder="Write additional content..."
-          insertedImageUrl={insertedImageUrl}
-        />
-      </div>
+      </Section>
 
-      <div className="space-y-2">
-        <span className="text-sm font-medium">Auto-translate to:</span>
-        <div className="flex gap-3">
-          {LOCALES.filter((loc) => loc.code !== locale).map((loc) => (
-            <label key={loc.code} className="flex items-center gap-1">
-              <input
-                type="checkbox"
-                checked={targetLocales.includes(loc.code)}
-                onChange={() => toggleTargetLocale(loc.code)}
-              />
-              <span>{loc.label}</span>
-            </label>
-          ))}
+      <Section title="Translations">
+        <div className="space-y-2">
+          <p className="text-sm text-text-secondary">
+            Auto-translate to additional languages on save:
+          </p>
+          <div className="flex flex-wrap gap-4">
+              {Object.values(LANGUAGE_CONFIGS)
+                .filter((loc) => loc.code !== locale)
+                .map((loc) => (
+                  <label key={loc.code} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={targetLocales.includes(loc.code)}
+                      onChange={() => toggleTargetLocale(loc.code)}
+                      className="w-4 h-4 rounded border-border text-accent focus:ring-accent"
+                    />
+                    <span className="text-sm text-text-primary">{loc.label}</span>
+                  </label>
+                ))}
+          </div>
         </div>
+      </Section>
+
+      <div className="sticky bottom-0 -mx-6 -mb-6 px-6 py-4 bg-bg-secondary border-t border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover disabled:opacity-50 transition-colors"
+          >
+            {isSubmitting && (
+              <svg
+                className="animate-spin h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
+              </svg>
+            )}
+            {isSubmitting
+              ? "Saving..."
+              : isEditMode
+                ? "Update Profile"
+                : "Save Profile"}
+          </button>
+          <a
+            href="/admin/developers"
+            className="px-5 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-bg-tertiary rounded-lg transition-colors"
+          >
+            Cancel
+          </a>
+        </div>
+
+        {isEditMode && (
+          <button
+            type="button"
+            onClick={() => setShowDeleteModal(true)}
+            disabled={isDeleting}
+            className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="w-4 h-4"
+            >
+              <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+            Delete
+          </button>
+        )}
       </div>
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="px-6 py-2 bg-accent text-white rounded hover:bg-accent/90 disabled:opacity-50"
-      >
-        {isSubmitting
-          ? "Saving..."
-          : isEditMode
-            ? "Update Developer"
-            : "Save Developer"}
-      </button>
+      {showDeleteModal && (
+        <DeleteModal
+          title="Delete developer profile?"
+          itemName={name || id}
+          locale={locale}
+          onConfirm={handleDelete}
+          onCancel={() => setShowDeleteModal(false)}
+        />
+      )}
     </form>
   );
 }
