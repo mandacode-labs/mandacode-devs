@@ -1,17 +1,17 @@
 ---
 import { useTranslations } from "@/lib/i18n/utils";
 import type { Lang } from "@/types";
-import type { CollectionEntry } from "astro:content";
+import type { UnifiedDeveloper } from "@/lib/content/types";
 
 interface Props {
-  developer: CollectionEntry<"developers">;
+  developer: UnifiedDeveloper;
   lang: Lang;
 }
 
 const { developer, lang } = Astro.props;
 const t = useTranslations(lang);
 
-const education = developer.data.education;
+const education = developer.education;
 ---
 
 {

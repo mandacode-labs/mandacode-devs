@@ -1,11 +1,7 @@
 ---
 import Layout from "@/components/layouts/Layout.astro";
 import HomePage from "@/components/home/HomePage.astro";
-import { SUPPORTED_LANGUAGES, isValidLanguage } from "@/lib/config/languages";
-
-export function getStaticPaths() {
-  return SUPPORTED_LANGUAGES.map((lang) => ({ params: { lang } }));
-}
+import { isValidLanguage } from "@/lib/config/languages";
 
 const { lang } = Astro.params;
 

@@ -1,25 +1,25 @@
 ---
-import type { CollectionEntry } from "astro:content";
 import Card from "@/components/ui/Card.astro";
 import Badge from "@/components/ui/Badge.astro";
 import CoverImage from "@/components/ui/CoverImage.astro";
 import { useTranslations } from "@/lib/i18n/utils";
 import type { Lang } from "@/types";
-import { getProjectSlug } from "@/lib/content/projects";
+import type { UnifiedProject } from "@/lib/content/types";
+import type { UIKey } from "@/lib/i18n";
 
 interface Props {
-  project: CollectionEntry<"projects">;
+  project: UnifiedProject;
   lang: Lang;
 }
 
 const { project, lang } = Astro.props;
 const t = useTranslations(lang);
 
-const title = project.data.title;
-const description = project.data.description;
-const coverImage = project.data.coverImage;
-const statusKey = `status.${project.data.status}` as const;
-const slug = getProjectSlug(project);
+const title = project.title;
+const description = project.description;
+const coverImage = project.coverImage;
+const statusKey = `status.${project.status}` as UIKey;
+const slug = project.id;
 ---
 
 <Card href={`/${lang}/projects/${slug}`} class="group">
@@ -45,9 +45,7 @@ const slug = getProjectSlug(project);
         <h4 class="text-text-primary group-hover:text-accent transition-colors">
           {title}
         </h4>
-        <Badge variant="status" status={project.data.status}
-          >{t(statusKey)}</Badge
-        >
+        <Badge variant="status" status={project.status}>{t(statusKey)}</Badge>
       </div>
 
       <p class="text-sm text-text-secondary line-clamp-2 mb-3">
@@ -55,11 +53,7 @@ const slug = getProjectSlug(project);
       </p>
 
       <div class="flex items-center gap-1.5 flex-wrap mt-auto">
-        {
-          project.data.techStack.map((tech) => (
-            <Badge variant="tech">{tech}</Badge>
-          ))
-        }
+        {project.techStack.map((tech) => <Badge variant="tech">{tech}</Badge>)}
       </div>
     </div>
   </div>

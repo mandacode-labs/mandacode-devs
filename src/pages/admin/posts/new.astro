@@ -1,0 +1,11 @@
+---
+import Layout from "@/components/layouts/Layout.astro";
+import PostEditor from "@/components/admin/PostEditor";
+---
+
+<Layout title="New Post">
+  <div class="max-w-4xl mx-auto px-4 py-12">
+    <h1 class="text-3xl font-bold mb-8">New Post</h1>
+    <PostEditor client:load />
+  </div>
+</Layout>

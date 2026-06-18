@@ -4,21 +4,20 @@ import Button from "@/components/ui/Button.astro";
 import PrintIcon from "@/components/icons/Print.astro";
 import { useTranslations } from "@/lib/i18n/utils";
 import type { Lang } from "@/types";
-import type { CollectionEntry } from "astro:content";
+import type { UnifiedDeveloper } from "@/lib/content/types";
 
 interface Props {
-  developer: CollectionEntry<"developers">;
+  developer: UnifiedDeveloper;
   lang: Lang;
 }
 
 const { developer, lang } = Astro.props;
 const t = useTranslations(lang);
 
-const name = developer.data.name;
-const role = developer.data.role;
-const bio = developer.data.bio;
-const avatar =
-  developer.data.avatar || "https://avatars.githubusercontent.com/u/0";
+const name = developer.name;
+const role = developer.role;
+const bio = developer.bio;
+const avatar = developer.avatar || "https://avatars.githubusercontent.com/u/0";
 ---
 
 <div class="flex flex-col sm:flex-row gap-6 mb-10">
@@ -39,30 +38,18 @@ const avatar =
     <div class="flex items-center gap-3 mt-4">
       <div class="flex items-center gap-3">
         {
-          developer.data.github && (
-            <SocialLink
-              platform="github"
-              href={developer.data.github}
-              size="sm"
-            />
+          developer.github && (
+            <SocialLink platform="github" href={developer.github} size="sm" />
           )
         }
         {
-          developer.data.email && (
-            <SocialLink
-              platform="email"
-              href={developer.data.email}
-              size="sm"
-            />
+          developer.email && (
+            <SocialLink platform="email" href={developer.email} size="sm" />
           )
         }
         {
-          developer.data.website && (
-            <SocialLink
-              platform="website"
-              href={developer.data.website}
-              size="sm"
-            />
+          developer.website && (
+            <SocialLink platform="website" href={developer.website} size="sm" />
           )
         }
       </div>

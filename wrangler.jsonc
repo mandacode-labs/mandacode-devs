@@ -1,12 +1,31 @@
 {
-  "compatibility_date": "2026-05-29",
-  "compatibility_flags": ["global_fetch_strictly_public"],
   "name": "mandacode-devs",
-  "main": "./worker/index.ts",
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "compatibility_date": "2026-05-29",
+  "compatibility_flags": [
+    "global_fetch_strictly_public"
+  ],
+  "vars": {
+    "R2_PUBLIC_URL": "https://static.mandacode.com",
+    "OPENAI_API_KEY": "",
+  },
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
   },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mandacode-devs",
+      "database_id": "bfba7bdc-9c8f-4a58-91d9-5ce0ab6b17e5",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "mandacode-static",
+    },
+  ],
   "observability": {
     "enabled": true,
   },

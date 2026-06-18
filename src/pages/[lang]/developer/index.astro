@@ -5,14 +5,11 @@ import TechStack from "@/components/developer/TechStack.astro";
 import Certifications from "@/components/developer/Certifications.astro";
 import Education from "@/components/developer/Education.astro";
 import ProjectTimeline from "@/components/developer/ProjectTimeline.astro";
-import { render, getCollection } from "astro:content";
-import { getDeveloperByLang } from "@/lib/content/developer";
+import TiptapRenderer from "@/components/shared/TiptapRenderer.astro";
+import { getCollection } from "astro:content";
+import { getDevelopers } from "@/lib/content/service";
 import { sortProjectsByDate } from "@/lib/content/projects";
-import { SUPPORTED_LANGUAGES, isValidLanguage } from "@/lib/config/languages";
-
-export async function getStaticPaths() {
-  return SUPPORTED_LANGUAGES.map((lang) => ({ params: { lang } }));
-}
+import { isValidLanguage } from "@/lib/config/languages";
 
 const { lang } = Astro.params;
 
@@ -20,16 +17,15 @@ if (!lang || !isValidLanguage(lang)) {
   return Astro.redirect("/ko/developer");
 }
 
-const developer = await getDeveloperByLang(lang);
+const developers = await getDevelopers(lang);
+const developer = developers[0];
 
 if (!developer) {
   return Astro.redirect(`/${lang}`);
 }
 
-const name = developer.data.name;
-const bio = developer.data.bio;
-
-const { Content } = await render(developer);
+const name = developer.name;
+const bio = developer.bio;
 
 const projects = sortProjectsByDate(
   await getCollection("projects", (project) =>
@@ -43,7 +39,13 @@ const projects = sortProjectsByDate(
     <DeveloperProfile developer={developer} lang={lang} />
 
     <div class="prose prose-neutral max-w-none mb-10">
-      <Content />
+      {
+        developer.source === "d1" && developer.content ? (
+          <TiptapRenderer content={developer.content} />
+        ) : (
+          <div set:html={developer.content} />
+        )
+      }
     </div>
 
     <TechStack developer={developer} lang={lang} />

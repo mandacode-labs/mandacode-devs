@@ -1,13 +1,9 @@
 ---
 import Layout from "@/components/layouts/Layout.astro";
 import ProjectCard from "@/components/projects/ProjectCard.astro";
-import { getProjectsByLang } from "@/lib/content/projects";
+import { getProjects } from "@/lib/content/service";
 import { useTranslations } from "@/lib/i18n/utils";
-import { SUPPORTED_LANGUAGES, isValidLanguage } from "@/lib/config/languages";
-
-export async function getStaticPaths() {
-  return SUPPORTED_LANGUAGES.map((lang) => ({ params: { lang } }));
-}
+import { isValidLanguage } from "@/lib/config/languages";
 
 const { lang } = Astro.params;
 
@@ -16,7 +12,7 @@ if (!lang || !isValidLanguage(lang)) {
 }
 
 const t = useTranslations(lang);
-const projects = await getProjectsByLang(lang);
+const projects = await getProjects(lang);
 ---
 
 <Layout title={t("projects.title")} description={t("projects.subtitle")}>

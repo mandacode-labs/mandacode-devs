@@ -1,0 +1,11 @@
+---
+import Layout from "@/components/layouts/Layout.astro";
+import ProjectEditor from "@/components/admin/ProjectEditor";
+---
+
+<Layout title="New Project">
+  <div class="max-w-4xl mx-auto px-4 py-12">
+    <h1 class="text-3xl font-bold mb-8">New Project</h1>
+    <ProjectEditor client:load />
+  </div>
+</Layout>
