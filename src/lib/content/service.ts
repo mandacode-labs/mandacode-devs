@@ -20,6 +20,7 @@ function mapD1Post(post: Post): UnifiedPost {
     coverImage: post.cover_image_url,
     ogImage: post.og_image_url,
     tags: [],
+    hidden: post.hidden === 1,
     source: "d1",
     content: post.tiptap_json,
   };
@@ -38,6 +39,7 @@ function mapCollectionPost(
     coverImage: post.data.coverImage ?? null,
     ogImage: post.data.ogImage ?? null,
     tags: post.data.tags,
+    hidden: false,
     source: "collection",
     content: post.rendered?.html ?? post.body,
   };
@@ -57,7 +59,7 @@ export async function getPosts(lang: Language): Promise<UnifiedPost[]> {
   const d1Ids = new Set(d1Posts.map((post) => post.id));
   const merged = [
     ...d1Posts,
-    ...collectionPosts.filter((post) => !d1Ids.has(post.id)),
+    ...collectionPosts.filter((post) => !d1Ids.has(post.id) && !post.hidden),
   ];
 
   return merged.sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime());
@@ -69,7 +71,7 @@ export async function getPost(
 ): Promise<UnifiedPost | null> {
   const d1Post = await postsRepo.getPostByIdWithFallback(slug, lang, "ko");
 
-  if (d1Post?.publish_status === "published") {
+  if (d1Post?.publish_status === "published" && !d1Post.hidden) {
     return mapD1Post(d1Post);
   }
 
@@ -99,6 +101,7 @@ function mapD1Project(project: Project): UnifiedProject {
     sourceUrl: project.source_url,
     blogUrl: project.blog_url,
     coverImage: project.cover_image_url,
+    hidden: project.hidden === 1,
     source: "d1",
     content: project.tiptap_json,
   };
@@ -123,6 +126,7 @@ function mapCollectionProject(
     sourceUrl: project.data.sourceUrl ?? null,
     blogUrl: project.data.blogUrl ?? null,
     coverImage: project.data.coverImage ?? null,
+    hidden: false,
     source: "collection",
     content: project.rendered?.html ?? project.body,
   };
@@ -144,7 +148,9 @@ export async function getProjects(lang: Language): Promise<UnifiedProject[]> {
   const d1Ids = new Set(d1Projects.map((project) => project.id));
   const merged = [
     ...d1Projects,
-    ...collectionProjects.filter((project) => !d1Ids.has(project.id)),
+    ...collectionProjects.filter(
+      (project) => !d1Ids.has(project.id) && !project.hidden,
+    ),
   ];
 
   return merged.sort((a, b) => a.order - b.order);
@@ -160,7 +166,7 @@ export async function getProject(
     "ko",
   );
 
-  if (d1Project?.publish_status === "published") {
+  if (d1Project?.publish_status === "published" && !d1Project.hidden) {
     return mapD1Project(d1Project);
   }
 

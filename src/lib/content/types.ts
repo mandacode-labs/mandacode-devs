@@ -9,6 +9,7 @@ export interface UnifiedPost {
   coverImage: string | null;
   ogImage: string | null;
   tags: string[];
+  hidden: boolean;
   source: "d1" | "collection";
   content?: string;
 }
@@ -28,6 +29,7 @@ export interface UnifiedProject {
   sourceUrl: string | null;
   blogUrl: string | null;
   coverImage: string | null;
+  hidden: boolean;
   source: "d1" | "collection";
   content?: string;
 }
