@@ -7,9 +7,9 @@ import Education from "@/components/developer/Education.astro";
 import ProjectTimeline from "@/components/developer/ProjectTimeline.astro";
 import TiptapRenderer from "@/components/shared/TiptapRenderer.astro";
 import { getCollection } from "astro:content";
-import { getDevelopers } from "@/lib/content/service";
+import { getDeveloper } from "@/lib/content/service";
 import { sortProjectsByDate } from "@/lib/content/projects";
-import { isValidLanguage } from "@/lib/config/languages";
+import { isValidLanguage, MAIN_DEVELOPER_ID } from "@/lib/config/languages";
 
 const { lang } = Astro.params;
 
@@ -17,8 +17,7 @@ if (!lang || !isValidLanguage(lang)) {
   return Astro.redirect("/ko/developer");
 }
 
-const developers = await getDevelopers(lang);
-const developer = developers[0];
+const developer = await getDeveloper(MAIN_DEVELOPER_ID, lang);
 
 if (!developer) {
   return Astro.redirect(`/${lang}`);
