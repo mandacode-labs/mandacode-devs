@@ -2,9 +2,7 @@
   "name": "mandacode-devs",
   "main": "@astrojs/cloudflare/entrypoints/server",
   "compatibility_date": "2026-05-29",
-  "compatibility_flags": [
-    "global_fetch_strictly_public"
-  ],
+  "compatibility_flags": ["global_fetch_strictly_public"],
   "vars": {
     "R2_PUBLIC_URL": "https://static.mandacode.com",
     "OPENAI_API_KEY": "",

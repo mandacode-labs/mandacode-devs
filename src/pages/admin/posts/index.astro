@@ -3,7 +3,7 @@ import Layout from "@/components/layouts/Layout.astro";
 import { requireAuth } from "@/lib/auth";
 import { getAllPosts } from "@/lib/db/posts";
 import { useTranslations } from "@/lib/i18n/utils";
-import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@/lib/config/languages";
+import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
 import type { Post } from "@/lib/db/schema";
 
 requireAuth(Astro);

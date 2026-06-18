@@ -35,8 +35,7 @@ export default function PostEditor({ initialData }: PostEditorProps) {
     initialData?.description ?? "",
   );
   const [tiptapJson, setTiptapJson] = useState(
-    initialData?.tiptap_json ??
-      JSON.stringify({ type: "doc", content: [] }),
+    initialData?.tiptap_json ?? JSON.stringify({ type: "doc", content: [] }),
   );
   const [pubDate, setPubDate] = useState(() => {
     if (initialData?.pub_date) {
@@ -47,12 +46,10 @@ export default function PostEditor({ initialData }: PostEditorProps) {
   const [coverImageUrl, setCoverImageUrl] = useState(
     initialData?.cover_image_url ?? "",
   );
-  const [ogImageUrl, setOgImageUrl] = useState(
-    initialData?.og_image_url ?? "",
+  const [ogImageUrl, setOgImageUrl] = useState(initialData?.og_image_url ?? "");
+  const [insertedImageUrl, setInsertedImageUrl] = useState<string | undefined>(
+    undefined,
   );
-  const [insertedImageUrl, setInsertedImageUrl] = useState<
-    string | undefined
-  >(undefined);
   const [publishStatus, setPublishStatus] = useState(
     initialData?.publish_status ?? "draft",
   );

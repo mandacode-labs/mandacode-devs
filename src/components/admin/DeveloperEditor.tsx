@@ -29,9 +29,7 @@ interface DeveloperEditorProps {
   initialData?: DeveloperEditorInitialData;
 }
 
-export default function DeveloperEditor({
-  initialData,
-}: DeveloperEditorProps) {
+export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
   const isEditMode = !!initialData;
   const [id, setId] = useState(initialData?.id ?? "");
   const [locale, setLocale] = useState(initialData?.locale ?? "ko");
@@ -39,21 +37,18 @@ export default function DeveloperEditor({
   const [role, setRole] = useState(initialData?.role ?? "");
   const [bio, setBio] = useState(initialData?.bio ?? "");
   const [tiptapJson, setTiptapJson] = useState(
-    initialData?.tiptap_json ??
-      JSON.stringify({ type: "doc", content: [] }),
+    initialData?.tiptap_json ?? JSON.stringify({ type: "doc", content: [] }),
   );
   const [avatarUrl, setAvatarUrl] = useState(initialData?.avatar_url ?? "");
   const [githubUrl, setGithubUrl] = useState(initialData?.github_url ?? "");
   const [email, setEmail] = useState(initialData?.email ?? "");
-  const [websiteUrl, setWebsiteUrl] = useState(
-    initialData?.website_url ?? "",
-  );
+  const [websiteUrl, setWebsiteUrl] = useState(initialData?.website_url ?? "");
   const [techStack, setTechStack] = useState(
     initialData?.tech_stack?.join(", ") ?? "",
   );
-  const [insertedImageUrl, setInsertedImageUrl] = useState<
-    string | undefined
-  >(undefined);
+  const [insertedImageUrl, setInsertedImageUrl] = useState<string | undefined>(
+    undefined,
+  );
   const [targetLocales, setTargetLocales] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -90,9 +85,7 @@ export default function DeveloperEditor({
       github_url: githubUrl || null,
       email: email || null,
       website_url: websiteUrl || null,
-      tech_stack: techStack
-        ? techStack.split(",").map((s) => s.trim())
-        : null,
+      tech_stack: techStack ? techStack.split(",").map((s) => s.trim()) : null,
       certifications: null,
       education: null,
       target_locales: targetLocales,

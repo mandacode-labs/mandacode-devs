@@ -48,8 +48,7 @@ export default function ProjectEditor({ initialData }: ProjectEditorProps) {
     initialData?.description ?? "",
   );
   const [tiptapJson, setTiptapJson] = useState(
-    initialData?.tiptap_json ??
-      JSON.stringify({ type: "doc", content: [] }),
+    initialData?.tiptap_json ?? JSON.stringify({ type: "doc", content: [] }),
   );
   const [projectStatus, setProjectStatus] = useState(
     initialData?.project_status ?? "development",
@@ -66,9 +65,9 @@ export default function ProjectEditor({ initialData }: ProjectEditorProps) {
   const [coverImageUrl, setCoverImageUrl] = useState(
     initialData?.cover_image_url ?? "",
   );
-  const [insertedImageUrl, setInsertedImageUrl] = useState<
-    string | undefined
-  >(undefined);
+  const [insertedImageUrl, setInsertedImageUrl] = useState<string | undefined>(
+    undefined,
+  );
   const [publishStatus, setPublishStatus] = useState(
     initialData?.publish_status ?? "draft",
   );
