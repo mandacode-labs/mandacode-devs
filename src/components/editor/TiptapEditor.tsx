@@ -3,7 +3,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface TiptapEditorProps {
   content: string;
@@ -32,7 +32,6 @@ export default function TiptapEditor({
 }: TiptapEditorProps) {
   const [mounted, setMounted] = useState(false);
   const lastJsonRef = useRef<string>("");
-  const echoGuardRef = useRef(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onChangeRef = useRef(onChange);
 
@@ -60,24 +59,26 @@ export default function TiptapEditor({
     [placeholder],
   );
 
-  const scheduleNotify = useCallback((editorInstance: {
-    getJSON: () => Record<string, unknown>;
-  }) => {
+  const notifyChange = (editorInstance: { getJSON: () => Record<string, unknown> }) => {
+    const json = JSON.stringify(editorInstance.getJSON());
+    if (json === lastJsonRef.current) return;
+    lastJsonRef.current = json;
+    onChangeRef.current(json);
+  };
+
+  const scheduleNotify = (editorInstance: { getJSON: () => Record<string, unknown> }) => {
     const json = JSON.stringify(editorInstance.getJSON());
     if (json === lastJsonRef.current) return;
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       lastJsonRef.current = json;
-      echoGuardRef.current = true;
       onChangeRef.current(json);
     }, 150);
-  }, []);
-
-  const initialContent = useMemo(() => parseTiptapContent(content), []);
+  };
 
   const editor = useEditor({
     extensions,
-    content: initialContent,
+    content: parseTiptapContent(content),
     immediatelyRender: false,
     shouldRerenderOnTransaction: false,
     autofocus: false,
@@ -88,6 +89,10 @@ export default function TiptapEditor({
     onUpdate: ({ editor: e }) => {
       scheduleNotify(e);
     },
+    onBlur: ({ editor: e }) => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      notifyChange(e);
+    },
   });
 
   useEffect(() => {
@@ -95,21 +100,6 @@ export default function TiptapEditor({
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
-
-  useEffect(() => {
-    if (!editor || editor.isDestroyed) return;
-    if (echoGuardRef.current) {
-      echoGuardRef.current = false;
-      return;
-    }
-    const parsed = parseTiptapContent(content);
-    const current = editor.getJSON();
-    const parsedJson = JSON.stringify(parsed);
-    if (JSON.stringify(current) !== parsedJson) {
-      editor.commands.setContent(parsed, { emitUpdate: false });
-      lastJsonRef.current = parsedJson;
-    }
-  }, [editor, content]);
 
   useEffect(() => {
     if (editor && insertedImageUrl) {

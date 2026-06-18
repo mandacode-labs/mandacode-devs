@@ -4,7 +4,7 @@ interface DeleteModalProps {
   title: string;
   itemName: string;
   locale?: string;
-  onConfirm: (allLocales: boolean) => void;
+  onConfirm: (allLocales: boolean) => void | Promise<void>;
   onCancel: () => void;
 }
 
