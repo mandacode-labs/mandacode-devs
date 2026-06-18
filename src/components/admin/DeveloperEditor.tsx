@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TiptapEditor from "@/components/editor/TiptapEditor";
 import ImageUploadButton from "@/components/editor/ImageUploadButton";
 
@@ -9,25 +9,69 @@ const LOCALES = [
   { code: "zh", label: "中文" },
 ];
 
-export default function DeveloperEditor() {
-  const [id, setId] = useState("");
-  const [locale, setLocale] = useState("ko");
-  const [name, setName] = useState("");
-  const [role, setRole] = useState("");
-  const [bio, setBio] = useState("");
+export interface DeveloperEditorInitialData {
+  id: string;
+  locale: string;
+  name: string;
+  role: string;
+  bio: string;
+  tiptap_json: string;
+  avatar_url: string | null;
+  github_url: string | null;
+  email: string | null;
+  website_url: string | null;
+  tech_stack: string[] | null;
+  certifications: Array<Record<string, unknown>> | null;
+  education: Array<Record<string, unknown>> | null;
+}
+
+interface DeveloperEditorProps {
+  initialData?: DeveloperEditorInitialData;
+}
+
+export default function DeveloperEditor({
+  initialData,
+}: DeveloperEditorProps) {
+  const isEditMode = !!initialData;
+  const [id, setId] = useState(initialData?.id ?? "");
+  const [locale, setLocale] = useState(initialData?.locale ?? "ko");
+  const [name, setName] = useState(initialData?.name ?? "");
+  const [role, setRole] = useState(initialData?.role ?? "");
+  const [bio, setBio] = useState(initialData?.bio ?? "");
   const [tiptapJson, setTiptapJson] = useState(
-    JSON.stringify({ type: "doc", content: [] }),
+    initialData?.tiptap_json ??
+      JSON.stringify({ type: "doc", content: [] }),
   );
-  const [avatarUrl, setAvatarUrl] = useState("");
-  const [githubUrl, setGithubUrl] = useState("");
-  const [email, setEmail] = useState("");
-  const [websiteUrl, setWebsiteUrl] = useState("");
-  const [techStack, setTechStack] = useState("");
-  const [insertedImageUrl, setInsertedImageUrl] = useState<string | undefined>(
-    undefined,
+  const [avatarUrl, setAvatarUrl] = useState(initialData?.avatar_url ?? "");
+  const [githubUrl, setGithubUrl] = useState(initialData?.github_url ?? "");
+  const [email, setEmail] = useState(initialData?.email ?? "");
+  const [websiteUrl, setWebsiteUrl] = useState(
+    initialData?.website_url ?? "",
   );
+  const [techStack, setTechStack] = useState(
+    initialData?.tech_stack?.join(", ") ?? "",
+  );
+  const [insertedImageUrl, setInsertedImageUrl] = useState<
+    string | undefined
+  >(undefined);
   const [targetLocales, setTargetLocales] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (initialData) {
+      setId(initialData.id);
+      setLocale(initialData.locale);
+      setName(initialData.name);
+      setRole(initialData.role);
+      setBio(initialData.bio);
+      setTiptapJson(initialData.tiptap_json);
+      setAvatarUrl(initialData.avatar_url ?? "");
+      setGithubUrl(initialData.github_url ?? "");
+      setEmail(initialData.email ?? "");
+      setWebsiteUrl(initialData.website_url ?? "");
+      setTechStack(initialData.tech_stack?.join(", ") ?? "");
+    }
+  }, [initialData]);
 
   const handleTiptapImage = (url: string) => {
     setInsertedImageUrl(url);
@@ -37,30 +81,35 @@ export default function DeveloperEditor() {
     event.preventDefault();
     setIsSubmitting(true);
 
+    const body = {
+      name,
+      role,
+      bio,
+      tiptap_json: tiptapJson,
+      avatar_url: avatarUrl || null,
+      github_url: githubUrl || null,
+      email: email || null,
+      website_url: websiteUrl || null,
+      tech_stack: techStack
+        ? techStack.split(",").map((s) => s.trim())
+        : null,
+      certifications: null,
+      education: null,
+      target_locales: targetLocales,
+    };
+
     try {
-      const response = await fetch("/api/admin/developers", {
-        method: "POST",
+      const url = isEditMode
+        ? `/api/admin/developers/${id}?locale=${encodeURIComponent(locale)}`
+        : "/api/admin/developers";
+      const response = await fetch(url, {
+        method: isEditMode ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          id,
-          locale,
-          name,
-          role,
-          bio,
-          tiptap_json: tiptapJson,
-          avatar_url: avatarUrl || null,
-          github_url: githubUrl || null,
-          email: email || null,
-          website_url: websiteUrl || null,
-          tech_stack: techStack
-            ? techStack.split(",").map((s) => s.trim())
-            : null,
-          certifications: null,
-          education: null,
-          target_locales: targetLocales,
-        }),
+        body: isEditMode
+          ? JSON.stringify(body)
+          : JSON.stringify({ id, locale, ...body }),
       });
 
       if (!response.ok) {
@@ -91,8 +140,9 @@ export default function DeveloperEditor() {
             type="text"
             value={id}
             onChange={(e) => setId(e.target.value)}
+            disabled={isEditMode}
             required
-            className="w-full mt-1 px-3 py-2 border border-border rounded bg-bg-primary"
+            className="w-full mt-1 px-3 py-2 border border-border rounded bg-bg-primary disabled:opacity-60"
           />
         </label>
 
@@ -101,7 +151,8 @@ export default function DeveloperEditor() {
           <select
             value={locale}
             onChange={(e) => setLocale(e.target.value)}
-            className="w-full mt-1 px-3 py-2 border border-border rounded bg-bg-primary"
+            disabled={isEditMode}
+            className="w-full mt-1 px-3 py-2 border border-border rounded bg-bg-primary disabled:opacity-60"
           >
             {LOCALES.map((loc) => (
               <option key={loc.code} value={loc.code}>
@@ -240,7 +291,11 @@ export default function DeveloperEditor() {
         disabled={isSubmitting}
         className="px-6 py-2 bg-accent text-white rounded hover:bg-accent/90 disabled:opacity-50"
       >
-        {isSubmitting ? "Saving..." : "Save Developer"}
+        {isSubmitting
+          ? "Saving..."
+          : isEditMode
+            ? "Update Developer"
+            : "Save Developer"}
       </button>
     </form>
   );

@@ -1,0 +1,56 @@
+---
+import Layout from "@/components/layouts/Layout.astro";
+import { requireAuth } from "@/lib/auth";
+import { getProjectById } from "@/lib/db/projects";
+import ProjectEditor from "@/components/admin/ProjectEditor";
+import { useTranslations } from "@/lib/i18n/utils";
+import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
+
+requireAuth(Astro);
+
+const { id } = Astro.params;
+const locale = Astro.url.searchParams.get("locale") || DEFAULT_LANGUAGE;
+const t = useTranslations(DEFAULT_LANGUAGE);
+
+if (!id) {
+  return Astro.redirect("/admin/projects");
+}
+
+const project = await getProjectById(id, locale);
+
+if (!project) {
+  return Astro.redirect("/admin/projects");
+}
+
+const initialData = {
+  id: project.id,
+  locale: project.locale,
+  title: project.title,
+  description: project.description,
+  tiptap_json: project.tiptap_json,
+  publish_status: project.publish_status,
+  hidden: project.hidden === 1,
+  project_status: project.project_status,
+  duration: project.duration,
+  team_size: project.team_size,
+  role: project.role,
+  project_order: project.project_order,
+  url: project.url,
+  source_url: project.source_url,
+  blog_url: project.blog_url,
+  cover_image_url: project.cover_image_url,
+};
+---
+
+<Layout title={`${t("admin.edit")} ${t("admin.projects")}`}>
+  <div class="max-w-4xl mx-auto px-4 py-12">
+    <div class="flex items-center justify-between mb-8">
+      <h1 class="text-3xl font-bold">{t("admin.edit")}: {project.title}</h1>
+      <a
+        href="/admin/projects"
+        class="text-text-secondary hover:text-text-primary">← Back</a
+      >
+    </div>
+    <ProjectEditor client:load initialData={initialData} />
+  </div>
+</Layout>

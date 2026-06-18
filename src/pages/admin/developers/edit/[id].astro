@@ -1,0 +1,57 @@
+---
+import Layout from "@/components/layouts/Layout.astro";
+import { requireAuth } from "@/lib/auth";
+import { getDeveloperById } from "@/lib/db/developers";
+import DeveloperEditor from "@/components/admin/DeveloperEditor";
+import { useTranslations } from "@/lib/i18n/utils";
+import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
+
+requireAuth(Astro);
+
+const { id } = Astro.params;
+const locale = Astro.url.searchParams.get("locale") || DEFAULT_LANGUAGE;
+const t = useTranslations(DEFAULT_LANGUAGE);
+
+if (!id) {
+  return Astro.redirect("/admin/developers");
+}
+
+const developer = await getDeveloperById(id, locale);
+
+if (!developer) {
+  return Astro.redirect("/admin/developers");
+}
+
+const initialData = {
+  id: developer.id,
+  locale: developer.locale,
+  name: developer.name,
+  role: developer.role,
+  bio: developer.bio,
+  tiptap_json: developer.tiptap_json,
+  avatar_url: developer.avatar_url,
+  github_url: developer.github_url,
+  email: developer.email,
+  website_url: developer.website_url,
+  tech_stack: developer.tech_stack
+    ? (JSON.parse(developer.tech_stack) as string[])
+    : null,
+  certifications: null,
+  education: null,
+};
+---
+
+<Layout title={`${t("admin.edit")} ${t("admin.developer")}`}>
+  <div class="max-w-4xl mx-auto px-4 py-12">
+    <div class="flex items-center justify-between mb-8">
+      <h1 class="text-3xl font-bold">{t("admin.edit")}: {developer.name}</h1>
+      <a
+        href="/admin/developers"
+        class="text-text-secondary hover:text-text-primary"
+      >
+        ← Back
+      </a>
+    </div>
+    <DeveloperEditor client:load initialData={initialData} />
+  </div>
+</Layout>

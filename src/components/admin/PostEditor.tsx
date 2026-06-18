@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TiptapEditor from "@/components/editor/TiptapEditor";
 import ImageUploadButton from "@/components/editor/ImageUploadButton";
 
@@ -9,27 +9,71 @@ const LOCALES = [
   { code: "zh", label: "中文" },
 ];
 
-interface PostEditorProps {
-  initialId?: string;
+export interface PostEditorInitialData {
+  id: string;
+  locale: string;
+  title: string;
+  description: string | null;
+  tiptap_json: string;
+  publish_status: string;
+  hidden: boolean;
+  pub_date: string;
+  cover_image_url: string | null;
+  og_image_url: string | null;
 }
 
-export default function PostEditor({ initialId = "" }: PostEditorProps) {
-  const [id, setId] = useState(initialId);
-  const [locale, setLocale] = useState("ko");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+interface PostEditorProps {
+  initialData?: PostEditorInitialData;
+}
+
+export default function PostEditor({ initialData }: PostEditorProps) {
+  const isEditMode = !!initialData;
+  const [id, setId] = useState(initialData?.id ?? "");
+  const [locale, setLocale] = useState(initialData?.locale ?? "ko");
+  const [title, setTitle] = useState(initialData?.title ?? "");
+  const [description, setDescription] = useState(
+    initialData?.description ?? "",
+  );
   const [tiptapJson, setTiptapJson] = useState(
-    JSON.stringify({ type: "doc", content: [] }),
+    initialData?.tiptap_json ??
+      JSON.stringify({ type: "doc", content: [] }),
   );
-  const [pubDate, setPubDate] = useState(new Date().toISOString().slice(0, 16));
-  const [coverImageUrl, setCoverImageUrl] = useState("");
-  const [ogImageUrl, setOgImageUrl] = useState("");
-  const [insertedImageUrl, setInsertedImageUrl] = useState<string | undefined>(
-    undefined,
+  const [pubDate, setPubDate] = useState(() => {
+    if (initialData?.pub_date) {
+      return new Date(initialData.pub_date).toISOString().slice(0, 16);
+    }
+    return new Date().toISOString().slice(0, 16);
+  });
+  const [coverImageUrl, setCoverImageUrl] = useState(
+    initialData?.cover_image_url ?? "",
   );
-  const [publishStatus, setPublishStatus] = useState("draft");
+  const [ogImageUrl, setOgImageUrl] = useState(
+    initialData?.og_image_url ?? "",
+  );
+  const [insertedImageUrl, setInsertedImageUrl] = useState<
+    string | undefined
+  >(undefined);
+  const [publishStatus, setPublishStatus] = useState(
+    initialData?.publish_status ?? "draft",
+  );
+  const [hidden, setHidden] = useState(initialData?.hidden ?? false);
   const [targetLocales, setTargetLocales] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (initialData) {
+      setId(initialData.id);
+      setLocale(initialData.locale);
+      setTitle(initialData.title);
+      setDescription(initialData.description ?? "");
+      setTiptapJson(initialData.tiptap_json);
+      setPubDate(new Date(initialData.pub_date).toISOString().slice(0, 16));
+      setCoverImageUrl(initialData.cover_image_url ?? "");
+      setOgImageUrl(initialData.og_image_url ?? "");
+      setPublishStatus(initialData.publish_status);
+      setHidden(initialData.hidden);
+    }
+  }, [initialData]);
 
   const handleTiptapImage = (url: string) => {
     setInsertedImageUrl(url);
@@ -39,24 +83,30 @@ export default function PostEditor({ initialId = "" }: PostEditorProps) {
     event.preventDefault();
     setIsSubmitting(true);
 
+    const body = {
+      title,
+      description: description || null,
+      tiptap_json: tiptapJson,
+      publish_status: publishStatus,
+      hidden,
+      pub_date: new Date(pubDate).toISOString(),
+      cover_image_url: coverImageUrl || null,
+      og_image_url: ogImageUrl || null,
+      target_locales: targetLocales,
+    };
+
     try {
-      const response = await fetch("/api/admin/posts", {
-        method: "POST",
+      const url = isEditMode
+        ? `/api/admin/posts/${id}?locale=${encodeURIComponent(locale)}`
+        : "/api/admin/posts";
+      const response = await fetch(url, {
+        method: isEditMode ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          id,
-          locale,
-          title,
-          description: description || null,
-          tiptap_json: tiptapJson,
-          publish_status: publishStatus,
-          pub_date: new Date(pubDate).toISOString(),
-          cover_image_url: coverImageUrl || null,
-          og_image_url: ogImageUrl || null,
-          target_locales: targetLocales,
-        }),
+        body: isEditMode
+          ? JSON.stringify(body)
+          : JSON.stringify({ id, locale, ...body }),
       });
 
       if (!response.ok) {
@@ -87,8 +137,9 @@ export default function PostEditor({ initialId = "" }: PostEditorProps) {
             type="text"
             value={id}
             onChange={(e) => setId(e.target.value)}
+            disabled={isEditMode}
             required
-            className="w-full mt-1 px-3 py-2 border border-border rounded bg-bg-primary"
+            className="w-full mt-1 px-3 py-2 border border-border rounded bg-bg-primary disabled:opacity-60"
           />
         </label>
 
@@ -97,7 +148,8 @@ export default function PostEditor({ initialId = "" }: PostEditorProps) {
           <select
             value={locale}
             onChange={(e) => setLocale(e.target.value)}
-            className="w-full mt-1 px-3 py-2 border border-border rounded bg-bg-primary"
+            disabled={isEditMode}
+            className="w-full mt-1 px-3 py-2 border border-border rounded bg-bg-primary disabled:opacity-60"
           >
             {LOCALES.map((loc) => (
               <option key={loc.code} value={loc.code}>
@@ -129,7 +181,7 @@ export default function PostEditor({ initialId = "" }: PostEditorProps) {
         />
       </label>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <label className="block">
           <span className="text-sm font-medium">Publish Status</span>
           <select
@@ -152,6 +204,15 @@ export default function PostEditor({ initialId = "" }: PostEditorProps) {
             required
             className="w-full mt-1 px-3 py-2 border border-border rounded bg-bg-primary"
           />
+        </label>
+
+        <label className="flex items-center gap-2 px-3 py-2 border border-border rounded bg-bg-primary">
+          <input
+            type="checkbox"
+            checked={hidden}
+            onChange={(e) => setHidden(e.target.checked)}
+          />
+          <span className="text-sm font-medium">Hidden</span>
         </label>
       </div>
 
@@ -217,7 +278,7 @@ export default function PostEditor({ initialId = "" }: PostEditorProps) {
         disabled={isSubmitting}
         className="px-6 py-2 bg-accent text-white rounded hover:bg-accent/90 disabled:opacity-50"
       >
-        {isSubmitting ? "Saving..." : "Save Post"}
+        {isSubmitting ? "Saving..." : isEditMode ? "Update Post" : "Save Post"}
       </button>
     </form>
   );
