@@ -57,6 +57,7 @@ export const PUT: APIRoute = async (context) => {
       description: body.description,
       tiptap_json: body.tiptap_json,
       publish_status: body.publish_status,
+      hidden: body.hidden !== undefined ? (body.hidden ? 1 : 0) : undefined,
       pub_date: body.pub_date,
       cover_image_url: body.cover_image_url,
       og_image_url: body.og_image_url,
@@ -97,12 +98,25 @@ export const DELETE: APIRoute = async (context) => {
 
     const id = context.params.id;
     const locale = context.url.searchParams.get("locale");
+    const all = context.url.searchParams.get("all") === "true";
+    const confirmation = context.url.searchParams.get("confirmation");
 
-    if (!id || !locale) {
-      throw new ApiError("Missing id or locale", 400);
+    if (!id) {
+      throw new ApiError("Missing id", 400);
     }
 
-    await postsRepo.deletePost(id, locale);
+    if (confirmation !== "delete") {
+      throw new ApiError("Delete confirmation required", 400);
+    }
+
+    if (all) {
+      await postsRepo.deleteAllPostLocales(id);
+    } else {
+      if (!locale) {
+        throw new ApiError("Missing locale", 400);
+      }
+      await postsRepo.deletePost(id, locale);
+    }
 
     context.locals.cfContext?.waitUntil(
       invalidateContentCache("post", id, SUPPORTED_LANGUAGES as string[]),

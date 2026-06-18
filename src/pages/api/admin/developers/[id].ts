@@ -96,12 +96,25 @@ export const DELETE: APIRoute = async (context) => {
 
     const id = context.params.id;
     const locale = context.url.searchParams.get("locale");
+    const all = context.url.searchParams.get("all") === "true";
+    const confirmation = context.url.searchParams.get("confirmation");
 
-    if (!id || !locale) {
-      throw new ApiError("Missing id or locale", 400);
+    if (!id) {
+      throw new ApiError("Missing id", 400);
     }
 
-    await developersRepo.deleteDeveloper(id, locale);
+    if (confirmation !== "delete") {
+      throw new ApiError("Delete confirmation required", 400);
+    }
+
+    if (all) {
+      await developersRepo.deleteAllDeveloperLocales(id);
+    } else {
+      if (!locale) {
+        throw new ApiError("Missing locale", 400);
+      }
+      await developersRepo.deleteDeveloper(id, locale);
+    }
 
     context.locals.cfContext?.waitUntil(
       invalidateContentCache("developer", id, SUPPORTED_LANGUAGES as string[]),

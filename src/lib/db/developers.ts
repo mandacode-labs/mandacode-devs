@@ -138,12 +138,22 @@ export async function updateDeveloper(
 
 export async function deleteDeveloper(
   id: string,
-  locale: string,
+  locale?: string,
 ): Promise<void> {
   const db = getDatabase();
 
-  await db
-    .prepare("DELETE FROM developers WHERE id = ? AND locale = ?")
-    .bind(id, locale)
-    .run();
+  if (locale) {
+    await db
+      .prepare("DELETE FROM developers WHERE id = ? AND locale = ?")
+      .bind(id, locale)
+      .run();
+    return;
+  }
+
+  await db.prepare("DELETE FROM developers WHERE id = ?").bind(id).run();
+}
+
+export async function deleteAllDeveloperLocales(id: string): Promise<void> {
+  const db = getDatabase();
+  await db.prepare("DELETE FROM developers WHERE id = ?").bind(id).run();
 }

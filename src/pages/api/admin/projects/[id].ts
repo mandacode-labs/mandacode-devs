@@ -57,6 +57,7 @@ export const PUT: APIRoute = async (context) => {
       description: body.description,
       tiptap_json: body.tiptap_json,
       publish_status: body.publish_status,
+      hidden: body.hidden !== undefined ? (body.hidden ? 1 : 0) : undefined,
       project_status: body.project_status,
       duration: body.duration,
       team_size: body.team_size,
@@ -103,12 +104,25 @@ export const DELETE: APIRoute = async (context) => {
 
     const id = context.params.id;
     const locale = context.url.searchParams.get("locale");
+    const all = context.url.searchParams.get("all") === "true";
+    const confirmation = context.url.searchParams.get("confirmation");
 
-    if (!id || !locale) {
-      throw new ApiError("Missing id or locale", 400);
+    if (!id) {
+      throw new ApiError("Missing id", 400);
     }
 
-    await projectsRepo.deleteProject(id, locale);
+    if (confirmation !== "delete") {
+      throw new ApiError("Delete confirmation required", 400);
+    }
+
+    if (all) {
+      await projectsRepo.deleteAllProjectLocales(id);
+    } else {
+      if (!locale) {
+        throw new ApiError("Missing locale", 400);
+      }
+      await projectsRepo.deleteProject(id, locale);
+    }
 
     context.locals.cfContext?.waitUntil(
       invalidateContentCache("project", id, SUPPORTED_LANGUAGES as string[]),
