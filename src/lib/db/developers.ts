@@ -136,6 +136,37 @@ export async function updateDeveloper(
     .run();
 }
 
+export async function getAllDevelopers(locale?: string): Promise<Developer[]> {
+  const db = getDatabase();
+
+  let query = "SELECT * FROM developers";
+  const params: (string | number)[] = [];
+
+  if (locale) {
+    query += " WHERE locale = ?";
+    params.push(locale);
+  }
+
+  query += " ORDER BY name ASC";
+
+  const result = await db
+    .prepare(query)
+    .bind(...params)
+    .all();
+  return (result.results ?? []) as unknown as Developer[];
+}
+
+export async function getDeveloperLocales(id: string): Promise<string[]> {
+  const db = getDatabase();
+  const result = await db
+    .prepare("SELECT locale FROM developers WHERE id = ?")
+    .bind(id)
+    .all();
+  return (result.results ?? []).map(
+    (row) => (row as { locale: string }).locale,
+  );
+}
+
 export async function deleteDeveloper(
   id: string,
   locale?: string,

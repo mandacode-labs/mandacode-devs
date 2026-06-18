@@ -1,0 +1,99 @@
+---
+import Layout from "@/components/layouts/Layout.astro";
+import { requireAuth } from "@/lib/auth";
+import { getAllPosts } from "@/lib/db/posts";
+import { useTranslations } from "@/lib/i18n/utils";
+import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@/lib/config/languages";
+import type { Post } from "@/lib/db/schema";
+
+requireAuth(Astro);
+
+const posts = await getAllPosts();
+const t = useTranslations(DEFAULT_LANGUAGE);
+
+const grouped = posts.reduce(
+  (acc, post) => {
+    if (!acc[post.id]) acc[post.id] = [];
+    acc[post.id].push(post);
+    return acc;
+  },
+  {} as Record<string, Post[]>,
+);
+
+function statusClass(status: string): string {
+  switch (status) {
+    case "published":
+      return "bg-green-100 text-green-800";
+    case "archived":
+      return "bg-gray-100 text-gray-800";
+    default:
+      return "bg-yellow-100 text-yellow-800";
+  }
+}
+---
+
+<Layout title={t("admin.posts")}>
+  <div class="max-w-6xl mx-auto px-4 py-12">
+    <div class="flex items-center justify-between mb-8">
+      <h1 class="text-3xl font-bold">{t("admin.posts")}</h1>
+      <a
+        href="/admin/posts/new"
+        class="px-4 py-2 bg-accent text-white rounded hover:bg-accent/90"
+      >
+        {t("admin.newPost")}
+      </a>
+    </div>
+
+    {
+      Object.keys(grouped).length === 0 ? (
+        <p class="text-text-secondary">{t("admin.noItems")}</p>
+      ) : (
+        <div class="space-y-4">
+          {Object.entries(grouped).map(([id, locales]) => {
+            const primary =
+              locales.find((p) => p.locale === DEFAULT_LANGUAGE) || locales[0];
+            const hiddenCount = locales.filter((p) => p.hidden).length;
+            return (
+              <div class="border border-border rounded-xl p-4 bg-bg-primary">
+                <div class="flex items-start justify-between gap-4">
+                  <div>
+                    <h2 class="text-lg font-semibold">{primary.title}</h2>
+                    <p class="text-sm text-text-secondary">{id}</p>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                      {locales.map((post) => (
+                        <a
+                          href={`/admin/posts/edit/${post.id}?locale=${post.locale}`}
+                          class={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs border ${post.hidden ? "border-gray-400 opacity-60" : "border-border"}`}
+                        >
+                          <span class="font-medium">{post.locale}</span>
+                          <span
+                            class={`px-1.5 py-0.5 rounded ${statusClass(post.publish_status)}`}
+                          >
+                            {t(`admin.${post.publish_status}` as never)}
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                    {hiddenCount > 0 && (
+                      <p class="text-xs text-text-secondary mt-2">
+                        {hiddenCount}/{locales.length} {t("admin.hidden")}
+                      </p>
+                    )}
+                  </div>
+                  <div class="flex flex-col gap-2">
+                    <a
+                      href={`/admin/posts/edit/${id}?locale=${DEFAULT_LANGUAGE}`}
+                      class="text-sm px-3 py-1.5 border border-border rounded hover:border-border-hover text-center"
+                    >
+                      {t("admin.edit")}
+                    </a>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )
+    }
+  </div>
+</Layout>

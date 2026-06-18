@@ -145,6 +145,37 @@ export async function updatePost(
     .run();
 }
 
+export async function getAllPosts(locale?: string): Promise<Post[]> {
+  const db = getDatabase();
+
+  let query = "SELECT * FROM posts";
+  const params: (string | number)[] = [];
+
+  if (locale) {
+    query += " WHERE locale = ?";
+    params.push(locale);
+  }
+
+  query += " ORDER BY pub_date DESC";
+
+  const result = await db
+    .prepare(query)
+    .bind(...params)
+    .all();
+  return (result.results ?? []) as unknown as Post[];
+}
+
+export async function getPostLocales(id: string): Promise<string[]> {
+  const db = getDatabase();
+  const result = await db
+    .prepare("SELECT locale FROM posts WHERE id = ?")
+    .bind(id)
+    .all();
+  return (result.results ?? []).map(
+    (row) => (row as { locale: string }).locale,
+  );
+}
+
 export async function deletePost(id: string, locale?: string): Promise<void> {
   const db = getDatabase();
 

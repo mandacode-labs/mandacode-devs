@@ -164,6 +164,37 @@ export async function updateProject(
     .run();
 }
 
+export async function getAllProjects(locale?: string): Promise<Project[]> {
+  const db = getDatabase();
+
+  let query = "SELECT * FROM projects";
+  const params: (string | number)[] = [];
+
+  if (locale) {
+    query += " WHERE locale = ?";
+    params.push(locale);
+  }
+
+  query += " ORDER BY project_order ASC";
+
+  const result = await db
+    .prepare(query)
+    .bind(...params)
+    .all();
+  return (result.results ?? []) as unknown as Project[];
+}
+
+export async function getProjectLocales(id: string): Promise<string[]> {
+  const db = getDatabase();
+  const result = await db
+    .prepare("SELECT locale FROM projects WHERE id = ?")
+    .bind(id)
+    .all();
+  return (result.results ?? []).map(
+    (row) => (row as { locale: string }).locale,
+  );
+}
+
 export async function deleteProject(
   id: string,
   locale?: string,
