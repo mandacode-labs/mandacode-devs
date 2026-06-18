@@ -15,6 +15,7 @@ export interface Post {
   description: string | null;
   tiptap_json: string;
   publish_status: PublishStatus;
+  hidden: number;
   pub_date: string;
   cover_image_url: string | null;
   og_image_url: string | null;
@@ -32,6 +33,7 @@ export interface Project {
   description: string | null;
   tiptap_json: string;
   publish_status: PublishStatus;
+  hidden: number;
   project_status: ProjectStatus;
   duration: string;
   team_size: number;

@@ -10,6 +10,7 @@ export interface CreatePostInput {
   description: string | null;
   tiptap_json: string;
   publish_status: PublishStatus;
+  hidden: number;
   pub_date: string;
   cover_image_url: string | null;
   og_image_url: string | null;
@@ -21,24 +22,34 @@ export interface UpdatePostInput {
   description?: string | null;
   tiptap_json?: string;
   publish_status?: PublishStatus;
+  hidden?: number;
   pub_date?: string;
   cover_image_url?: string | null;
   og_image_url?: string | null;
   published_at?: string | null;
 }
 
+export interface GetPostsOptions {
+  publishStatus?: PublishStatus;
+  includeHidden?: boolean;
+}
+
 export async function getPosts(
   locale: string,
-  options: { publishStatus?: PublishStatus } = {},
+  options: GetPostsOptions = {},
 ): Promise<Post[]> {
   const db = getDatabase();
 
   let query = "SELECT * FROM posts WHERE locale = ?";
-  const params: (string | PublishStatus)[] = [locale];
+  const params: (string | PublishStatus | number)[] = [locale];
 
   if (options.publishStatus) {
     query += " AND publish_status = ?";
     params.push(options.publishStatus);
+  }
+
+  if (!options.includeHidden) {
+    query += " AND hidden = 0";
   }
 
   query += " ORDER BY pub_date DESC";
@@ -84,8 +95,8 @@ export async function createPost(input: CreatePostInput): Promise<void> {
     .prepare(
       `INSERT INTO posts (
         id, locale, origin, author_id, title, description, tiptap_json,
-        publish_status, pub_date, cover_image_url, og_image_url, published_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        publish_status, hidden, pub_date, cover_image_url, og_image_url, published_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       input.id,
@@ -96,6 +107,7 @@ export async function createPost(input: CreatePostInput): Promise<void> {
       input.description,
       input.tiptap_json,
       input.publish_status,
+      input.hidden,
       input.pub_date,
       input.cover_image_url,
       input.og_image_url,
@@ -133,11 +145,21 @@ export async function updatePost(
     .run();
 }
 
-export async function deletePost(id: string, locale: string): Promise<void> {
+export async function deletePost(id: string, locale?: string): Promise<void> {
   const db = getDatabase();
 
-  await db
-    .prepare("DELETE FROM posts WHERE id = ? AND locale = ?")
-    .bind(id, locale)
-    .run();
+  if (locale) {
+    await db
+      .prepare("DELETE FROM posts WHERE id = ? AND locale = ?")
+      .bind(id, locale)
+      .run();
+    return;
+  }
+
+  await db.prepare("DELETE FROM posts WHERE id = ?").bind(id).run();
+}
+
+export async function deleteAllPostLocales(id: string): Promise<void> {
+  const db = getDatabase();
+  await db.prepare("DELETE FROM posts WHERE id = ?").bind(id).run();
 }

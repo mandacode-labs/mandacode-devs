@@ -10,6 +10,7 @@ export interface CreateProjectInput {
   description: string | null;
   tiptap_json: string;
   publish_status: PublishStatus;
+  hidden: number;
   project_status: ProjectStatus;
   duration: string;
   team_size: number;
@@ -27,6 +28,7 @@ export interface UpdateProjectInput {
   description?: string | null;
   tiptap_json?: string;
   publish_status?: PublishStatus;
+  hidden?: number;
   project_status?: ProjectStatus;
   duration?: string;
   team_size?: number;
@@ -39,18 +41,27 @@ export interface UpdateProjectInput {
   published_at?: string | null;
 }
 
+export interface GetProjectsOptions {
+  publishStatus?: PublishStatus;
+  includeHidden?: boolean;
+}
+
 export async function getProjects(
   locale: string,
-  options: { publishStatus?: PublishStatus } = {},
+  options: GetProjectsOptions = {},
 ): Promise<Project[]> {
   const db = getDatabase();
 
   let query = "SELECT * FROM projects WHERE locale = ?";
-  const params: (string | PublishStatus)[] = [locale];
+  const params: (string | PublishStatus | number)[] = [locale];
 
   if (options.publishStatus) {
     query += " AND publish_status = ?";
     params.push(options.publishStatus);
+  }
+
+  if (!options.includeHidden) {
+    query += " AND hidden = 0";
   }
 
   query += " ORDER BY project_order ASC";
@@ -96,9 +107,9 @@ export async function createProject(input: CreateProjectInput): Promise<void> {
     .prepare(
       `INSERT INTO projects (
         id, locale, origin, author_id, title, description, tiptap_json,
-        publish_status, project_status, duration, team_size, role, project_order,
+        publish_status, hidden, project_status, duration, team_size, role, project_order,
         url, source_url, blog_url, cover_image_url, published_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       input.id,
@@ -109,6 +120,7 @@ export async function createProject(input: CreateProjectInput): Promise<void> {
       input.description,
       input.tiptap_json,
       input.publish_status,
+      input.hidden,
       input.project_status,
       input.duration,
       input.team_size,
@@ -152,11 +164,24 @@ export async function updateProject(
     .run();
 }
 
-export async function deleteProject(id: string, locale: string): Promise<void> {
+export async function deleteProject(
+  id: string,
+  locale?: string,
+): Promise<void> {
   const db = getDatabase();
 
-  await db
-    .prepare("DELETE FROM projects WHERE id = ? AND locale = ?")
-    .bind(id, locale)
-    .run();
+  if (locale) {
+    await db
+      .prepare("DELETE FROM projects WHERE id = ? AND locale = ?")
+      .bind(id, locale)
+      .run();
+    return;
+  }
+
+  await db.prepare("DELETE FROM projects WHERE id = ?").bind(id).run();
+}
+
+export async function deleteAllProjectLocales(id: string): Promise<void> {
+  const db = getDatabase();
+  await db.prepare("DELETE FROM projects WHERE id = ?").bind(id).run();
 }
