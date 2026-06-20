@@ -62,6 +62,7 @@ export function useAdminEditor(options: UseAdminEditorOptions) {
       }
 
       showSuccess("Saved successfully");
+      window.location.href = listPath;
     } catch (error) {
       showError(error instanceof Error ? error.message : "Failed to save");
     } finally {

@@ -3,8 +3,8 @@ import AdminLayout from "@/components/layouts/AdminLayout.astro";
 import AdminSidebar from "@/components/admin/AdminSidebar.astro";
 import AdminHeader from "@/components/admin/AdminHeader.astro";
 import AdminCard from "@/components/admin/AdminCard.astro";
-import LocaleChip from "@/components/admin/LocaleChip.astro";
 import EmptyState from "@/components/admin/EmptyState.astro";
+import { AdminLocaleChips } from "@/components/admin/AdminLocaleChips";
 import { requireAuth } from "@/lib/auth";
 import { getAllDevelopers } from "@/lib/db/developers";
 import { useTranslations } from "@/lib/i18n/utils";
@@ -159,29 +159,25 @@ function formatDate(iso: string): string {
                             </div>
                           </td>
                           <td class="px-5 py-4">
-                            <div class="flex flex-wrap items-center gap-1.5">
-                              {locales.map((developer) => (
-                                <a
-                                  href={`/admin/developers/edit/${developer.id}?locale=${developer.locale}`}
-                                  class="inline-flex items-center"
-                                  title={`Edit ${developer.locale}`}
-                                >
-                                  <LocaleChip
-                                    locale={developer.locale}
-                                    active
-                                  />
-                                </a>
-                              ))}
-                              {missingLocales.map((locale) => (
-                                <a
-                                  href={`/admin/developers/edit/${id}?locale=${locale}`}
-                                  class="inline-flex items-center opacity-40 hover:opacity-100"
-                                  title={`Create ${locale}`}
-                                >
-                                  <LocaleChip locale={locale} />
-                                </a>
-                              ))}
-                            </div>
+                            <AdminLocaleChips
+                              contentType="developer"
+                              contentId={id}
+                              locales={[
+                                ...locales.map((developer) => ({
+                                  locale: developer.locale,
+                                  href: `/admin/developers/edit/${developer.id}?locale=${developer.locale}`,
+                                  active: true,
+                                  title: `Edit ${developer.locale}`,
+                                })),
+                                ...missingLocales.map((locale) => ({
+                                  locale,
+                                  href: `/admin/developers/edit/${id}?locale=${locale}`,
+                                  active: false,
+                                  title: `Create ${locale}`,
+                                })),
+                              ]}
+                              client:only="react"
+                            />
                           </td>
                           <td class="px-5 py-4 text-text-secondary">
                             {primary.role}
