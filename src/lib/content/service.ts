@@ -68,32 +68,6 @@ async function mapD1Project(project: Project): Promise<UnifiedProject> {
   };
 }
 
-function mapCollectionProject(
-  project: CollectionEntry<"projects">,
-  locale: string,
-): UnifiedProject {
-  return {
-    id: getSlugFromEntryId(project.id),
-    locale,
-    title: project.data.title,
-    description: project.data.description,
-    status: project.data.status,
-    tags: project.data.tags,
-    duration: project.data.duration,
-    startDate: null,
-    endDate: null,
-    teamSize: project.data.teamSize,
-    role: project.data.role,
-    order: project.data.order,
-    url: project.data.url ?? null,
-    sourceUrl: project.data.sourceUrl ?? null,
-    blogUrl: project.data.blogUrl ?? null,
-    coverImage: project.data.coverImage ?? null,
-    hidden: false,
-    markdownContent: project.rendered?.html ?? project.body,
-  };
-}
-
 function safeJsonParse<T>(value: string | null): T | null {
   if (!value) return null;
   try {
@@ -146,44 +120,6 @@ function mapCollectionDeveloper(
   };
 }
 
-function mergeById<T extends { id: string; markdownContent?: string }>(
-  d1Items: T[],
-  collectionItems: T[],
-): T[] {
-  const d1Map = new Map(d1Items.map((item) => [item.id, item]));
-  const collectionMap = new Map(collectionItems.map((item) => [item.id, item]));
-  const merged: T[] = [];
-
-  for (const id of new Set([...d1Map.keys(), ...collectionMap.keys()])) {
-    const d1Item = d1Map.get(id);
-    const collectionItem = collectionMap.get(id);
-
-    if (d1Item && collectionItem) {
-      merged.push({
-        ...d1Item,
-        markdownContent: collectionItem.markdownContent,
-      });
-    } else if (d1Item) {
-      merged.push(d1Item);
-    } else if (collectionItem) {
-      merged.push(collectionItem);
-    }
-  }
-
-  return merged;
-}
-
-function mergeContent<T extends { id: string; markdownContent?: string }>(
-  d1Item: T | null,
-  collectionItem: T | null,
-): T | null {
-  if (!d1Item && !collectionItem) return null;
-  if (d1Item && collectionItem) {
-    return { ...d1Item, markdownContent: collectionItem.markdownContent };
-  }
-  return d1Item ?? collectionItem;
-}
-
 export async function getPosts(lang: Language): Promise<UnifiedPost[]> {
   const [d1Posts, collectionPosts] = await Promise.all([
     postsRepo
@@ -228,19 +164,11 @@ export async function getPost(
 }
 
 export async function getProjects(lang: Language): Promise<UnifiedProject[]> {
-  const [d1Projects, collectionProjects] = await Promise.all([
-    projectsRepo
-      .getProjects(lang, { publishStatus: "published" })
-      .then((projects) => Promise.all(projects.map(mapD1Project))),
-    getCollection("projects", (project) => {
-      const entryLang = project.id.split("/")[0];
-      return entryLang === lang;
-    }).then((projects) =>
-      projects.map((project) => mapCollectionProject(project, lang)),
-    ),
-  ]);
+  const d1Projects = await projectsRepo
+    .getProjects(lang, { publishStatus: "published" })
+    .then((projects) => Promise.all(projects.map(mapD1Project)));
 
-  return mergeById(d1Projects, collectionProjects)
+  return d1Projects
     .filter((project) => !project.hidden)
     .sort((a, b) => a.order - b.order);
 }
@@ -249,22 +177,15 @@ export async function getProject(
   slug: string,
   lang: Language,
 ): Promise<UnifiedProject | null> {
-  const [d1Project, collectionProject] = await Promise.all([
-    projectsRepo
-      .getProjectById(slug, lang)
-      .then(async (project) =>
-        project?.publish_status === "published"
-          ? await mapD1Project(project)
-          : null,
-      ),
-    (async () => {
-      const project = await getEntry("projects", `${lang}/${slug}`);
-      return project ? mapCollectionProject(project, lang) : null;
-    })(),
-  ]);
+  const d1Project = await projectsRepo
+    .getProjectById(slug, lang)
+    .then(async (project) =>
+      project?.publish_status === "published"
+        ? await mapD1Project(project)
+        : null,
+    );
 
-  const merged = mergeContent(d1Project, collectionProject);
-  if (merged) return merged;
+  if (d1Project) return d1Project;
 
   const fallbackProject = await projectsRepo.getProjectById(slug, "ko");
   if (fallbackProject?.publish_status === "published") {
@@ -272,6 +193,44 @@ export async function getProject(
   }
 
   return null;
+}
+
+function mergeById<T extends { id: string; markdownContent?: string }>(
+  d1Items: T[],
+  collectionItems: T[],
+): T[] {
+  const d1Map = new Map(d1Items.map((item) => [item.id, item]));
+  const collectionMap = new Map(collectionItems.map((item) => [item.id, item]));
+  const merged: T[] = [];
+
+  for (const id of new Set([...d1Map.keys(), ...collectionMap.keys()])) {
+    const d1Item = d1Map.get(id);
+    const collectionItem = collectionMap.get(id);
+
+    if (d1Item && collectionItem) {
+      merged.push({
+        ...d1Item,
+        markdownContent: collectionItem.markdownContent,
+      });
+    } else if (d1Item) {
+      merged.push(d1Item);
+    } else if (collectionItem) {
+      merged.push(collectionItem);
+    }
+  }
+
+  return merged;
+}
+
+function mergeContent<T extends { id: string; markdownContent?: string }>(
+  d1Item: T | null,
+  collectionItem: T | null,
+): T | null {
+  if (!d1Item && !collectionItem) return null;
+  if (d1Item && collectionItem) {
+    return { ...d1Item, markdownContent: collectionItem.markdownContent };
+  }
+  return d1Item ?? collectionItem;
 }
 
 export async function getDevelopers(
