@@ -5,10 +5,10 @@ import GithubIcon from "@/components/icons/Github.astro";
 import BookOpenIcon from "@/components/icons/BookOpen.astro";
 import { useTranslations } from "@/lib/i18n/utils";
 import type { Lang } from "@/types";
-import type { CollectionEntry } from "astro:content";
+import type { UnifiedProject } from "@/lib/content/types";
 
 interface Props {
-  project: CollectionEntry<"projects">;
+  project: UnifiedProject;
   lang: Lang;
 }
 
@@ -18,24 +18,24 @@ const t = useTranslations(lang);
 
 <div class="flex flex-wrap items-center gap-3">
   {
-    project.data.url && (
-      <Button href={project.data.url} variant="primary">
+    project.url && (
+      <Button href={project.url} variant="primary">
         <span>{t("projects.visitSite")}</span>
         <ExternalLinkIcon size={16} />
       </Button>
     )
   }
   {
-    project.data.sourceUrl && (
-      <Button href={project.data.sourceUrl} variant="secondary">
+    project.sourceUrl && (
+      <Button href={project.sourceUrl} variant="secondary">
         <GithubIcon size={16} />
         <span>Source</span>
       </Button>
     )
   }
   {
-    project.data.blogUrl && (
-      <Button href={project.data.blogUrl} variant="secondary">
+    project.blogUrl && (
+      <Button href={project.blogUrl} variant="secondary">
         <BookOpenIcon size={16} />
         <span>Blog</span>
       </Button>

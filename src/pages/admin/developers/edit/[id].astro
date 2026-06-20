@@ -1,0 +1,66 @@
+---
+import AdminFormLayout from "@/components/admin/AdminFormLayout.astro";
+import DeveloperEditor from "@/components/admin/DeveloperEditor";
+import { requireAuth } from "@/lib/auth";
+import { getDeveloperById } from "@/lib/db/developers";
+import { useTranslations } from "@/lib/i18n/utils";
+import { ui } from "@/lib/i18n";
+import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
+
+requireAuth(Astro);
+
+const { id } = Astro.params;
+const locale = Astro.url.searchParams.get("locale") || DEFAULT_LANGUAGE;
+const t = useTranslations(DEFAULT_LANGUAGE);
+
+if (!id) {
+  return Astro.redirect("/admin/developers");
+}
+
+const developer = await getDeveloperById(id, locale);
+
+function safeParseJson<T>(value: string | null): T | null {
+  if (!value) return null;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
+}
+
+const initialData = {
+  id: developer?.id ?? id,
+  locale: developer?.locale ?? locale,
+  name: developer?.name ?? "",
+  role: developer?.role ?? "",
+  bio: developer?.bio ?? "",
+  tiptap_json:
+    developer?.tiptap_json ?? JSON.stringify({ type: "doc", content: [] }),
+  avatar_url: developer?.avatar_url ?? null,
+  github_url: developer?.github_url ?? null,
+  email: developer?.email ?? null,
+  website_url: developer?.website_url ?? null,
+  tech_stack: safeParseJson<string[]>(developer?.tech_stack ?? null),
+  certifications: safeParseJson<Record<string, unknown>[]>(
+    developer?.certifications ?? null,
+  ),
+  education: safeParseJson<Record<string, unknown>[]>(
+    developer?.education ?? null,
+  ),
+};
+---
+
+<AdminFormLayout
+  title={`${t("admin.edit")} ${developer?.name ? `· ${developer.name}` : ""}`}
+  headerTitle={t("admin.edit")}
+  headerSubtitle={developer?.name ?? `${id} (${locale})`}
+  backHref="/admin/developers"
+  backLabel={t("admin.backToDevelopers")}
+  currentPath="/admin/developers"
+>
+  <DeveloperEditor
+    client:only="react"
+    initialData={initialData}
+    translations={ui[DEFAULT_LANGUAGE] ?? {}}
+  />
+</AdminFormLayout>

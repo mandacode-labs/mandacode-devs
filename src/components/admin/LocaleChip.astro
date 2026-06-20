@@ -1,0 +1,18 @@
+---
+interface Props {
+  locale: string;
+  active?: boolean;
+}
+
+const { locale, active = false } = Astro.props;
+---
+
+<span
+  class={`inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium uppercase tracking-wide border ${
+    active
+      ? "bg-accent-subtle text-accent border-accent/20"
+      : "bg-bg-secondary text-text-secondary border-border"
+  }`}
+>
+  {locale}
+</span>

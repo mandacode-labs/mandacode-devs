@@ -1,0 +1,58 @@
+---
+import AdminFormLayout from "@/components/admin/AdminFormLayout.astro";
+import ProjectEditor from "@/components/admin/ProjectEditor";
+import { requireAuth } from "@/lib/auth";
+import { getProjectById } from "@/lib/db/projects";
+import { useTranslations } from "@/lib/i18n/utils";
+import { ui } from "@/lib/i18n";
+import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
+
+requireAuth(Astro);
+
+const { id } = Astro.params;
+const locale = Astro.url.searchParams.get("locale") || DEFAULT_LANGUAGE;
+const t = useTranslations(DEFAULT_LANGUAGE);
+
+if (!id) {
+  return Astro.redirect("/admin/projects");
+}
+
+const project = await getProjectById(id, locale);
+
+if (!project) {
+  return Astro.redirect("/admin/projects");
+}
+
+const initialData = {
+  id: project.id,
+  locale: project.locale,
+  title: project.title,
+  description: project.description,
+  tiptap_json: project.tiptap_json,
+  publish_status: project.publish_status,
+  project_status: project.project_status,
+  duration: project.duration,
+  team_size: project.team_size,
+  role: project.role,
+  project_order: project.project_order,
+  url: project.url,
+  source_url: project.source_url,
+  blog_url: project.blog_url,
+  cover_image_url: project.cover_image_url,
+};
+---
+
+<AdminFormLayout
+  title={`${t("admin.edit")} · ${project.title}`}
+  headerTitle={t("admin.edit")}
+  headerSubtitle={project.title}
+  backHref="/admin/projects"
+  backLabel={t("admin.backToProjects")}
+  currentPath="/admin/projects"
+>
+  <ProjectEditor
+    client:only="react"
+    initialData={initialData}
+    translations={ui[DEFAULT_LANGUAGE] ?? {}}
+  />
+</AdminFormLayout>

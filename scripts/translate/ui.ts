@@ -119,7 +119,10 @@ export async function translateUI(): Promise<void> {
   const sourceHash = getHash(sourceJson);
 
   for (const targetLang of TARGET_LANGUAGES) {
-    if (targetLang === SOURCE_LANGUAGE) continue;
+    if (targetLang === SOURCE_LANGUAGE) {
+      saveLocale(targetLang, sourceData);
+      continue;
+    }
 
     const cacheKey = getUICacheKey(targetLang, "translate");
     const cachedHash = getCacheHash("translate", cacheKey);

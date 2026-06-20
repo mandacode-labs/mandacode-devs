@@ -2,13 +2,9 @@
 import Layout from "@/components/layouts/Layout.astro";
 import BlogCard from "@/components/blog/BlogCard.astro";
 import EmptyBlog from "@/components/blog/EmptyBlog.astro";
-import { getPublishedPostsByLang } from "@/lib/content/blog";
+import { getPosts } from "@/lib/content/service";
 import { useTranslations } from "@/lib/i18n/utils";
-import { SUPPORTED_LANGUAGES, isValidLanguage } from "@/lib/config/languages";
-
-export async function getStaticPaths() {
-  return SUPPORTED_LANGUAGES.map((lang) => ({ params: { lang } }));
-}
+import { isValidLanguage } from "@/lib/config/languages";
 
 const { lang } = Astro.params;
 
@@ -17,7 +13,7 @@ if (!lang || !isValidLanguage(lang)) {
 }
 
 const t = useTranslations(lang);
-const posts = await getPublishedPostsByLang(lang);
+const posts = await getPosts(lang);
 ---
 
 <Layout title={t("blog.title")} description={t("blog.subtitle")}>

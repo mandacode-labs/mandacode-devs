@@ -1,0 +1,52 @@
+---
+import AdminFormLayout from "@/components/admin/AdminFormLayout.astro";
+import PostEditor from "@/components/admin/PostEditor";
+import { requireAuth } from "@/lib/auth";
+import { getPostById } from "@/lib/db/posts";
+import { useTranslations } from "@/lib/i18n/utils";
+import { ui } from "@/lib/i18n";
+import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
+
+requireAuth(Astro);
+
+const { id } = Astro.params;
+const locale = Astro.url.searchParams.get("locale") || DEFAULT_LANGUAGE;
+const t = useTranslations(DEFAULT_LANGUAGE);
+
+if (!id) {
+  return Astro.redirect("/admin/posts");
+}
+
+const post = await getPostById(id, locale);
+
+if (!post) {
+  return Astro.redirect("/admin/posts");
+}
+
+const initialData = {
+  id: post.id,
+  locale: post.locale,
+  title: post.title,
+  description: post.description,
+  tiptap_json: post.tiptap_json,
+  publish_status: post.publish_status,
+  pub_date: post.pub_date,
+  cover_image_url: post.cover_image_url,
+  og_image_url: post.og_image_url,
+};
+---
+
+<AdminFormLayout
+  title={`${t("admin.edit")} · ${post.title}`}
+  headerTitle={t("admin.edit")}
+  headerSubtitle={post.title}
+  backHref="/admin/posts"
+  backLabel={t("admin.backToPosts")}
+  currentPath="/admin/posts"
+>
+  <PostEditor
+    client:only="react"
+    initialData={initialData}
+    translations={ui[DEFAULT_LANGUAGE] ?? {}}
+  />
+</AdminFormLayout>

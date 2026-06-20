@@ -1,0 +1,38 @@
+---
+import { renderTiptapJson } from "@/lib/tiptap/render";
+
+interface Props {
+  d1Content?: string;
+  markdownContent?: string;
+  mode?: "fallback" | "stack";
+  class?: string;
+}
+
+const {
+  d1Content,
+  markdownContent,
+  mode = "stack",
+  class: className,
+} = Astro.props;
+
+const d1Html = d1Content ? renderTiptapJson(d1Content) : null;
+---
+
+<div class:list={["prose prose-neutral max-w-none", className]}>
+  {
+    mode === "fallback" ? (
+      d1Html ? (
+        <div set:html={d1Html} />
+      ) : markdownContent ? (
+        <div set:html={markdownContent} />
+      ) : null
+    ) : (
+      <>
+        {d1Html ? <div set:html={d1Html} /> : null}
+        {markdownContent ? (
+          <div class:list={[{ "mt-12": d1Html }]} set:html={markdownContent} />
+        ) : null}
+      </>
+    )
+  }
+</div>

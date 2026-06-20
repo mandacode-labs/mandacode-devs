@@ -4,52 +4,47 @@ import BackLink from "@/components/shared/BackLink.astro";
 import ProjectHero from "@/components/projects/ProjectHero.astro";
 import ProjectMeta from "@/components/projects/ProjectMeta.astro";
 import ProjectActions from "@/components/projects/ProjectActions.astro";
-import { getCollection, render } from "astro:content";
-import { getProjectBySlug } from "@/lib/content/projects";
+import ContentRenderer from "@/components/shared/ContentRenderer.astro";
+import { getProject } from "@/lib/content/service";
 import { useTranslations } from "@/lib/i18n/utils";
 import { isValidLanguage } from "@/lib/config/languages";
 
-export async function getStaticPaths() {
-  const projects = await getCollection("projects");
-  const paths = [];
-  for (const project of projects) {
-    const [lang, slug] = project.id.split("/");
-    paths.push({ params: { lang, slug } });
-  }
-  return paths;
-}
-
 const { lang, slug } = Astro.params;
 
-if (!lang || !isValidLanguage(lang)) {
+if (!lang || !isValidLanguage(lang) || !slug) {
   return Astro.redirect("/ko/projects");
 }
 
 const t = useTranslations(lang);
-const project = await getProjectBySlug(lang, slug!);
+const project = await getProject(slug, lang);
 
 if (!project) {
   return Astro.redirect(`/${lang}/projects`);
 }
 
-const title = project.data.title;
-const description = project.data.description;
-const coverImage = project.data.coverImage;
-
-const { Content } = await render(project);
+const title = project.title;
+const description = project.description ?? "";
+const coverImage = project.coverImage;
 ---
 
-<Layout title={title} description={description} ogImage={coverImage}>
+<Layout
+  title={title}
+  description={description}
+  ogImage={coverImage ?? undefined}
+>
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
     <BackLink href={`/${lang}/projects`} label={t("projects.title")} />
 
-    <ProjectHero title={title} coverImage={coverImage} />
+    <ProjectHero title={title} coverImage={coverImage ?? undefined} />
 
     <ProjectMeta project={project} lang={lang} />
 
-    <div class="prose prose-neutral max-w-none mb-8">
-      <Content />
-    </div>
+    <ContentRenderer
+      d1Content={project.d1Content}
+      markdownContent={project.markdownContent}
+      mode="stack"
+      class="mb-8"
+    />
 
     <ProjectActions project={project} lang={lang} />
   </div>

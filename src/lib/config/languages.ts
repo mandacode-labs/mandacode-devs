@@ -26,6 +26,8 @@ export type Language = (typeof SUPPORTED_LANGUAGES)[number];
 
 export const DEFAULT_LANGUAGE: Language = parsed.defaultLanguage as Language;
 
+export const MAIN_DEVELOPER_ID = "main-developer";
+
 export interface LanguageConfig {
   code: Language;
   label: string;

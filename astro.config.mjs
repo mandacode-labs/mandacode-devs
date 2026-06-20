@@ -1,17 +1,31 @@
-// @ts-check
 import { defineConfig } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
 import mermaid from "./src/integrations/mermaid";
 import path from "node:path";
 
 import sitemap from "@astrojs/sitemap";
+import cloudflare from "@astrojs/cloudflare";
+
+import react from "@astrojs/react";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://dev.mandacode.com",
+  site: process.env.SITE_URL || "https://dev.mandacode.com",
   base: "/",
   trailingSlash: "ignore",
-  output: "static",
+  output: "server",
+  adapter: cloudflare({
+    imageService: "cloudflare",
+  }),
+  image: {
+    domains: ["static.mandacode.com"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "static.mandacode.com",
+      },
+    ],
+  },
   vite: {
     plugins: [tailwindcss()],
     resolve: {
@@ -35,5 +49,6 @@ export default defineConfig({
         },
       },
     }),
+    react(),
   ],
 });

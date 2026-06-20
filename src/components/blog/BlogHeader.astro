@@ -2,10 +2,10 @@
 import Badge from "@/components/ui/Badge.astro";
 import { formatDate } from "@/lib/utils/date";
 import type { Lang } from "@/types";
-import type { CollectionEntry } from "astro:content";
+import type { UnifiedPost } from "@/lib/content/types";
 
 interface Props {
-  post: CollectionEntry<"blog">;
+  post: UnifiedPost;
   lang: Lang;
 }
 
@@ -14,15 +14,14 @@ const { post, lang } = Astro.props;
 
 <header class="mb-8">
   <div class="flex items-center gap-2 mb-4">
-    <time class="text-sm text-text-muted"
-      >{formatDate(post.data.pubDate, lang)}</time
+    <time class="text-sm text-text-muted">{formatDate(post.pubDate, lang)}</time
     >
     <span class="text-text-muted">·</span>
     <div class="flex items-center gap-1.5">
-      {post.data.tags.map((tag) => <Badge variant="default">{tag}</Badge>)}
+      {post.tags.map((tag) => <Badge variant="default">{tag}</Badge>)}
     </div>
   </div>
 
-  <h2>{post.data.title}</h2>
-  <p class="text-lg text-text-secondary mt-4">{post.data.description}</p>
+  <h2>{post.title}</h2>
+  <p class="text-lg text-text-secondary mt-4">{post.description}</p>
 </header>
