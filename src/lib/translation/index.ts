@@ -2,11 +2,13 @@ import { translateFields } from "@/lib/openai/translation";
 import * as postsRepo from "@/lib/db/posts";
 import * as projectsRepo from "@/lib/db/projects";
 import * as developersRepo from "@/lib/db/developers";
+import { updateTranslationJobStatus } from "@/lib/db/translation-jobs";
 import type { Language } from "@/lib/config/languages";
+import type { TranslationContentType } from "@/lib/db/schema";
 
-export type ContentType = "post" | "project" | "developer";
+export type ContentType = TranslationContentType;
 
-export interface TranslationJob {
+export interface TranslationJobInput {
   contentType: ContentType;
   id: string;
   sourceLocale: Language;
@@ -14,10 +16,10 @@ export interface TranslationJob {
   authorId: string;
 }
 
-async function translatePost(job: TranslationJob): Promise<void> {
+async function translatePost(job: TranslationJobInput): Promise<void> {
   const source = await postsRepo.getPostById(job.id, job.sourceLocale);
   if (!source) {
-    return;
+    throw new Error(`Source post not found: ${job.id}/${job.sourceLocale}`);
   }
 
   const translated = await translateFields(
@@ -48,10 +50,10 @@ async function translatePost(job: TranslationJob): Promise<void> {
   });
 }
 
-async function translateProject(job: TranslationJob): Promise<void> {
+async function translateProject(job: TranslationJobInput): Promise<void> {
   const source = await projectsRepo.getProjectById(job.id, job.sourceLocale);
   if (!source) {
-    return;
+    throw new Error(`Source project not found: ${job.id}/${job.sourceLocale}`);
   }
 
   const translated = await translateFields(
@@ -88,13 +90,15 @@ async function translateProject(job: TranslationJob): Promise<void> {
   });
 }
 
-async function translateDeveloper(job: TranslationJob): Promise<void> {
+async function translateDeveloper(job: TranslationJobInput): Promise<void> {
   const source = await developersRepo.getDeveloperById(
     job.id,
     job.sourceLocale,
   );
   if (!source) {
-    return;
+    throw new Error(
+      `Source developer not found: ${job.id}/${job.sourceLocale}`,
+    );
   }
 
   const translated = await translateFields(
@@ -129,7 +133,7 @@ async function translateDeveloper(job: TranslationJob): Promise<void> {
   });
 }
 
-export async function runTranslationJob(job: TranslationJob): Promise<void> {
+async function executeTranslation(job: TranslationJobInput): Promise<void> {
   switch (job.contentType) {
     case "post":
       await translatePost(job);
@@ -145,13 +149,39 @@ export async function runTranslationJob(job: TranslationJob): Promise<void> {
   }
 }
 
-export function createTranslationJobs(
+export async function runTranslationJob(
+  jobInput: TranslationJobInput,
+  jobId?: string,
+): Promise<void> {
+  const updateStatus = async (
+    status: "running" | "completed" | "failed",
+    errorMessage?: string,
+  ) => {
+    if (jobId) {
+      await updateTranslationJobStatus(jobId, status, errorMessage);
+    }
+  };
+
+  await updateStatus("running");
+
+  try {
+    await executeTranslation(jobInput);
+    await updateStatus("completed");
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unknown translation error";
+    await updateStatus("failed", message);
+    throw error;
+  }
+}
+
+export function createTranslationJobInputs(
   contentType: ContentType,
   id: string,
   sourceLocale: Language,
   targetLocales: Language[],
   authorId: string,
-): TranslationJob[] {
+): TranslationJobInput[] {
   return targetLocales.map((targetLocale) => ({
     contentType,
     id,

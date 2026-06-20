@@ -4,8 +4,8 @@ import AdminSidebar from "@/components/admin/AdminSidebar.astro";
 import AdminHeader from "@/components/admin/AdminHeader.astro";
 import AdminCard from "@/components/admin/AdminCard.astro";
 import StatusBadge from "@/components/admin/StatusBadge.astro";
-import LocaleChip from "@/components/admin/LocaleChip.astro";
 import EmptyState from "@/components/admin/EmptyState.astro";
+import { AdminLocaleChips } from "@/components/admin/AdminLocaleChips";
 import { requireAuth } from "@/lib/auth";
 import { getAllProjects } from "@/lib/db/projects";
 import { useTranslations } from "@/lib/i18n/utils";
@@ -148,31 +148,25 @@ function formatDate(iso: string): string {
                             </div>
                           </td>
                           <td class="px-5 py-4">
-                            <div class="flex flex-wrap items-center gap-1.5">
-                              {locales.map((project) => (
-                                <a
-                                  href={`/admin/projects/edit/${project.id}?locale=${project.locale}`}
-                                  class="inline-flex items-center"
-                                  title={`Edit ${project.locale}`}
-                                >
-                                  <LocaleChip
-                                    locale={project.locale}
-                                    active={
-                                      project.publish_status !== "archived"
-                                    }
-                                  />
-                                </a>
-                              ))}
-                              {missingLocales.map((locale) => (
-                                <a
-                                  href={`/admin/projects/edit/${id}?locale=${locale}`}
-                                  class="inline-flex items-center opacity-40 hover:opacity-100"
-                                  title={`Create ${locale}`}
-                                >
-                                  <LocaleChip locale={locale} />
-                                </a>
-                              ))}
-                            </div>
+                            <AdminLocaleChips
+                              contentType="project"
+                              contentId={id}
+                              locales={[
+                                ...locales.map((project) => ({
+                                  locale: project.locale,
+                                  href: `/admin/projects/edit/${project.id}?locale=${project.locale}`,
+                                  active: project.publish_status !== "archived",
+                                  title: `Edit ${project.locale}`,
+                                })),
+                                ...missingLocales.map((locale) => ({
+                                  locale,
+                                  href: `/admin/projects/edit/${id}?locale=${locale}`,
+                                  active: false,
+                                  title: `Create ${locale}`,
+                                })),
+                              ]}
+                              client:only="react"
+                            />
                           </td>
                           <td class="px-5 py-4">
                             <StatusBadge status={primary.publish_status} />

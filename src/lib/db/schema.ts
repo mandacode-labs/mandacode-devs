@@ -6,6 +6,30 @@ export type ProjectStatus =
   | "planning"
   | "completed";
 
+export type TranslationJobStatus =
+  | "pending"
+  | "running"
+  | "completed"
+  | "failed";
+
+export type TranslationContentType = "post" | "project" | "developer";
+
+export interface TranslationJob {
+  id: string;
+  content_type: TranslationContentType;
+  content_id: string;
+  source_locale: string;
+  target_locale: string;
+  author_id: string;
+  status: TranslationJobStatus;
+  attempts: number;
+  max_attempts: number;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+}
+
 export interface Post {
   id: string;
   locale: string;

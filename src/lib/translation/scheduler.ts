@@ -1,7 +1,16 @@
-import { runTranslationJob, createTranslationJobs } from "@/lib/translation";
+import {
+  createTranslationJobs as createPersistedTranslationJobs,
+  getTranslationJobById,
+  resetTranslationJobForRetry,
+} from "@/lib/db/translation-jobs";
+import {
+  createTranslationJobInputs,
+  runTranslationJob,
+} from "@/lib/translation";
 import type { APIContext } from "astro";
 import type { ContentType } from "@/lib/translation";
 import type { Language } from "@/lib/config/languages";
+import type { TranslationJob } from "@/lib/db/schema";
 
 export async function scheduleTranslations(
   context: APIContext,
@@ -15,7 +24,7 @@ export async function scheduleTranslations(
     return;
   }
 
-  const jobs = createTranslationJobs(
+  const inputs = createTranslationJobInputs(
     contentType,
     id,
     sourceLocale,
@@ -23,18 +32,62 @@ export async function scheduleTranslations(
     authorId,
   );
 
+  const jobs = await createPersistedTranslationJobs(
+    inputs.map((input) => ({
+      content_type: input.contentType,
+      content_id: input.id,
+      source_locale: input.sourceLocale,
+      target_locale: input.targetLocale,
+      author_id: input.authorId,
+    })),
+  );
+
+  const inputMap = new Map(
+    inputs.map((input) => {
+      const job = jobs.find(
+        (j) =>
+          j.content_type === input.contentType &&
+          j.content_id === input.id &&
+          j.source_locale === input.sourceLocale &&
+          j.target_locale === input.targetLocale,
+      );
+      return [job?.id ?? "", input] as const;
+    }),
+  );
+
+  const runJobWithRetry = async (job: TranslationJob) => {
+    const input = inputMap.get(job.id);
+    if (!input) return;
+
+    try {
+      await runTranslationJob(input, job.id);
+    } catch (error) {
+      const updated = await getTranslationJobById(job.id);
+      if (
+        updated &&
+        updated.attempts < updated.max_attempts &&
+        updated.status === "failed"
+      ) {
+        await resetTranslationJobForRetry(updated.id);
+        await runJobWithRetry(updated);
+      }
+    }
+  };
+
   const runJobs = async () => {
     try {
-      for (const job of jobs) {
-        await runTranslationJob(job);
-      }
+      await Promise.all(jobs.map((job) => runJobWithRetry(job)));
     } catch (error) {
-      console.error("Translation job failed:", error);
+      console.error("Translation scheduler error:", error);
     }
   };
 
   if (context.locals.cfContext) {
-    context.locals.cfContext.waitUntil(runJobs());
+    context.locals.cfContext.waitUntil(
+      runJobs().catch((error) => {
+        console.error("Background translation error:", error);
+      }),
+    );
   } else {
     await runJobs();
   }

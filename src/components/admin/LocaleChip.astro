@@ -1,18 +1,49 @@
 ---
+import { useTranslations } from "@/lib/i18n/utils";
+import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
+import type { TranslationJobStatus } from "@/lib/db/schema";
+import type { UIKey } from "@/lib/i18n";
+
 interface Props {
   locale: string;
   active?: boolean;
+  translationStatus?: TranslationJobStatus | null;
 }
 
-const { locale, active = false } = Astro.props;
+const { locale, active = false, translationStatus = null } = Astro.props;
+
+const t = useTranslations(DEFAULT_LANGUAGE);
+
+const statusKeys: Record<TranslationJobStatus, UIKey> = {
+  pending: "admin.translationPending",
+  running: "admin.translationRunning",
+  completed: "admin.translationCompleted",
+  failed: "admin.translationFailed",
+};
+
+const statusDotClass: Record<TranslationJobStatus, string> = {
+  pending: "bg-neutral-400",
+  running: "bg-blue-500 animate-pulse",
+  completed: "bg-green-500",
+  failed: "bg-red-500",
+};
 ---
 
 <span
-  class={`inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium uppercase tracking-wide border ${
+  class={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium uppercase tracking-wide border ${
     active
       ? "bg-accent-subtle text-accent border-accent/20"
       : "bg-bg-secondary text-text-secondary border-border"
   }`}
+  title={translationStatus ? t(statusKeys[translationStatus]) : undefined}
 >
   {locale}
+  {
+    translationStatus && (
+      <span
+        class={`inline-block w-1.5 h-1.5 rounded-full ${statusDotClass[translationStatus]}`}
+        aria-hidden="true"
+      />
+    )
+  }
 </span>
