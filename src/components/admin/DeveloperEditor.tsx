@@ -2,7 +2,9 @@ import { useCallback, useState, useEffect } from "react";
 import TiptapEditor from "@/components/editor/TiptapEditor";
 import ImageUploadButton from "@/components/editor/ImageUploadButton";
 import DeleteModal from "@/components/admin/DeleteModal";
+import { AdminSection } from "@/components/admin/AdminSection";
 import { LANGUAGE_CONFIGS } from "@/lib/config/languages";
+import { generateEntityId } from "@/lib/id";
 
 export interface DeveloperEditorInitialData {
   id: string;
@@ -31,7 +33,7 @@ interface Toast {
 
 export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
   const isEditMode = !!initialData;
-  const [id, setId] = useState(initialData?.id ?? "");
+  const [id] = useState(() => initialData?.id ?? generateEntityId());
   const [locale, setLocale] = useState(initialData?.locale ?? "ko");
   const [name, setName] = useState(initialData?.name ?? "");
   const [role, setRole] = useState(initialData?.role ?? "");
@@ -46,9 +48,6 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
   const [techStack, setTechStack] = useState(
     initialData?.tech_stack?.join(", ") ?? "",
   );
-  const [insertedImageUrl, setInsertedImageUrl] = useState<string | undefined>(
-    undefined,
-  );
   const [targetLocales, setTargetLocales] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -57,7 +56,6 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
 
   useEffect(() => {
     if (initialData) {
-      setId(initialData.id);
       setLocale(initialData.locale);
       setName(initialData.name);
       setRole(initialData.role);
@@ -76,10 +74,6 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
     const timer = setTimeout(() => setToast(null), 4000);
     return () => clearTimeout(timer);
   }, [toast]);
-
-  const handleTiptapImage = (url: string) => {
-    setInsertedImageUrl(url);
-  };
 
   const handleTiptapChange = useCallback((json: string) => {
     setTiptapJson(json);
@@ -172,21 +166,6 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
     );
   };
 
-  const Section = ({
-    title,
-    children,
-  }: {
-    title: string;
-    children: React.ReactNode;
-  }) => (
-    <div className="border-b border-border last:border-0 pb-6 last:pb-0">
-      <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide mb-4">
-        {title}
-      </h3>
-      {children}
-    </div>
-  );
-
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {toast && (
@@ -201,18 +180,14 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
         </div>
       )}
 
-      <Section title="Basic Information">
+      <AdminSection title="Basic Information">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="block">
-            <span className="text-sm font-medium text-text-primary">
-              ID (Slug)
-            </span>
+            <span className="text-sm font-medium text-text-primary">ID</span>
             <input
               type="text"
               value={id}
-              onChange={(e) => setId(e.target.value)}
-              disabled={isEditMode}
-              required
+              disabled
               className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
             />
           </label>
@@ -270,9 +245,9 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
             className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent resize-y"
           />
         </label>
-      </Section>
+      </AdminSection>
 
-      <Section title="Media">
+      <AdminSection title="Media">
         <label className="block">
           <span className="text-sm font-medium text-text-primary">
             Avatar URL
@@ -284,12 +259,16 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
               onChange={(e) => setAvatarUrl(e.target.value)}
               className="flex-1 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
             />
-            <ImageUploadButton onUpload={setAvatarUrl} />
+            <ImageUploadButton
+              onUpload={setAvatarUrl}
+              entityType="developer"
+              entityId={id}
+            />
           </div>
         </label>
-      </Section>
+      </AdminSection>
 
-      <Section title="Links">
+      <AdminSection title="Links">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="block">
             <span className="text-sm font-medium text-text-primary">
@@ -325,9 +304,9 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
             className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
           />
         </label>
-      </Section>
+      </AdminSection>
 
-      <Section title="Tech Stack">
+      <AdminSection title="Tech Stack">
         <label className="block">
           <span className="text-sm font-medium text-text-primary">
             Tech Stack (comma separated)
@@ -340,46 +319,44 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
             className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
           />
         </label>
-      </Section>
+      </AdminSection>
 
-      <Section title="Content">
+      <AdminSection title="Content">
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-text-primary">Body</span>
-            <ImageUploadButton onUpload={handleTiptapImage} />
-          </div>
+          <span className="text-sm font-medium text-text-primary">Body</span>
           <TiptapEditor
             key={editorKey}
             content={tiptapJson}
             onChange={handleTiptapChange}
             placeholder="Write additional content..."
-            insertedImageUrl={insertedImageUrl}
+            entityType="developer"
+            entityId={id}
           />
         </div>
-      </Section>
+      </AdminSection>
 
-      <Section title="Translations">
+      <AdminSection title="Translations">
         <div className="space-y-2">
           <p className="text-sm text-text-secondary">
             Auto-translate to additional languages on save:
           </p>
           <div className="flex flex-wrap gap-4">
-              {Object.values(LANGUAGE_CONFIGS)
-                .filter((loc) => loc.code !== locale)
-                .map((loc) => (
-                  <label key={loc.code} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={targetLocales.includes(loc.code)}
-                      onChange={() => toggleTargetLocale(loc.code)}
-                      className="w-4 h-4 rounded border-border text-accent focus:ring-accent"
-                    />
-                    <span className="text-sm text-text-primary">{loc.label}</span>
-                  </label>
-                ))}
+            {Object.values(LANGUAGE_CONFIGS)
+              .filter((loc) => loc.code !== locale)
+              .map((loc) => (
+                <label key={loc.code} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={targetLocales.includes(loc.code)}
+                    onChange={() => toggleTargetLocale(loc.code)}
+                    className="w-4 h-4 rounded border-border text-accent focus:ring-accent"
+                  />
+                  <span className="text-sm text-text-primary">{loc.label}</span>
+                </label>
+              ))}
           </div>
         </div>
-      </Section>
+      </AdminSection>
 
       <div className="sticky bottom-0 -mx-6 -mb-6 px-6 py-4 bg-bg-secondary border-t border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">

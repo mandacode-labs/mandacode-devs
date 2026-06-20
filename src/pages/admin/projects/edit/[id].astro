@@ -1,8 +1,8 @@
 ---
-import Layout from "@/components/layouts/Layout.astro";
+import AdminFormLayout from "@/components/admin/AdminFormLayout.astro";
+import ProjectEditor from "@/components/admin/ProjectEditor";
 import { requireAuth } from "@/lib/auth";
 import { getProjectById } from "@/lib/db/projects";
-import ProjectEditor from "@/components/admin/ProjectEditor";
 import { useTranslations } from "@/lib/i18n/utils";
 import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
 
@@ -29,7 +29,6 @@ const initialData = {
   description: project.description,
   tiptap_json: project.tiptap_json,
   publish_status: project.publish_status,
-  hidden: project.hidden === 1,
   project_status: project.project_status,
   duration: project.duration,
   team_size: project.team_size,
@@ -42,15 +41,13 @@ const initialData = {
 };
 ---
 
-<Layout title={`${t("admin.edit")} ${t("admin.projects")}`}>
-  <div class="max-w-4xl mx-auto px-4 py-12">
-    <div class="flex items-center justify-between mb-8">
-      <h1 class="text-3xl font-bold">{t("admin.edit")}: {project.title}</h1>
-      <a
-        href="/admin/projects"
-        class="text-text-secondary hover:text-text-primary">← Back</a
-      >
-    </div>
-    <ProjectEditor client:load initialData={initialData} />
-  </div>
-</Layout>
+<AdminFormLayout
+  title={`${t("admin.edit")} · ${project.title}`}
+  headerTitle={t("admin.edit")}
+  headerSubtitle={project.title}
+  backHref="/admin/projects"
+  backLabel="Back to projects"
+  currentPath="/admin/projects"
+>
+  <ProjectEditor client:only="react" initialData={initialData} />
+</AdminFormLayout>

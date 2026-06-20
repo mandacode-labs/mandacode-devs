@@ -167,6 +167,27 @@ export async function getDeveloperLocales(id: string): Promise<string[]> {
   );
 }
 
+export async function getDeveloperLocalesWithContent(id: string): Promise<
+  Array<{
+    locale: string;
+    tiptap_json: string;
+    avatar_url: string | null;
+  }>
+> {
+  const db = getDatabase();
+  const result = await db
+    .prepare(
+      "SELECT locale, tiptap_json, avatar_url FROM developers WHERE id = ?",
+    )
+    .bind(id)
+    .all();
+  return (result.results ?? []) as Array<{
+    locale: string;
+    tiptap_json: string;
+    avatar_url: string | null;
+  }>;
+}
+
 export async function deleteDeveloper(
   id: string,
   locale?: string,

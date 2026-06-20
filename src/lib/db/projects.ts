@@ -10,7 +10,6 @@ export interface CreateProjectInput {
   description: string | null;
   tiptap_json: string;
   publish_status: PublishStatus;
-  hidden: number;
   project_status: ProjectStatus;
   duration: string;
   team_size: number;
@@ -28,7 +27,6 @@ export interface UpdateProjectInput {
   description?: string | null;
   tiptap_json?: string;
   publish_status?: PublishStatus;
-  hidden?: number;
   project_status?: ProjectStatus;
   duration?: string;
   team_size?: number;
@@ -43,7 +41,6 @@ export interface UpdateProjectInput {
 
 export interface GetProjectsOptions {
   publishStatus?: PublishStatus;
-  includeHidden?: boolean;
 }
 
 export async function getProjects(
@@ -53,15 +50,11 @@ export async function getProjects(
   const db = getDatabase();
 
   let query = "SELECT * FROM projects WHERE locale = ?";
-  const params: (string | PublishStatus | number)[] = [locale];
+  const params: (string | PublishStatus)[] = [locale];
 
   if (options.publishStatus) {
     query += " AND publish_status = ?";
     params.push(options.publishStatus);
-  }
-
-  if (!options.includeHidden) {
-    query += " AND hidden = 0";
   }
 
   query += " ORDER BY project_order ASC";
@@ -107,9 +100,9 @@ export async function createProject(input: CreateProjectInput): Promise<void> {
     .prepare(
       `INSERT INTO projects (
         id, locale, origin, author_id, title, description, tiptap_json,
-        publish_status, hidden, project_status, duration, team_size, role, project_order,
+        publish_status, project_status, duration, team_size, role, project_order,
         url, source_url, blog_url, cover_image_url, published_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       input.id,
@@ -120,7 +113,6 @@ export async function createProject(input: CreateProjectInput): Promise<void> {
       input.description,
       input.tiptap_json,
       input.publish_status,
-      input.hidden,
       input.project_status,
       input.duration,
       input.team_size,
@@ -193,6 +185,27 @@ export async function getProjectLocales(id: string): Promise<string[]> {
   return (result.results ?? []).map(
     (row) => (row as { locale: string }).locale,
   );
+}
+
+export async function getProjectLocalesWithContent(id: string): Promise<
+  Array<{
+    locale: string;
+    tiptap_json: string;
+    cover_image_url: string | null;
+  }>
+> {
+  const db = getDatabase();
+  const result = await db
+    .prepare(
+      "SELECT locale, tiptap_json, cover_image_url FROM projects WHERE id = ?",
+    )
+    .bind(id)
+    .all();
+  return (result.results ?? []) as Array<{
+    locale: string;
+    tiptap_json: string;
+    cover_image_url: string | null;
+  }>;
 }
 
 export async function deleteProject(

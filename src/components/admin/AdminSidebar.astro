@@ -1,0 +1,296 @@
+---
+import { useTranslations } from "@/lib/i18n/utils";
+import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
+
+interface Props {
+  currentPath: string;
+}
+
+const { currentPath } = Astro.props;
+const t = useTranslations(DEFAULT_LANGUAGE);
+
+const navItems = [
+  { href: "/admin", label: t("admin.dashboard"), icon: "dashboard" },
+  { href: "/admin/posts", label: t("admin.posts"), icon: "post" },
+  { href: "/admin/projects", label: t("admin.projects"), icon: "project" },
+  { href: "/admin/developers", label: t("admin.developer"), icon: "developer" },
+];
+
+function isActive(href: string): boolean {
+  if (href === "/admin") return currentPath === "/admin";
+  return currentPath.startsWith(href);
+}
+---
+
+<aside
+  class="fixed inset-y-0 left-0 z-40 w-64 bg-bg-primary border-r border-border hidden md:flex flex-col"
+>
+  <div class="h-16 flex items-center px-6 border-b border-border">
+    <a href="/admin" class="flex items-center gap-2.5">
+      <img
+        src="https://static.mandacode.com/mandacode-devs/mandacode.webp"
+        alt="Mandacode"
+        class="h-7 w-7"
+        width="28"
+        height="28"
+      />
+      <span class="font-semibold text-text-primary">Mandacode</span>
+      <span
+        class="text-xs font-medium px-1.5 py-0.5 rounded bg-accent-subtle text-accent"
+        >Admin</span
+      >
+    </a>
+  </div>
+
+  <nav
+    class="flex-1 p-4 space-y-1 overflow-y-auto"
+    aria-label="Admin navigation"
+  >
+    {
+      navItems.map((item) => (
+        <a
+          href={item.href}
+          class={`admin-sidebar-link ${isActive(item.href) ? "active" : ""}`}
+        >
+          <span class="w-5 h-5 flex items-center justify-center">
+            {item.icon === "dashboard" && (
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                class="w-[18px] h-[18px]"
+              >
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+              </svg>
+            )}
+            {item.icon === "post" && (
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                class="w-[18px] h-[18px]"
+              >
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <line x1="10" y1="9" x2="8" y2="9" />
+              </svg>
+            )}
+            {item.icon === "project" && (
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                class="w-[18px] h-[18px]"
+              >
+                <path d="M3 3h18v18H3z" />
+                <path d="M3 9h18" />
+                <path d="M9 21V9" />
+              </svg>
+            )}
+            {item.icon === "developer" && (
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                class="w-[18px] h-[18px]"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            )}
+          </span>
+          {item.label}
+        </a>
+      ))
+    }
+  </nav>
+
+  <div class="p-4 border-t border-border">
+    <a href="/" class="admin-sidebar-link">
+      <span class="w-5 h-5 flex items-center justify-center">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          class="w-[18px] h-[18px]"
+        >
+          <path d="M3 12l9-9 9 9"></path>
+          <path d="M9 21V9h6v12"></path>
+        </svg>
+      </span>
+      View site
+    </a>
+  </div>
+</aside>
+
+<!-- Mobile sidebar overlay -->
+<div
+  id="admin-mobile-overlay"
+  class="fixed inset-0 z-30 bg-black/40 hidden md:hidden"
+  data-admin-overlay
+>
+</div>
+
+<!-- Mobile sidebar -->
+<aside
+  id="admin-mobile-sidebar"
+  class="fixed inset-y-0 left-0 z-40 w-64 bg-bg-primary border-r border-border transform -translate-x-full transition-transform duration-200 md:hidden flex flex-col"
+  data-admin-mobile-sidebar
+>
+  <div
+    class="h-16 flex items-center justify-between px-6 border-b border-border"
+  >
+    <a href="/admin" class="flex items-center gap-2.5">
+      <img
+        src="https://static.mandacode.com/mandacode-devs/mandacode.webp"
+        alt="Mandacode"
+        class="h-7 w-7"
+        width="28"
+        height="28"
+      />
+      <span class="font-semibold text-text-primary">Mandacode</span>
+      <span
+        class="text-xs font-medium px-1.5 py-0.5 rounded bg-accent-subtle text-accent"
+        >Admin</span
+      >
+    </a>
+    <button
+      type="button"
+      class="p-1.5 text-text-secondary hover:text-text-primary"
+      data-admin-close-sidebar
+      aria-label="Close menu"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        class="w-5 h-5"
+      >
+        <path d="M18 6L6 18M6 6l12 12"></path>
+      </svg>
+    </button>
+  </div>
+
+  <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+    {
+      navItems.map((item) => (
+        <a
+          href={item.href}
+          class={`admin-sidebar-link ${isActive(item.href) ? "active" : ""}`}
+        >
+          <span class="w-5 h-5 flex items-center justify-center">
+            {item.icon === "dashboard" && (
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                class="w-[18px] h-[18px]"
+              >
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+              </svg>
+            )}
+            {item.icon === "post" && (
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                class="w-[18px] h-[18px]"
+              >
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <line x1="10" y1="9" x2="8" y2="9" />
+              </svg>
+            )}
+            {item.icon === "project" && (
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                class="w-[18px] h-[18px]"
+              >
+                <path d="M3 3h18v18H3z" />
+                <path d="M3 9h18" />
+                <path d="M9 21V9" />
+              </svg>
+            )}
+            {item.icon === "developer" && (
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                class="w-[18px] h-[18px]"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            )}
+          </span>
+          {item.label}
+        </a>
+      ))
+    }
+  </nav>
+
+  <div class="p-4 border-t border-border">
+    <a href="/" class="admin-sidebar-link">
+      <span class="w-5 h-5 flex items-center justify-center">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          class="w-[18px] h-[18px]"
+        >
+          <path d="M3 12l9-9 9 9"></path>
+          <path d="M9 21V9h6v12"></path>
+        </svg>
+      </span>
+      View site
+    </a>
+  </div>
+</aside>
+
+<script>
+  (function () {
+    const openBtn = document.querySelector("[data-admin-open-sidebar]");
+    const closeBtn = document.querySelector("[data-admin-close-sidebar]");
+    const sidebar = document.querySelector("[data-admin-mobile-sidebar]");
+    const overlay = document.querySelector("[data-admin-overlay]");
+
+    function open() {
+      sidebar?.classList.remove("-translate-x-full");
+      overlay?.classList.remove("hidden");
+      document.body.classList.add("overflow-hidden");
+    }
+
+    function close() {
+      sidebar?.classList.add("-translate-x-full");
+      overlay?.classList.add("hidden");
+      document.body.classList.remove("overflow-hidden");
+    }
+
+    openBtn?.addEventListener("click", open);
+    closeBtn?.addEventListener("click", close);
+    overlay?.addEventListener("click", close);
+  })();
+</script>

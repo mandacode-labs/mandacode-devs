@@ -1,9 +1,15 @@
 ---
-import Layout from "@/components/layouts/Layout.astro";
+import AdminLayout from "@/components/layouts/AdminLayout.astro";
+import AdminSidebar from "@/components/admin/AdminSidebar.astro";
+import AdminHeader from "@/components/admin/AdminHeader.astro";
+import AdminCard from "@/components/admin/AdminCard.astro";
+import StatusBadge from "@/components/admin/StatusBadge.astro";
+import LocaleChip from "@/components/admin/LocaleChip.astro";
+import EmptyState from "@/components/admin/EmptyState.astro";
 import { requireAuth } from "@/lib/auth";
 import { getAllProjects } from "@/lib/db/projects";
 import { useTranslations } from "@/lib/i18n/utils";
-import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
+import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@/lib/config/languages";
 import type { Project } from "@/lib/db/schema";
 
 requireAuth(Astro);
@@ -20,80 +26,194 @@ const grouped = projects.reduce(
   {} as Record<string, Project[]>,
 );
 
-function statusClass(status: string): string {
-  switch (status) {
-    case "published":
-      return "bg-green-100 text-green-800";
-    case "archived":
-      return "bg-gray-100 text-gray-800";
-    default:
-      return "bg-yellow-100 text-yellow-800";
-  }
+const groupedArray = Object.entries(grouped).map(([id, locales]) => {
+  const primary =
+    locales.find((p) => p.locale === DEFAULT_LANGUAGE) || locales[0];
+  const missingLocales = SUPPORTED_LANGUAGES.filter(
+    (lang) => !locales.some((p) => p.locale === lang),
+  );
+  return { id, locales, primary, missingLocales };
+});
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 ---
 
-<Layout title={t("admin.projects")}>
-  <div class="max-w-6xl mx-auto px-4 py-12">
-    <div class="flex items-center justify-between mb-8">
-      <h1 class="text-3xl font-bold">{t("admin.projects")}</h1>
-      <a
-        href="/admin/projects/new"
-        class="px-4 py-2 bg-accent text-white rounded hover:bg-accent/90"
-      >
-        {t("admin.newProject")}
-      </a>
-    </div>
+<AdminLayout title={t("admin.projects")}>
+  <div class="flex min-h-screen">
+    <AdminSidebar currentPath={Astro.url.pathname} />
 
-    {
-      Object.keys(grouped).length === 0 ? (
-        <p class="text-text-secondary">{t("admin.noItems")}</p>
-      ) : (
-        <div class="space-y-4">
-          {Object.entries(grouped).map(([id, locales]) => {
-            const primary =
-              locales.find((p) => p.locale === DEFAULT_LANGUAGE) || locales[0];
-            const hiddenCount = locales.filter((p) => p.hidden).length;
-            return (
-              <div class="border border-border rounded-xl p-4 bg-bg-primary">
-                <div class="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 class="text-lg font-semibold">{primary.title}</h2>
-                    <p class="text-sm text-text-secondary">{id}</p>
-                    <div class="flex flex-wrap gap-2 mt-2">
-                      {locales.map((project) => (
-                        <a
-                          href={`/admin/projects/edit/${project.id}?locale=${project.locale}`}
-                          class={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs border ${project.hidden ? "border-gray-400 opacity-60" : "border-border"}`}
-                        >
-                          <span class="font-medium">{project.locale}</span>
-                          <span
-                            class={`px-1.5 py-0.5 rounded ${statusClass(project.publish_status)}`}
-                          >
-                            {t(`admin.${project.publish_status}` as never)}
-                          </span>
-                        </a>
-                      ))}
-                    </div>
-                    {hiddenCount > 0 && (
-                      <p class="text-xs text-text-secondary mt-2">
-                        {hiddenCount}/{locales.length} {t("admin.hidden")}
-                      </p>
-                    )}
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <a
-                      href={`/admin/projects/edit/${id}?locale=${DEFAULT_LANGUAGE}`}
-                      class="text-sm px-3 py-1.5 border border-border rounded hover:border-border-hover text-center"
-                    >
-                      {t("admin.edit")}
-                    </a>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+    <div class="flex-1 md:ml-64">
+      <AdminHeader
+        title={t("admin.projects")}
+        subtitle="Manage projects across languages"
+      />
+
+      <main class="p-4 sm:p-6 lg:p-8">
+        <div
+          class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6"
+        >
+          <div>
+            <h1 class="text-2xl font-bold text-text-primary">
+              {t("admin.projects")}
+            </h1>
+            <p class="text-sm text-text-secondary mt-1">
+              {Object.keys(grouped).length} projects · {projects.length} language
+              versions
+            </p>
+          </div>
+          <a
+            href="/admin/projects/new"
+            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover transition-colors"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              class="w-4 h-4"
+            >
+              <path d="M12 5v14M5 12h14"></path>
+            </svg>
+            {t("admin.newProject")}
+          </a>
         </div>
-      )
-    }
+
+        {
+          groupedArray.length === 0 ? (
+            <AdminCard>
+              <EmptyState
+                title="No projects yet"
+                message="Create your first project to get started."
+              />
+            </AdminCard>
+          ) : (
+            <AdminCard class="overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead class="bg-bg-secondary border-b border-border">
+                    <tr>
+                      <th class="px-5 py-3.5 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
+                        Project
+                      </th>
+                      <th class="px-5 py-3.5 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
+                        Locales
+                      </th>
+                      <th class="px-5 py-3.5 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
+                        Primary Status
+                      </th>
+                      <th class="px-5 py-3.5 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
+                        Order
+                      </th>
+                      <th class="px-5 py-3.5 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
+                        Updated
+                      </th>
+                      <th class="px-5 py-3.5 text-right font-semibold text-text-secondary text-xs uppercase tracking-wide">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-border">
+                    {groupedArray.map(
+                      ({ id, locales, primary, missingLocales }) => (
+                        <tr class="hover:bg-bg-secondary/50 transition-colors group">
+                          <td class="px-5 py-4">
+                            <div class="flex items-start gap-3">
+                              <div class="w-9 h-9 rounded-lg bg-bg-tertiary flex items-center justify-center shrink-0">
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="1.5"
+                                  class="w-4.5 h-4.5 text-text-muted"
+                                >
+                                  <path d="M3 3h18v18H3z" />
+                                  <path d="M3 9h18" />
+                                  <path d="M9 21V9" />
+                                </svg>
+                              </div>
+                              <div>
+                                <p class="font-medium text-text-primary">
+                                  {primary.title}
+                                </p>
+                                <p class="text-xs text-text-muted font-mono mt-0.5">
+                                  /{id}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td class="px-5 py-4">
+                            <div class="flex flex-wrap items-center gap-1.5">
+                              {locales.map((project) => (
+                                <a
+                                  href={`/admin/projects/edit/${project.id}?locale=${project.locale}`}
+                                  class="inline-flex items-center"
+                                  title={`Edit ${project.locale}`}
+                                >
+                                  <LocaleChip
+                                    locale={project.locale}
+                                    active={
+                                      project.publish_status !== "archived"
+                                    }
+                                  />
+                                </a>
+                              ))}
+                              {missingLocales.map((locale) => (
+                                <a
+                                  href={`/admin/projects/edit/${id}?locale=${locale}`}
+                                  class="inline-flex items-center opacity-40 hover:opacity-100"
+                                  title={`Create ${locale}`}
+                                >
+                                  <LocaleChip locale={locale} />
+                                </a>
+                              ))}
+                            </div>
+                          </td>
+                          <td class="px-5 py-4">
+                            <StatusBadge status={primary.publish_status} />
+                            {primary.publish_status === "archived" && (
+                              <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border bg-neutral-100 text-neutral-600 border-neutral-200">
+                                Archived
+                              </span>
+                            )}
+                          </td>
+                          <td class="px-5 py-4 text-text-secondary">
+                            #{primary.project_order}
+                          </td>
+                          <td class="px-5 py-4 text-text-secondary">
+                            {formatDate(primary.updated_at)}
+                          </td>
+                          <td class="px-5 py-4 text-right">
+                            <div class="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+                              <a
+                                href={`/admin/projects/edit/${id}?locale=${DEFAULT_LANGUAGE}`}
+                                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-text-primary bg-bg-secondary hover:bg-bg-tertiary border border-border rounded-md transition-colors"
+                              >
+                                Edit
+                              </a>
+                              <a
+                                href={`/admin/projects/edit/${id}?locale=${DEFAULT_LANGUAGE}`}
+                                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-accent hover:text-accent-hover hover:bg-accent-subtle rounded-md transition-colors"
+                              >
+                                View
+                              </a>
+                            </div>
+                          </td>
+                        </tr>
+                      ),
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </AdminCard>
+          )
+        }
+      </main>
+    </div>
   </div>
-</Layout>
+</AdminLayout>

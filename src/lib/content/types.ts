@@ -1,8 +1,13 @@
 import type { ProjectStatus } from "@/lib/db/schema";
 
-export interface UnifiedPost {
+interface BaseUnifiedContent {
   id: string;
   locale: string;
+  d1Content?: string;
+  markdownContent?: string;
+}
+
+export interface UnifiedPost extends BaseUnifiedContent {
   title: string;
   description: string | null;
   pubDate: Date;
@@ -10,13 +15,9 @@ export interface UnifiedPost {
   ogImage: string | null;
   tags: string[];
   hidden: boolean;
-  source: "d1" | "collection";
-  content?: string;
 }
 
-export interface UnifiedProject {
-  id: string;
-  locale: string;
+export interface UnifiedProject extends BaseUnifiedContent {
   title: string;
   description: string | null;
   status: ProjectStatus;
@@ -30,13 +31,9 @@ export interface UnifiedProject {
   blogUrl: string | null;
   coverImage: string | null;
   hidden: boolean;
-  source: "d1" | "collection";
-  content?: string;
 }
 
-export interface UnifiedDeveloper {
-  id: string;
-  locale: string;
+export interface UnifiedDeveloper extends BaseUnifiedContent {
   name: string;
   role: string;
   bio: string;
@@ -58,6 +55,4 @@ export interface UnifiedDeveloper {
     department: string;
     status: string;
   }>;
-  source: "d1" | "collection";
-  content?: string;
 }

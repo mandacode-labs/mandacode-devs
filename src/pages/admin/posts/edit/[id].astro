@@ -1,8 +1,8 @@
 ---
-import Layout from "@/components/layouts/Layout.astro";
+import AdminFormLayout from "@/components/admin/AdminFormLayout.astro";
+import PostEditor from "@/components/admin/PostEditor";
 import { requireAuth } from "@/lib/auth";
 import { getPostById } from "@/lib/db/posts";
-import PostEditor from "@/components/admin/PostEditor";
 import { useTranslations } from "@/lib/i18n/utils";
 import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
 
@@ -29,21 +29,19 @@ const initialData = {
   description: post.description,
   tiptap_json: post.tiptap_json,
   publish_status: post.publish_status,
-  hidden: post.hidden === 1,
   pub_date: post.pub_date,
   cover_image_url: post.cover_image_url,
   og_image_url: post.og_image_url,
 };
 ---
 
-<Layout title={`${t("admin.edit")} ${t("admin.posts")}`}>
-  <div class="max-w-4xl mx-auto px-4 py-12">
-    <div class="flex items-center justify-between mb-8">
-      <h1 class="text-3xl font-bold">{t("admin.edit")}: {post.title}</h1>
-      <a href="/admin/posts" class="text-text-secondary hover:text-text-primary"
-        >← Back</a
-      >
-    </div>
-    <PostEditor client:load initialData={initialData} />
-  </div>
-</Layout>
+<AdminFormLayout
+  title={`${t("admin.edit")} · ${post.title}`}
+  headerTitle={t("admin.edit")}
+  headerSubtitle={post.title}
+  backHref="/admin/posts"
+  backLabel="Back to posts"
+  currentPath="/admin/posts"
+>
+  <PostEditor client:only="react" initialData={initialData} />
+</AdminFormLayout>

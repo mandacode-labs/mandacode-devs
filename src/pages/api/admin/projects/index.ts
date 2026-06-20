@@ -33,7 +33,6 @@ export const POST: APIRoute = async (context) => {
       description: body.description ?? null,
       tiptap_json: body.tiptap_json,
       publish_status: body.publish_status,
-      hidden: body.hidden ? 1 : 0,
       project_status: body.project_status,
       duration: body.duration,
       team_size: body.team_size,

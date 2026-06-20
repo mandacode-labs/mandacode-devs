@@ -1,11 +1,20 @@
 ---
-import Layout from "@/components/layouts/Layout.astro";
+import AdminFormLayout from "@/components/admin/AdminFormLayout.astro";
 import ProjectEditor from "@/components/admin/ProjectEditor";
+import { requireAuth } from "@/lib/auth";
+import { useTranslations } from "@/lib/i18n/utils";
+import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
+
+requireAuth(Astro);
+const t = useTranslations(DEFAULT_LANGUAGE);
 ---
 
-<Layout title="New Project">
-  <div class="max-w-4xl mx-auto px-4 py-12">
-    <h1 class="text-3xl font-bold mb-8">New Project</h1>
-    <ProjectEditor client:load />
-  </div>
-</Layout>
+<AdminFormLayout
+  title={t("admin.newProject")}
+  headerTitle={t("admin.newProject")}
+  backHref="/admin/projects"
+  backLabel="Back to projects"
+  currentPath="/admin/projects"
+>
+  <ProjectEditor client:only="react" />
+</AdminFormLayout>

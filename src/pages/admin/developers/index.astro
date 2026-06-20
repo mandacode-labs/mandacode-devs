@@ -1,9 +1,18 @@
 ---
-import Layout from "@/components/layouts/Layout.astro";
+import AdminLayout from "@/components/layouts/AdminLayout.astro";
+import AdminSidebar from "@/components/admin/AdminSidebar.astro";
+import AdminHeader from "@/components/admin/AdminHeader.astro";
+import AdminCard from "@/components/admin/AdminCard.astro";
+import LocaleChip from "@/components/admin/LocaleChip.astro";
+import EmptyState from "@/components/admin/EmptyState.astro";
 import { requireAuth } from "@/lib/auth";
 import { getAllDevelopers } from "@/lib/db/developers";
 import { useTranslations } from "@/lib/i18n/utils";
-import { DEFAULT_LANGUAGE, MAIN_DEVELOPER_ID } from "@/lib/config/languages";
+import {
+  DEFAULT_LANGUAGE,
+  SUPPORTED_LANGUAGES,
+  MAIN_DEVELOPER_ID,
+} from "@/lib/config/languages";
 import type { Developer } from "@/lib/db/schema";
 
 requireAuth(Astro);
@@ -19,59 +28,193 @@ const grouped = developers.reduce(
   },
   {} as Record<string, Developer[]>,
 );
+
+const groupedArray = Object.entries(grouped).map(([id, locales]) => {
+  const primary =
+    locales.find((d) => d.locale === DEFAULT_LANGUAGE) || locales[0];
+  const missingLocales = SUPPORTED_LANGUAGES.filter(
+    (lang) => !locales.some((d) => d.locale === lang),
+  );
+  return { id, locales, primary, missingLocales };
+});
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
 ---
 
-<Layout title={t("admin.developer")}>
-  <div class="max-w-6xl mx-auto px-4 py-12">
-    <div class="flex items-center justify-between mb-8">
-      <h1 class="text-3xl font-bold">{t("admin.developer")}</h1>
-      <a
-        href={`/admin/developers/edit/${MAIN_DEVELOPER_ID}?locale=${DEFAULT_LANGUAGE}`}
-        class="px-4 py-2 bg-accent text-white rounded hover:bg-accent/90"
-      >
-        {t("admin.edit")}
-      </a>
-    </div>
+<AdminLayout title={t("admin.developer")}>
+  <div class="flex min-h-screen">
+    <AdminSidebar currentPath={Astro.url.pathname} />
 
-    {
-      Object.keys(grouped).length === 0 ? (
-        <p class="text-text-secondary">{t("admin.noItems")}</p>
-      ) : (
-        <div class="space-y-4">
-          {Object.entries(grouped).map(([id, locales]) => {
-            const primary =
-              locales.find((d) => d.locale === DEFAULT_LANGUAGE) || locales[0];
-            return (
-              <div class="border border-border rounded-xl p-4 bg-bg-primary">
-                <div class="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 class="text-lg font-semibold">{primary.name}</h2>
-                    <p class="text-sm text-text-secondary">{id}</p>
-                    <div class="flex flex-wrap gap-2 mt-2">
-                      {locales.map((developer) => (
-                        <a
-                          href={`/admin/developers/edit/${developer.id}?locale=${developer.locale}`}
-                          class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs border border-border"
-                        >
-                          <span class="font-medium">{developer.locale}</span>
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <a
-                      href={`/admin/developers/edit/${id}?locale=${DEFAULT_LANGUAGE}`}
-                      class="text-sm px-3 py-1.5 border border-border rounded hover:border-border-hover text-center"
-                    >
-                      {t("admin.edit")}
-                    </a>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+    <div class="flex-1 md:ml-64">
+      <AdminHeader
+        title={t("admin.developer")}
+        subtitle="Manage developer profile translations"
+      />
+
+      <main class="p-4 sm:p-6 lg:p-8">
+        <div
+          class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6"
+        >
+          <div>
+            <h1 class="text-2xl font-bold text-text-primary">
+              {t("admin.developer")}
+            </h1>
+            <p class="text-sm text-text-secondary mt-1">
+              {Object.keys(grouped).length} profiles · {developers.length} language
+              versions
+            </p>
+          </div>
+          <a
+            href={`/admin/developers/edit/${MAIN_DEVELOPER_ID}?locale=${DEFAULT_LANGUAGE}`}
+            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover transition-colors"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              class="w-4 h-4"
+            >
+              <path
+                d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+              ></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+              ></path>
+            </svg>
+            {t("admin.edit")}
+          </a>
         </div>
-      )
-    }
+
+        {
+          groupedArray.length === 0 ? (
+            <AdminCard>
+              <EmptyState
+                title="No developer profiles"
+                message="Create a developer profile to get started."
+              />
+            </AdminCard>
+          ) : (
+            <AdminCard class="overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead class="bg-bg-secondary border-b border-border">
+                    <tr>
+                      <th class="px-5 py-3.5 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
+                        Profile
+                      </th>
+                      <th class="px-5 py-3.5 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
+                        Locales
+                      </th>
+                      <th class="px-5 py-3.5 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
+                        Role
+                      </th>
+                      <th class="px-5 py-3.5 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
+                        Updated
+                      </th>
+                      <th class="px-5 py-3.5 text-right font-semibold text-text-secondary text-xs uppercase tracking-wide">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-border">
+                    {groupedArray.map(
+                      ({ id, locales, primary, missingLocales }) => (
+                        <tr class="hover:bg-bg-secondary/50 transition-colors group">
+                          <td class="px-5 py-4">
+                            <div class="flex items-start gap-3">
+                              <div class="w-9 h-9 rounded-lg bg-bg-tertiary flex items-center justify-center shrink-0">
+                                {primary.avatar_url ? (
+                                  <img
+                                    src={primary.avatar_url}
+                                    alt={primary.name}
+                                    class="w-full h-full rounded-lg object-cover"
+                                  />
+                                ) : (
+                                  <svg
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1.5"
+                                    class="w-4.5 h-4.5 text-text-muted"
+                                  >
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                    <circle cx="12" cy="7" r="4" />
+                                  </svg>
+                                )}
+                              </div>
+                              <div>
+                                <p class="font-medium text-text-primary">
+                                  {primary.name}
+                                </p>
+                                <p class="text-xs text-text-muted font-mono mt-0.5">
+                                  /{id}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td class="px-5 py-4">
+                            <div class="flex flex-wrap items-center gap-1.5">
+                              {locales.map((developer) => (
+                                <a
+                                  href={`/admin/developers/edit/${developer.id}?locale=${developer.locale}`}
+                                  class="inline-flex items-center"
+                                  title={`Edit ${developer.locale}`}
+                                >
+                                  <LocaleChip
+                                    locale={developer.locale}
+                                    active
+                                  />
+                                </a>
+                              ))}
+                              {missingLocales.map((locale) => (
+                                <a
+                                  href={`/admin/developers/edit/${id}?locale=${locale}`}
+                                  class="inline-flex items-center opacity-40 hover:opacity-100"
+                                  title={`Create ${locale}`}
+                                >
+                                  <LocaleChip locale={locale} />
+                                </a>
+                              ))}
+                            </div>
+                          </td>
+                          <td class="px-5 py-4 text-text-secondary">
+                            {primary.role}
+                          </td>
+                          <td class="px-5 py-4 text-text-secondary">
+                            {formatDate(primary.updated_at)}
+                          </td>
+                          <td class="px-5 py-4 text-right">
+                            <div class="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+                              <a
+                                href={`/admin/developers/edit/${id}?locale=${DEFAULT_LANGUAGE}`}
+                                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-text-primary bg-bg-secondary hover:bg-bg-tertiary border border-border rounded-md transition-colors"
+                              >
+                                Edit
+                              </a>
+                              <a
+                                href={`/admin/developers/edit/${id}?locale=${DEFAULT_LANGUAGE}`}
+                                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-accent hover:text-accent-hover hover:bg-accent-subtle rounded-md transition-colors"
+                              >
+                                View
+                              </a>
+                            </div>
+                          </td>
+                        </tr>
+                      ),
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </AdminCard>
+          )
+        }
+      </main>
+    </div>
   </div>
-</Layout>
+</AdminLayout>

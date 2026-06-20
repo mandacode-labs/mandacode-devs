@@ -1,0 +1,72 @@
+---
+import "@/styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+}
+
+const { title, description, ogImage } = Astro.props;
+const siteTitle = "Mandacode Admin";
+const pageTitle = title ? `${title} | ${siteTitle}` : siteTitle;
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta
+      name="description"
+      content={description ?? "Mandacode content management"}
+    />
+    <meta property="og:title" content={pageTitle} />
+    <meta
+      property="og:description"
+      content={description ?? "Mandacode content management"}
+    />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>{pageTitle}</title>
+    <style is:global>
+      .admin-surface {
+        background-color: var(--color-bg-secondary);
+      }
+      .admin-card {
+        background-color: var(--color-bg-primary);
+        border: 1px solid var(--color-border);
+        border-radius: 0.75rem;
+        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04);
+      }
+      .admin-sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.625rem 0.875rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--color-text-secondary);
+        transition: all 0.15s ease;
+      }
+      .admin-sidebar-link:hover {
+        background-color: var(--color-bg-tertiary);
+        color: var(--color-text-primary);
+      }
+      .admin-sidebar-link.active {
+        background-color: var(--color-accent-subtle);
+        color: var(--color-accent);
+      }
+    </style>
+  </head>
+  <body class="min-h-screen admin-surface text-text-primary antialiased">
+    <slot />
+  </body>
+</html>

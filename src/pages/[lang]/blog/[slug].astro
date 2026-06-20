@@ -3,7 +3,7 @@ import Layout from "@/components/layouts/Layout.astro";
 import CoverImage from "@/components/ui/CoverImage.astro";
 import BackLink from "@/components/shared/BackLink.astro";
 import BlogHeader from "@/components/blog/BlogHeader.astro";
-import TiptapRenderer from "@/components/shared/TiptapRenderer.astro";
+import ContentRenderer from "@/components/shared/ContentRenderer.astro";
 import { getPost } from "@/lib/content/service";
 import { useTranslations } from "@/lib/i18n/utils";
 import { isValidLanguage } from "@/lib/config/languages";
@@ -43,14 +43,11 @@ const image = post.coverImage || post.ogImage;
 
     <BlogHeader post={post} lang={lang} />
 
-    <div class="prose prose-neutral max-w-none mt-12">
-      {
-        post.source === "d1" && post.content ? (
-          <TiptapRenderer content={post.content} />
-        ) : (
-          <div set:html={post.content} />
-        )
-      }
-    </div>
+    <ContentRenderer
+      d1Content={post.d1Content}
+      markdownContent={post.markdownContent}
+      mode="stack"
+      class="mt-12"
+    />
   </div>
 </Layout>

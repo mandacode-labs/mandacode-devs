@@ -10,7 +10,6 @@ export interface CreatePostInput {
   description: string | null;
   tiptap_json: string;
   publish_status: PublishStatus;
-  hidden: number;
   pub_date: string;
   cover_image_url: string | null;
   og_image_url: string | null;
@@ -22,7 +21,6 @@ export interface UpdatePostInput {
   description?: string | null;
   tiptap_json?: string;
   publish_status?: PublishStatus;
-  hidden?: number;
   pub_date?: string;
   cover_image_url?: string | null;
   og_image_url?: string | null;
@@ -31,7 +29,6 @@ export interface UpdatePostInput {
 
 export interface GetPostsOptions {
   publishStatus?: PublishStatus;
-  includeHidden?: boolean;
 }
 
 export async function getPosts(
@@ -41,15 +38,11 @@ export async function getPosts(
   const db = getDatabase();
 
   let query = "SELECT * FROM posts WHERE locale = ?";
-  const params: (string | PublishStatus | number)[] = [locale];
+  const params: (string | PublishStatus)[] = [locale];
 
   if (options.publishStatus) {
     query += " AND publish_status = ?";
     params.push(options.publishStatus);
-  }
-
-  if (!options.includeHidden) {
-    query += " AND hidden = 0";
   }
 
   query += " ORDER BY pub_date DESC";
@@ -95,8 +88,8 @@ export async function createPost(input: CreatePostInput): Promise<void> {
     .prepare(
       `INSERT INTO posts (
         id, locale, origin, author_id, title, description, tiptap_json,
-        publish_status, hidden, pub_date, cover_image_url, og_image_url, published_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        publish_status, pub_date, cover_image_url, og_image_url, published_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       input.id,
@@ -107,7 +100,6 @@ export async function createPost(input: CreatePostInput): Promise<void> {
       input.description,
       input.tiptap_json,
       input.publish_status,
-      input.hidden,
       input.pub_date,
       input.cover_image_url,
       input.og_image_url,
@@ -174,6 +166,29 @@ export async function getPostLocales(id: string): Promise<string[]> {
   return (result.results ?? []).map(
     (row) => (row as { locale: string }).locale,
   );
+}
+
+export async function getPostLocalesWithContent(id: string): Promise<
+  Array<{
+    locale: string;
+    tiptap_json: string;
+    cover_image_url: string | null;
+    og_image_url: string | null;
+  }>
+> {
+  const db = getDatabase();
+  const result = await db
+    .prepare(
+      "SELECT locale, tiptap_json, cover_image_url, og_image_url FROM posts WHERE id = ?",
+    )
+    .bind(id)
+    .all();
+  return (result.results ?? []) as Array<{
+    locale: string;
+    tiptap_json: string;
+    cover_image_url: string | null;
+    og_image_url: string | null;
+  }>;
 }
 
 export async function deletePost(id: string, locale?: string): Promise<void> {

@@ -7,6 +7,8 @@ import { errorResponse, jsonResponse, ApiError } from "@/lib/api/response";
 import { scheduleTranslations } from "@/lib/translation/scheduler";
 import { invalidateContentCache } from "@/lib/cache";
 import { SUPPORTED_LANGUAGES } from "@/lib/config/languages";
+import { cleanupUnusedEntityAssets, deleteEntityDirectory } from "@/lib/assets";
+import { extractAssetUrlsFromTiptapJson } from "@/lib/tiptap/extract";
 
 export const GET: APIRoute = async (context) => {
   try {
@@ -57,7 +59,6 @@ export const PUT: APIRoute = async (context) => {
       description: body.description,
       tiptap_json: body.tiptap_json,
       publish_status: body.publish_status,
-      hidden: body.hidden !== undefined ? (body.hidden ? 1 : 0) : undefined,
       project_status: body.project_status,
       duration: body.duration,
       team_size: body.team_size,
@@ -78,6 +79,12 @@ export const PUT: APIRoute = async (context) => {
     }
 
     await projectsRepo.updateProject(id, locale, updateData);
+
+    context.locals.cfContext?.waitUntil(
+      cleanupProjectAssets(id, locale, body.tiptap_json, {
+        cover_image_url: body.cover_image_url ?? null,
+      }),
+    );
 
     await scheduleTranslations(
       context,
@@ -117,11 +124,20 @@ export const DELETE: APIRoute = async (context) => {
 
     if (all) {
       await projectsRepo.deleteAllProjectLocales(id);
+      context.locals.cfContext?.waitUntil(deleteEntityDirectory("project", id));
     } else {
       if (!locale) {
         throw new ApiError("Missing locale", 400);
       }
-      await projectsRepo.deleteProject(id, locale);
+      const remainingLocales = await projectsRepo.getProjectLocales(id);
+      if (remainingLocales.length <= 1) {
+        await projectsRepo.deleteProject(id, locale);
+        context.locals.cfContext?.waitUntil(
+          deleteEntityDirectory("project", id),
+        );
+      } else {
+        await projectsRepo.deleteProject(id, locale);
+      }
     }
 
     context.locals.cfContext?.waitUntil(
@@ -133,5 +149,33 @@ export const DELETE: APIRoute = async (context) => {
     return errorResponse(error);
   }
 };
+
+async function cleanupProjectAssets(
+  id: string,
+  locale: string,
+  tiptapJson: string | undefined,
+  imageUrls: { cover_image_url: string | null },
+): Promise<void> {
+  const locales = await projectsRepo.getProjectLocalesWithContent(id);
+  const usedUrls = new Set<string>();
+
+  for (const row of locales) {
+    if (row.locale === locale) {
+      if (tiptapJson) {
+        for (const url of extractAssetUrlsFromTiptapJson(tiptapJson)) {
+          usedUrls.add(url);
+        }
+      }
+      if (imageUrls.cover_image_url) usedUrls.add(imageUrls.cover_image_url);
+    } else {
+      for (const url of extractAssetUrlsFromTiptapJson(row.tiptap_json)) {
+        usedUrls.add(url);
+      }
+      if (row.cover_image_url) usedUrls.add(row.cover_image_url);
+    }
+  }
+
+  await cleanupUnusedEntityAssets("project", id, Array.from(usedUrls));
+}
 
 export const prerender = false;

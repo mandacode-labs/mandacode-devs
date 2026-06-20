@@ -2,7 +2,9 @@ import { useCallback, useState, useEffect } from "react";
 import TiptapEditor from "@/components/editor/TiptapEditor";
 import ImageUploadButton from "@/components/editor/ImageUploadButton";
 import DeleteModal from "@/components/admin/DeleteModal";
+import { AdminSection } from "@/components/admin/AdminSection";
 import { LANGUAGE_CONFIGS } from "@/lib/config/languages";
+import { generateEntityId } from "@/lib/id";
 
 export interface PostEditorInitialData {
   id: string;
@@ -11,7 +13,6 @@ export interface PostEditorInitialData {
   description: string | null;
   tiptap_json: string;
   publish_status: string;
-  hidden: boolean;
   pub_date: string;
   cover_image_url: string | null;
   og_image_url: string | null;
@@ -28,7 +29,7 @@ interface Toast {
 
 export default function PostEditor({ initialData }: PostEditorProps) {
   const isEditMode = !!initialData;
-  const [id, setId] = useState(initialData?.id ?? "");
+  const [id] = useState(() => initialData?.id ?? generateEntityId());
   const [locale, setLocale] = useState(initialData?.locale ?? "ko");
   const [title, setTitle] = useState(initialData?.title ?? "");
   const [description, setDescription] = useState(
@@ -47,13 +48,9 @@ export default function PostEditor({ initialData }: PostEditorProps) {
     initialData?.cover_image_url ?? "",
   );
   const [ogImageUrl, setOgImageUrl] = useState(initialData?.og_image_url ?? "");
-  const [insertedImageUrl, setInsertedImageUrl] = useState<string | undefined>(
-    undefined,
-  );
   const [publishStatus, setPublishStatus] = useState(
     initialData?.publish_status ?? "draft",
   );
-  const [hidden, setHidden] = useState(initialData?.hidden ?? false);
   const [targetLocales, setTargetLocales] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -62,7 +59,6 @@ export default function PostEditor({ initialData }: PostEditorProps) {
 
   useEffect(() => {
     if (initialData) {
-      setId(initialData.id);
       setLocale(initialData.locale);
       setTitle(initialData.title);
       setDescription(initialData.description ?? "");
@@ -71,7 +67,6 @@ export default function PostEditor({ initialData }: PostEditorProps) {
       setCoverImageUrl(initialData.cover_image_url ?? "");
       setOgImageUrl(initialData.og_image_url ?? "");
       setPublishStatus(initialData.publish_status);
-      setHidden(initialData.hidden);
     }
   }, [initialData]);
 
@@ -80,10 +75,6 @@ export default function PostEditor({ initialData }: PostEditorProps) {
     const timer = setTimeout(() => setToast(null), 4000);
     return () => clearTimeout(timer);
   }, [toast]);
-
-  const handleTiptapImage = (url: string) => {
-    setInsertedImageUrl(url);
-  };
 
   const handleTiptapChange = useCallback((json: string) => {
     setTiptapJson(json);
@@ -100,7 +91,6 @@ export default function PostEditor({ initialData }: PostEditorProps) {
       description: description || null,
       tiptap_json: tiptapJson,
       publish_status: publishStatus,
-      hidden,
       pub_date: new Date(pubDate).toISOString(),
       cover_image_url: coverImageUrl || null,
       og_image_url: ogImageUrl || null,
@@ -173,21 +163,6 @@ export default function PostEditor({ initialData }: PostEditorProps) {
     );
   };
 
-  const Section = ({
-    title,
-    children,
-  }: {
-    title: string;
-    children: React.ReactNode;
-  }) => (
-    <div className="border-b border-border last:border-0 pb-6 last:pb-0">
-      <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide mb-4">
-        {title}
-      </h3>
-      {children}
-    </div>
-  );
-
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {toast && (
@@ -202,18 +177,14 @@ export default function PostEditor({ initialData }: PostEditorProps) {
         </div>
       )}
 
-      <Section title="Basic Information">
+      <AdminSection title="Basic Information">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="block">
-            <span className="text-sm font-medium text-text-primary">
-              ID (Slug)
-            </span>
+            <span className="text-sm font-medium text-text-primary">ID</span>
             <input
               type="text"
               value={id}
-              onChange={(e) => setId(e.target.value)}
-              disabled={isEditMode}
-              required
+              disabled
               className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
             />
           </label>
@@ -259,9 +230,9 @@ export default function PostEditor({ initialData }: PostEditorProps) {
             className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent resize-y"
           />
         </label>
-      </Section>
+      </AdminSection>
 
-      <Section title="Publishing">
+      <AdminSection title="Publishing">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <label className="block">
             <span className="text-sm font-medium text-text-primary">
@@ -290,22 +261,10 @@ export default function PostEditor({ initialData }: PostEditorProps) {
               className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
             />
           </label>
-
-          <label className="flex items-center gap-2.5 px-3 py-2 border border-border rounded-lg bg-bg-primary h-[42px] mt-6">
-            <input
-              type="checkbox"
-              checked={hidden}
-              onChange={(e) => setHidden(e.target.checked)}
-              className="w-4 h-4 rounded border-border text-accent focus:ring-accent"
-            />
-            <span className="text-sm font-medium text-text-primary">
-              Hidden
-            </span>
-          </label>
         </div>
-      </Section>
+      </AdminSection>
 
-      <Section title="Media">
+      <AdminSection title="Media">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="block">
             <span className="text-sm font-medium text-text-primary">
@@ -318,7 +277,11 @@ export default function PostEditor({ initialData }: PostEditorProps) {
                 onChange={(e) => setCoverImageUrl(e.target.value)}
                 className="flex-1 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
               />
-              <ImageUploadButton onUpload={setCoverImageUrl} />
+              <ImageUploadButton
+                onUpload={setCoverImageUrl}
+                entityType="post"
+                entityId={id}
+              />
             </div>
           </label>
 
@@ -333,50 +296,52 @@ export default function PostEditor({ initialData }: PostEditorProps) {
                 onChange={(e) => setOgImageUrl(e.target.value)}
                 className="flex-1 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
               />
-              <ImageUploadButton onUpload={setOgImageUrl} />
+              <ImageUploadButton
+                onUpload={setOgImageUrl}
+                entityType="post"
+                entityId={id}
+              />
             </div>
           </label>
         </div>
-      </Section>
+      </AdminSection>
 
-      <Section title="Content">
+      <AdminSection title="Content">
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-text-primary">Body</span>
-            <ImageUploadButton onUpload={handleTiptapImage} />
-          </div>
+          <span className="text-sm font-medium text-text-primary">Body</span>
           <TiptapEditor
             key={editorKey}
             content={tiptapJson}
             onChange={handleTiptapChange}
             placeholder="Write your post content..."
-            insertedImageUrl={insertedImageUrl}
+            entityType="post"
+            entityId={id}
           />
         </div>
-      </Section>
+      </AdminSection>
 
-      <Section title="Translations">
+      <AdminSection title="Translations">
         <div className="space-y-2">
           <p className="text-sm text-text-secondary">
             Auto-translate to additional languages on save:
           </p>
           <div className="flex flex-wrap gap-4">
-              {Object.values(LANGUAGE_CONFIGS)
-                .filter((loc) => loc.code !== locale)
-                .map((loc) => (
-                  <label key={loc.code} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={targetLocales.includes(loc.code)}
-                      onChange={() => toggleTargetLocale(loc.code)}
-                      className="w-4 h-4 rounded border-border text-accent focus:ring-accent"
-                    />
-                    <span className="text-sm text-text-primary">{loc.label}</span>
-                  </label>
-                ))}
+            {Object.values(LANGUAGE_CONFIGS)
+              .filter((loc) => loc.code !== locale)
+              .map((loc) => (
+                <label key={loc.code} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={targetLocales.includes(loc.code)}
+                    onChange={() => toggleTargetLocale(loc.code)}
+                    className="w-4 h-4 rounded border-border text-accent focus:ring-accent"
+                  />
+                  <span className="text-sm text-text-primary">{loc.label}</span>
+                </label>
+              ))}
           </div>
         </div>
-      </Section>
+      </AdminSection>
 
       <div className="sticky bottom-0 -mx-6 -mb-6 px-6 py-4 bg-bg-secondary border-t border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">

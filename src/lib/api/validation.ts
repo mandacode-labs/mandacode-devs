@@ -12,6 +12,18 @@ const projectStatusSchema = z.enum([
   "completed",
 ]);
 
+const urlOrPathSchema = z
+  .string()
+  .refine(
+    (value) =>
+      value.startsWith("/") ||
+      value.startsWith("http://") ||
+      value.startsWith("https://"),
+    {
+      message: "Must be a URL or absolute path",
+    },
+  );
+
 export const createPostSchema = z.object({
   id: z.string().min(1),
   locale: localeSchema,
@@ -19,10 +31,9 @@ export const createPostSchema = z.object({
   description: z.string().nullable().optional(),
   tiptap_json: z.string().min(1),
   publish_status: publishStatusSchema.default("draft"),
-  hidden: z.boolean().default(false),
   pub_date: z.string().datetime(),
-  cover_image_url: z.string().url().nullable().optional(),
-  og_image_url: z.string().url().nullable().optional(),
+  cover_image_url: urlOrPathSchema.nullable().optional(),
+  og_image_url: urlOrPathSchema.nullable().optional(),
   target_locales: z.array(localeSchema).default([]),
 });
 
@@ -40,7 +51,6 @@ export const createProjectSchema = z.object({
   description: z.string().nullable().optional(),
   tiptap_json: z.string().min(1),
   publish_status: publishStatusSchema.default("draft"),
-  hidden: z.boolean().default(false),
   project_status: projectStatusSchema,
   duration: z.string().min(1),
   team_size: z.number().int().positive(),
@@ -49,7 +59,7 @@ export const createProjectSchema = z.object({
   url: z.string().url().nullable().optional(),
   source_url: z.string().url().nullable().optional(),
   blog_url: z.string().url().nullable().optional(),
-  cover_image_url: z.string().url().nullable().optional(),
+  cover_image_url: urlOrPathSchema.nullable().optional(),
   target_locales: z.array(localeSchema).default([]),
 });
 
@@ -67,7 +77,7 @@ export const createDeveloperSchema = z.object({
   role: z.string().min(1),
   bio: z.string().min(1),
   tiptap_json: z.string().min(1),
-  avatar_url: z.string().url().nullable().optional(),
+  avatar_url: urlOrPathSchema.nullable().optional(),
   github_url: z.string().url().nullable().optional(),
   email: z.string().email().nullable().optional(),
   website_url: z.string().url().nullable().optional(),

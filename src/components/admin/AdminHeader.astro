@@ -1,0 +1,55 @@
+---
+import { getAuthenticatedUser } from "@/lib/auth";
+
+interface Props {
+  title: string;
+  subtitle?: string;
+}
+
+const { title, subtitle } = Astro.props;
+const user = getAuthenticatedUser(Astro);
+---
+
+<header class="h-16 bg-bg-primary border-b border-border sticky top-0 z-30">
+  <div class="h-full px-4 sm:px-6 flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3 md:hidden">
+      <button
+        type="button"
+        class="p-2 -ml-2 text-text-secondary hover:text-text-primary rounded-md hover:bg-bg-secondary"
+        data-admin-open-sidebar
+        aria-label="Open menu"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          class="w-5 h-5"
+        >
+          <path d="M3 12h18M3 6h18M3 18h18"></path>
+        </svg>
+      </button>
+      <span class="font-semibold text-text-primary truncate">{title}</span>
+    </div>
+
+    <div class="hidden md:block">
+      <h1 class="text-lg font-semibold text-text-primary">{title}</h1>
+      {subtitle && <p class="text-xs text-text-muted">{subtitle}</p>}
+    </div>
+
+    <div class="flex items-center gap-3">
+      {
+        user && (
+          <div class="flex items-center gap-2 text-sm text-text-secondary">
+            <span class="w-7 h-7 rounded-full bg-accent-subtle text-accent flex items-center justify-center text-xs font-semibold">
+              {user.email.charAt(0).toUpperCase()}
+            </span>
+            <span class="hidden sm:inline truncate max-w-[160px]">
+              {user.email}
+            </span>
+          </div>
+        )
+      }
+    </div>
+  </div>
+</header>
