@@ -19,7 +19,7 @@ const ENTITY_PREFIX: Record<EntityType, string> = {
 
 const DEV_PREFIX = "dev/";
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/jpeg",
