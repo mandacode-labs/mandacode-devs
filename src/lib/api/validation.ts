@@ -44,6 +44,11 @@ export const updatePostSchema = createPostSchema
     target_locales: z.array(localeSchema).optional(),
   });
 
+const dateStringSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format")
+  .nullable();
+
 export const createProjectSchema = z.object({
   id: z.string().min(1),
   locale: localeSchema,
@@ -52,7 +57,8 @@ export const createProjectSchema = z.object({
   tiptap_json: z.string().min(1),
   publish_status: publishStatusSchema.default("draft"),
   project_status: projectStatusSchema,
-  duration: z.string().min(1),
+  start_date: dateStringSchema.optional(),
+  end_date: dateStringSchema.optional(),
   team_size: z.number().int().positive(),
   role: z.string().min(1),
   project_order: z.number().int(),

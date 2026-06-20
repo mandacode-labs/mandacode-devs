@@ -25,7 +25,8 @@ export interface ProjectEditorInitialData {
   tiptap_json: string;
   publish_status: string;
   project_status: string;
-  duration: string;
+  start_date: string | null;
+  end_date: string | null;
   team_size: number;
   role: string;
   project_order: number;
@@ -55,7 +56,8 @@ export default function ProjectEditor({
   const [projectStatus, setProjectStatus] = useState(
     initialData?.project_status ?? "development",
   );
-  const [duration, setDuration] = useState(initialData?.duration ?? "");
+  const [startDate, setStartDate] = useState(initialData?.start_date ?? "");
+  const [endDate, setEndDate] = useState(initialData?.end_date ?? "");
   const [teamSize, setTeamSize] = useState(initialData?.team_size ?? 1);
   const [role, setRole] = useState(initialData?.role ?? "");
   const [projectOrder, setProjectOrder] = useState(
@@ -95,7 +97,8 @@ export default function ProjectEditor({
       tiptap_json: tiptapJson,
       publish_status: publishStatus,
       project_status: projectStatus,
-      duration,
+      start_date: startDate || null,
+      end_date: endDate || null,
       team_size: teamSize,
       role,
       project_order: projectOrder,
@@ -114,7 +117,8 @@ export default function ProjectEditor({
       setDescription(initialData.description ?? "");
       setTiptapJson(initialData.tiptap_json);
       setProjectStatus(initialData.project_status);
-      setDuration(initialData.duration);
+      setStartDate(initialData.start_date ?? "");
+      setEndDate(initialData.end_date ?? "");
       setTeamSize(initialData.team_size);
       setRole(initialData.role);
       setProjectOrder(initialData.project_order);
@@ -241,15 +245,28 @@ export default function ProjectEditor({
 
       <AdminSection title={t("admin.projectDetails", "Project Details")}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <label className="block">
+          <label htmlFor="start-date" className="block">
             <span className="text-sm font-medium text-text-primary">
-              {t("admin.duration", "Duration")}
+              {t("admin.startDate", "Start Date")}
             </span>
             <input
-              type="text"
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-              required
+              id="start-date"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+            />
+          </label>
+
+          <label htmlFor="end-date" className="block">
+            <span className="text-sm font-medium text-text-primary">
+              {t("admin.endDate", "End Date")}
+            </span>
+            <input
+              id="end-date"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
               className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
             />
           </label>

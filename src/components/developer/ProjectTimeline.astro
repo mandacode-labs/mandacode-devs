@@ -3,6 +3,7 @@ import Button from "@/components/ui/Button.astro";
 import ArrowRight from "@/components/icons/ArrowRight.astro";
 import ExternalLink from "@/components/icons/ExternalLink.astro";
 import { useTranslations } from "@/lib/i18n/utils";
+import { formatProjectPeriod } from "@/lib/content/project-period";
 import type { Lang } from "@/types";
 import type { CollectionEntry } from "astro:content";
 import { getProjectSlug } from "@/lib/content/projects";
@@ -34,6 +35,11 @@ const t = useTranslations(lang);
           const slug = getProjectSlug(project);
           const isLeft = index % 2 === 0;
           const meta = `${teamSize}${t("teamSize.unit")} · ${role}`;
+          const period = formatProjectPeriod({
+            duration,
+            startDate: null,
+            endDate: null,
+          });
 
           return (
             <li class="relative pl-10 md:pl-0 md:flex md:justify-center">
@@ -49,7 +55,7 @@ const t = useTranslations(lang);
                   <header
                     class={`flex flex-col gap-1 mb-3 ${isLeft ? "md:items-end" : "md:items-start"}`}
                   >
-                    <span class="text-xs text-text-muted">{duration}</span>
+                    <span class="text-xs text-text-muted">{period}</span>
                     <div class="flex items-center gap-2 flex-wrap">
                       {isLeft ? (
                         <>

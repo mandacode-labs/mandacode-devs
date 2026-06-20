@@ -2,9 +2,7 @@
 import AdminLayout from "@/components/layouts/AdminLayout.astro";
 import AdminSidebar from "@/components/admin/AdminSidebar.astro";
 import AdminHeader from "@/components/admin/AdminHeader.astro";
-import AdminCard from "@/components/admin/AdminCard.astro";
-import EmptyState from "@/components/admin/EmptyState.astro";
-import { AdminLocaleChips } from "@/components/admin/AdminLocaleChips";
+import { AdminList } from "@/components/admin/AdminList";
 import { requireAuth } from "@/lib/auth";
 import { getAllDevelopers } from "@/lib/db/developers";
 import { useTranslations } from "@/lib/i18n/utils";
@@ -14,6 +12,7 @@ import {
   MAIN_DEVELOPER_ID,
 } from "@/lib/config/languages";
 import type { Developer } from "@/lib/db/schema";
+import type { AdminListItem } from "@/components/admin/AdminList";
 
 requireAuth(Astro);
 
@@ -45,6 +44,35 @@ function formatDate(iso: string): string {
     day: "numeric",
   });
 }
+
+const items: AdminListItem[] = groupedArray.map(
+  ({ id, locales, primary, missingLocales }) => ({
+    id,
+    title: primary.name,
+    href: `/admin/developers/edit/${id}?locale=${DEFAULT_LANGUAGE}`,
+    meta: `/${id}`,
+    locales: [
+      ...locales.map((developer) => ({
+        locale: developer.locale,
+        href: `/admin/developers/edit/${developer.id}?locale=${developer.locale}`,
+        active: true,
+        title: `Edit ${developer.locale}`,
+      })),
+      ...missingLocales.map((locale) => ({
+        locale,
+        href: `/admin/developers/edit/${id}?locale=${locale}`,
+        active: false,
+        title: `Create ${locale}`,
+      })),
+    ],
+    extras: {
+      role: primary.role,
+      updated: formatDate(primary.updated_at),
+    },
+  }),
+);
+
+const translations: Record<string, string> = {};
 ---
 
 <AdminLayout title={t("admin.developer")}>
@@ -91,125 +119,20 @@ function formatDate(iso: string): string {
           </a>
         </div>
 
-        {
-          groupedArray.length === 0 ? (
-            <AdminCard>
-              <EmptyState
-                title="No developer profiles"
-                message="Create a developer profile to get started."
-              />
-            </AdminCard>
-          ) : (
-            <AdminCard class="overflow-hidden">
-              <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                  <thead class="bg-bg-secondary border-b border-border">
-                    <tr>
-                      <th class="px-5 py-3.5 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
-                        Profile
-                      </th>
-                      <th class="px-5 py-3.5 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
-                        Locales
-                      </th>
-                      <th class="px-5 py-3.5 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
-                        Role
-                      </th>
-                      <th class="px-5 py-3.5 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
-                        Updated
-                      </th>
-                      <th class="px-5 py-3.5 text-right font-semibold text-text-secondary text-xs uppercase tracking-wide">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-border">
-                    {groupedArray.map(
-                      ({ id, locales, primary, missingLocales }) => (
-                        <tr class="hover:bg-bg-secondary/50 transition-colors group">
-                          <td class="px-5 py-4">
-                            <div class="flex items-start gap-3">
-                              <div class="w-9 h-9 rounded-lg bg-bg-tertiary flex items-center justify-center shrink-0">
-                                {primary.avatar_url ? (
-                                  <img
-                                    src={primary.avatar_url}
-                                    alt={primary.name}
-                                    class="w-full h-full rounded-lg object-cover"
-                                  />
-                                ) : (
-                                  <svg
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="1.5"
-                                    class="w-4.5 h-4.5 text-text-muted"
-                                  >
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                                    <circle cx="12" cy="7" r="4" />
-                                  </svg>
-                                )}
-                              </div>
-                              <div>
-                                <p class="font-medium text-text-primary">
-                                  {primary.name}
-                                </p>
-                                <p class="text-xs text-text-muted font-mono mt-0.5">
-                                  /{id}
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-                          <td class="px-5 py-4">
-                            <AdminLocaleChips
-                              contentType="developer"
-                              contentId={id}
-                              locales={[
-                                ...locales.map((developer) => ({
-                                  locale: developer.locale,
-                                  href: `/admin/developers/edit/${developer.id}?locale=${developer.locale}`,
-                                  active: true,
-                                  title: `Edit ${developer.locale}`,
-                                })),
-                                ...missingLocales.map((locale) => ({
-                                  locale,
-                                  href: `/admin/developers/edit/${id}?locale=${locale}`,
-                                  active: false,
-                                  title: `Create ${locale}`,
-                                })),
-                              ]}
-                              client:only="react"
-                            />
-                          </td>
-                          <td class="px-5 py-4 text-text-secondary">
-                            {primary.role}
-                          </td>
-                          <td class="px-5 py-4 text-text-secondary">
-                            {formatDate(primary.updated_at)}
-                          </td>
-                          <td class="px-5 py-4 text-right">
-                            <div class="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
-                              <a
-                                href={`/admin/developers/edit/${id}?locale=${DEFAULT_LANGUAGE}`}
-                                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-text-primary bg-bg-secondary hover:bg-bg-tertiary border border-border rounded-md transition-colors"
-                              >
-                                Edit
-                              </a>
-                              <a
-                                href={`/admin/developers/edit/${id}?locale=${DEFAULT_LANGUAGE}`}
-                                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-accent hover:text-accent-hover hover:bg-accent-subtle rounded-md transition-colors"
-                              >
-                                View
-                              </a>
-                            </div>
-                          </td>
-                        </tr>
-                      ),
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </AdminCard>
-          )
-        }
+        <AdminList
+          items={items}
+          contentType="developer"
+          entityType="developers"
+          columns={[
+            { key: "role", label: t("admin.role") },
+            { key: "updated", label: t("admin.updated") },
+          ]}
+          emptyTitle={t("admin.noItems")}
+          emptyMessage="Create a developer profile to get started."
+          deleteModalTitle={t("admin.deleteProfile")}
+          translations={translations}
+          client:only="react"
+        />
       </main>
     </div>
   </div>

@@ -11,7 +11,8 @@ export interface CreateProjectInput {
   tiptap_json: string;
   publish_status: PublishStatus;
   project_status: ProjectStatus;
-  duration: string;
+  start_date: string | null;
+  end_date: string | null;
   team_size: number;
   role: string;
   project_order: number;
@@ -28,7 +29,8 @@ export interface UpdateProjectInput {
   tiptap_json?: string;
   publish_status?: PublishStatus;
   project_status?: ProjectStatus;
-  duration?: string;
+  start_date?: string | null;
+  end_date?: string | null;
   team_size?: number;
   role?: string;
   project_order?: number;
@@ -100,9 +102,9 @@ export async function createProject(input: CreateProjectInput): Promise<void> {
     .prepare(
       `INSERT INTO projects (
         id, locale, origin, author_id, title, description, tiptap_json,
-        publish_status, project_status, duration, team_size, role, project_order,
+        publish_status, project_status, duration, start_date, end_date, team_size, role, project_order,
         url, source_url, blog_url, cover_image_url, published_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       input.id,
@@ -114,7 +116,9 @@ export async function createProject(input: CreateProjectInput): Promise<void> {
       input.tiptap_json,
       input.publish_status,
       input.project_status,
-      input.duration,
+      "",
+      input.start_date,
+      input.end_date,
       input.team_size,
       input.role,
       input.project_order,
@@ -206,6 +210,19 @@ export async function getProjectLocalesWithContent(id: string): Promise<
     tiptap_json: string;
     cover_image_url: string | null;
   }>;
+}
+
+export async function updateProjectOrderForAllLocales(
+  id: string,
+  projectOrder: number,
+): Promise<void> {
+  const db = getDatabase();
+  await db
+    .prepare(
+      "UPDATE projects SET project_order = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+    )
+    .bind(projectOrder, id)
+    .run();
 }
 
 export async function deleteProject(

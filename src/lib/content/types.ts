@@ -23,6 +23,8 @@ export interface UnifiedProject extends BaseUnifiedContent {
   status: ProjectStatus;
   techStack: string[];
   duration: string;
+  startDate: string | null;
+  endDate: string | null;
   teamSize: number;
   role: string;
   order: number;
