@@ -4,7 +4,7 @@ description: 外部ストレージ連携ファイル管理および保存サー�
 url: "https://retrowin.mandacode.com"
 sourceUrl: "https://github.com/mandacode-labs/retrowin-go"
 status: production
-techStack:
+tags:
   - Go
   - Kubernetes
   - AWS S3

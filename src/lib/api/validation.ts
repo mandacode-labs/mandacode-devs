@@ -33,7 +33,7 @@ export const createPostSchema = z.object({
   publish_status: publishStatusSchema.default("draft"),
   pub_date: z.string().datetime(),
   cover_image_url: urlOrPathSchema.nullable().optional(),
-  og_image_url: urlOrPathSchema.nullable().optional(),
+  tags: z.array(z.string()).default([]),
   target_locales: z.array(localeSchema).default([]),
 });
 
@@ -66,6 +66,7 @@ export const createProjectSchema = z.object({
   source_url: z.string().url().nullable().optional(),
   blog_url: z.string().url().nullable().optional(),
   cover_image_url: urlOrPathSchema.nullable().optional(),
+  tags: z.array(z.string()).default([]),
   target_locales: z.array(localeSchema).default([]),
 });
 

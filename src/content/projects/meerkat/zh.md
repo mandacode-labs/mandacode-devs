@@ -3,7 +3,7 @@ title: 狐獴
 description: 基于AI代理的日志分析和监控系统
 sourceUrl: "https://github.com/serengeti-sh/meerkat"
 status: production
-techStack:
+tags:
   - Go
   - gRPC
   - OpenTelemetry

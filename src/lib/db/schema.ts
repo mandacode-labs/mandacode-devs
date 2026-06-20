@@ -41,7 +41,6 @@ export interface Post {
   publish_status: PublishStatus;
   pub_date: string;
   cover_image_url: string | null;
-  og_image_url: string | null;
   published_at: string | null;
   created_at: string;
   updated_at: string;

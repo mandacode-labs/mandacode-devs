@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import TiptapEditor from "@/components/editor/TiptapEditor";
 import ImageUploadButton from "@/components/editor/ImageUploadButton";
 import DeleteModal from "@/components/admin/DeleteModal";
@@ -34,6 +34,7 @@ export interface ProjectEditorInitialData {
   source_url: string | null;
   blog_url: string | null;
   cover_image_url: string | null;
+  tags: string[];
 }
 
 interface ProjectEditorProps {
@@ -69,6 +70,13 @@ export default function ProjectEditor({
   const [coverImageUrl, setCoverImageUrl] = useState(
     initialData?.cover_image_url ?? "",
   );
+  const [tags, setTags] = useState<string[]>(initialData?.tags ?? []);
+  const [tagInput, setTagInput] = useState("");
+  const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const tagInputRef = useRef<HTMLInputElement>(null);
+  const tagWrapperRef = useRef<HTMLDivElement>(null);
   const [publishStatus, setPublishStatus] = useState(
     initialData?.publish_status ?? "draft",
   );
@@ -106,6 +114,7 @@ export default function ProjectEditor({
       source_url: sourceUrl || null,
       blog_url: blogUrl || null,
       cover_image_url: coverImageUrl || null,
+      tags,
       target_locales: targetLocales,
     }),
   });
@@ -126,9 +135,112 @@ export default function ProjectEditor({
       setSourceUrl(initialData.source_url ?? "");
       setBlogUrl(initialData.blog_url ?? "");
       setCoverImageUrl(initialData.cover_image_url ?? "");
+      setTags(initialData.tags ?? []);
       setPublishStatus(initialData.publish_status);
     }
   }, [initialData, setLocale]);
+
+  const fetchTagSuggestions = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setTagSuggestions([]);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/tags?q=${encodeURIComponent(query)}`);
+      if (!res.ok) return;
+      const data = (await res.json()) as { tags?: string[] };
+      setTagSuggestions(data.tags ?? []);
+    } catch {
+      setTagSuggestions([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      fetchTagSuggestions(tagInput);
+    }, 150);
+    return () => clearTimeout(handler);
+  }, [tagInput, fetchTagSuggestions]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        tagWrapperRef.current &&
+        !tagWrapperRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  function addTag(value?: string) {
+    const normalized = (value ?? tagInput).trim();
+    if (!normalized || tags.includes(normalized)) return;
+    setTags([...tags, normalized]);
+    setTagInput("");
+    setTagSuggestions([]);
+    setActiveSuggestionIndex(-1);
+    setShowSuggestions(false);
+    tagInputRef.current?.focus();
+  }
+
+  function removeTag(tag: string) {
+    setTags(tags.filter((t) => t !== tag));
+  }
+
+  function handleTagKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (
+        showSuggestions &&
+        activeSuggestionIndex >= 0 &&
+        activeSuggestionIndex < tagSuggestions.length
+      ) {
+        addTag(tagSuggestions[activeSuggestionIndex]);
+      } else {
+        addTag();
+      }
+      return;
+    }
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setShowSuggestions(true);
+      setActiveSuggestionIndex((prev) =>
+        prev < tagSuggestions.length - 1 ? prev + 1 : prev,
+      );
+      return;
+    }
+
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveSuggestionIndex((prev) => (prev > 0 ? prev - 1 : -1));
+      return;
+    }
+
+    if (e.key === "Escape") {
+      setShowSuggestions(false);
+      setActiveSuggestionIndex(-1);
+    }
+  }
+
+  function handleTagInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setTagInput(e.target.value);
+    setShowSuggestions(true);
+    setActiveSuggestionIndex(-1);
+  }
+
+  function handleTagInputFocus() {
+    if (tagInput.trim()) {
+      setShowSuggestions(true);
+    }
+  }
+
+  const filteredSuggestions = tagSuggestions.filter(
+    (suggestion) => !tags.includes(suggestion),
+  );
 
   const editorKey = `${id || "new"}-${locale}`;
 
@@ -371,6 +483,74 @@ export default function ProjectEditor({
               entityId={id}
             />
           </div>
+        </label>
+      </AdminSection>
+
+      <AdminSection title={t("admin.tags", "Tags")}>
+        <label className="block relative">
+          <span className="text-sm font-medium text-text-primary">
+            {t("admin.tagsPlaceholder", "Add tags")}
+          </span>
+          <div
+            ref={tagWrapperRef}
+            className="relative flex flex-wrap items-center gap-2 mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus-within:ring-2 focus-within:ring-accent focus-within:border-transparent"
+          >
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 px-2 py-1 text-sm bg-bg-tertiary text-text-primary rounded"
+              >
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => removeTag(tag)}
+                  className="text-text-secondary hover:text-red-600"
+                  aria-label={t("admin.removeTag", "Remove tag")}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+            <input
+              ref={tagInputRef}
+              type="text"
+              value={tagInput}
+              onChange={handleTagInputChange}
+              onKeyDown={handleTagKeyDown}
+              onFocus={handleTagInputFocus}
+              onBlur={() => {
+                setTimeout(() => setShowSuggestions(false), 150);
+              }}
+              placeholder={t("admin.tagsPlaceholder", "Add tags")}
+              className="flex-1 min-w-[120px] bg-transparent outline-none text-sm"
+            />
+            {showSuggestions && filteredSuggestions.length > 0 && (
+              <ul className="absolute left-0 right-0 top-full z-10 mt-1 max-h-48 overflow-auto rounded-lg border border-border bg-bg-primary shadow-lg">
+                {filteredSuggestions.map((suggestion, index) => (
+                  <li key={suggestion}>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        addTag(suggestion);
+                      }}
+                      onMouseEnter={() => setActiveSuggestionIndex(index)}
+                      className={`w-full px-3 py-2 text-left text-sm ${
+                        index === activeSuggestionIndex
+                          ? "bg-bg-tertiary text-text-primary"
+                          : "text-text-secondary hover:bg-bg-tertiary hover:text-text-primary"
+                      }`}
+                    >
+                      {suggestion}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <p className="mt-1 text-xs text-text-secondary">
+            {t("admin.tagsHint", "Press Enter to add a tag")}
+          </p>
         </label>
       </AdminSection>
 

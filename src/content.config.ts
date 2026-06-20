@@ -20,7 +20,7 @@ const projects = defineCollection({
     blogUrl: z.string().optional(),
     coverImage: z.string().optional(),
     status: z.enum(["production", "development", "planning", "completed"]),
-    techStack: z.array(z.string()),
+    tags: z.array(z.string()),
     duration: z.string(),
     teamSize: z.number(),
     role: z.string(),
@@ -88,7 +88,6 @@ const blog = defineCollection({
     tags: z.array(z.string()),
     draft: z.boolean().default(false),
     coverImage: z.string().optional(),
-    ogImage: z.string().optional(),
   }),
 });
 

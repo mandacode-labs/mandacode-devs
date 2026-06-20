@@ -3,6 +3,7 @@ import AdminFormLayout from "@/components/admin/AdminFormLayout.astro";
 import ProjectEditor from "@/components/admin/ProjectEditor";
 import { requireAuth } from "@/lib/auth";
 import { getProjectById } from "@/lib/db/projects";
+import { getProjectTags } from "@/lib/db/tags";
 import { useTranslations } from "@/lib/i18n/utils";
 import { ui } from "@/lib/i18n";
 import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
@@ -23,6 +24,8 @@ if (!project) {
   return Astro.redirect("/admin/projects");
 }
 
+const tags = await getProjectTags(id, locale);
+
 const initialData = {
   id: project.id,
   locale: project.locale,
@@ -40,6 +43,7 @@ const initialData = {
   source_url: project.source_url,
   blog_url: project.blog_url,
   cover_image_url: project.cover_image_url,
+  tags,
 };
 ---
 

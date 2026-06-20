@@ -12,7 +12,6 @@ export interface CreatePostInput {
   publish_status: PublishStatus;
   pub_date: string;
   cover_image_url: string | null;
-  og_image_url: string | null;
   published_at: string | null;
 }
 
@@ -23,7 +22,6 @@ export interface UpdatePostInput {
   publish_status?: PublishStatus;
   pub_date?: string;
   cover_image_url?: string | null;
-  og_image_url?: string | null;
   published_at?: string | null;
 }
 
@@ -88,8 +86,8 @@ export async function createPost(input: CreatePostInput): Promise<void> {
     .prepare(
       `INSERT INTO posts (
         id, locale, origin, author_id, title, description, tiptap_json,
-        publish_status, pub_date, cover_image_url, og_image_url, published_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        publish_status, pub_date, cover_image_url, published_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       input.id,
@@ -102,7 +100,6 @@ export async function createPost(input: CreatePostInput): Promise<void> {
       input.publish_status,
       input.pub_date,
       input.cover_image_url,
-      input.og_image_url,
       input.published_at,
     )
     .run();
@@ -173,13 +170,12 @@ export async function getPostLocalesWithContent(id: string): Promise<
     locale: string;
     tiptap_json: string;
     cover_image_url: string | null;
-    og_image_url: string | null;
   }>
 > {
   const db = getDatabase();
   const result = await db
     .prepare(
-      "SELECT locale, tiptap_json, cover_image_url, og_image_url FROM posts WHERE id = ?",
+      "SELECT locale, tiptap_json, cover_image_url FROM posts WHERE id = ?",
     )
     .bind(id)
     .all();
@@ -187,7 +183,6 @@ export async function getPostLocalesWithContent(id: string): Promise<
     locale: string;
     tiptap_json: string;
     cover_image_url: string | null;
-    og_image_url: string | null;
   }>;
 }
 

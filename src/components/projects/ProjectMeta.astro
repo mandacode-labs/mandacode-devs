@@ -26,10 +26,10 @@ const statusKey = `status.${project.status}` as UIKey;
 
 <section class="mb-8">
   <h6 class="text-text-muted uppercase tracking-wider mb-3">
-    {t("techStack")}
+    {t("tags")}
   </h6>
   <div class="flex flex-wrap gap-2">
-    {project.techStack.map((tech) => <Badge variant="tech">{tech}</Badge>)}
+    {project.tags.map((tag) => <Badge variant="tech">{tag}</Badge>)}
   </div>
 </section>
 

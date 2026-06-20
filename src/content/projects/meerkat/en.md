@@ -3,7 +3,7 @@ title: Meerkat
 description: AI agent-based log analysis and monitoring system
 sourceUrl: "https://github.com/serengeti-sh/meerkat"
 status: production
-techStack:
+tags:
   - Go
   - gRPC
   - OpenTelemetry

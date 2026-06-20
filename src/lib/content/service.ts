@@ -2,6 +2,7 @@ import { getCollection, getEntry, type CollectionEntry } from "astro:content";
 import * as postsRepo from "@/lib/db/posts";
 import * as projectsRepo from "@/lib/db/projects";
 import * as developersRepo from "@/lib/db/developers";
+import * as tagsRepo from "@/lib/db/tags";
 import type { Post, Project, Developer } from "@/lib/db/schema";
 import type {
   UnifiedPost,
@@ -11,7 +12,8 @@ import type {
 import type { Language } from "@/lib/config/languages";
 import { getSlugFromEntryId } from "@/lib/content/utils";
 
-function mapD1Post(post: Post): UnifiedPost {
+async function mapD1Post(post: Post): Promise<UnifiedPost> {
+  const tags = await tagsRepo.getPostTags(post.id, post.locale);
   return {
     id: post.id,
     locale: post.locale,
@@ -19,8 +21,7 @@ function mapD1Post(post: Post): UnifiedPost {
     description: post.description,
     pubDate: new Date(post.pub_date),
     coverImage: post.cover_image_url,
-    ogImage: post.og_image_url,
-    tags: [],
+    tags,
     hidden: post.publish_status === "archived",
     d1Content: post.tiptap_json,
   };
@@ -37,21 +38,21 @@ function mapCollectionPost(
     description: post.data.description,
     pubDate: post.data.pubDate,
     coverImage: post.data.coverImage ?? null,
-    ogImage: post.data.ogImage ?? null,
     tags: post.data.tags,
     hidden: false,
     markdownContent: post.rendered?.html ?? post.body,
   };
 }
 
-function mapD1Project(project: Project): UnifiedProject {
+async function mapD1Project(project: Project): Promise<UnifiedProject> {
+  const tags = await tagsRepo.getProjectTags(project.id, project.locale);
   return {
     id: project.id,
     locale: project.locale,
     title: project.title,
     description: project.description,
     status: project.project_status,
-    techStack: [],
+    tags,
     duration: project.duration,
     startDate: project.start_date,
     endDate: project.end_date,
@@ -77,7 +78,7 @@ function mapCollectionProject(
     title: project.data.title,
     description: project.data.description,
     status: project.data.status,
-    techStack: project.data.techStack,
+    tags: project.data.tags,
     duration: project.data.duration,
     startDate: null,
     endDate: null,
@@ -187,7 +188,7 @@ export async function getPosts(lang: Language): Promise<UnifiedPost[]> {
   const [d1Posts, collectionPosts] = await Promise.all([
     postsRepo
       .getPosts(lang, { publishStatus: "published" })
-      .then((posts) => posts.map(mapD1Post)),
+      .then((posts) => Promise.all(posts.map(mapD1Post))),
     getCollection("blog", (post) => {
       const entryLang = post.id.split("/")[0];
       return entryLang === lang && !post.data.draft;
@@ -206,8 +207,8 @@ export async function getPost(
   const [d1Post, collectionPost] = await Promise.all([
     postsRepo
       .getPostById(slug, lang)
-      .then((post) =>
-        post?.publish_status === "published" ? mapD1Post(post) : null,
+      .then(async (post) =>
+        post?.publish_status === "published" ? await mapD1Post(post) : null,
       ),
     (async () => {
       const post = await getEntry("blog", `${lang}/${slug}`);
@@ -230,7 +231,7 @@ export async function getProjects(lang: Language): Promise<UnifiedProject[]> {
   const [d1Projects, collectionProjects] = await Promise.all([
     projectsRepo
       .getProjects(lang, { publishStatus: "published" })
-      .then((projects) => projects.map(mapD1Project)),
+      .then((projects) => Promise.all(projects.map(mapD1Project))),
     getCollection("projects", (project) => {
       const entryLang = project.id.split("/")[0];
       return entryLang === lang;
@@ -251,8 +252,10 @@ export async function getProject(
   const [d1Project, collectionProject] = await Promise.all([
     projectsRepo
       .getProjectById(slug, lang)
-      .then((project) =>
-        project?.publish_status === "published" ? mapD1Project(project) : null,
+      .then(async (project) =>
+        project?.publish_status === "published"
+          ? await mapD1Project(project)
+          : null,
       ),
     (async () => {
       const project = await getEntry("projects", `${lang}/${slug}`);

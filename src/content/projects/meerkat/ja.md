@@ -3,7 +3,7 @@ title: ミーアキャット
 description: AIエージェントベースのログ分析およびモニタリングシステム
 sourceUrl: "https://github.com/serengeti-sh/meerkat"
 status: production
-techStack:
+tags:
   - Go
   - gRPC
   - OpenTelemetry
