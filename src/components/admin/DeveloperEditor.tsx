@@ -1,10 +1,14 @@
-import { useCallback, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import TiptapEditor from "@/components/editor/TiptapEditor";
 import ImageUploadButton from "@/components/editor/ImageUploadButton";
 import DeleteModal from "@/components/admin/DeleteModal";
 import { AdminSection } from "@/components/admin/AdminSection";
 import { LANGUAGE_CONFIGS } from "@/lib/config/languages";
-import { generateEntityId } from "@/lib/id";
+import { useAdminEditor } from "@/components/admin/use-admin-editor";
+import {
+  useAdminTranslations,
+  type AdminTranslations,
+} from "@/components/admin/use-admin-translations";
 
 export interface DeveloperEditorInitialData {
   id: string;
@@ -24,17 +28,14 @@ export interface DeveloperEditorInitialData {
 
 interface DeveloperEditorProps {
   initialData?: DeveloperEditorInitialData;
+  translations: AdminTranslations;
 }
 
-interface Toast {
-  type: "success" | "error";
-  message: string;
-}
-
-export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
-  const isEditMode = !!initialData;
-  const [id] = useState(() => initialData?.id ?? generateEntityId());
-  const [locale, setLocale] = useState(initialData?.locale ?? "ko");
+export default function DeveloperEditor({
+  initialData,
+  translations,
+}: DeveloperEditorProps) {
+  const t = useAdminTranslations(translations);
   const [name, setName] = useState(initialData?.name ?? "");
   const [role, setRole] = useState(initialData?.role ?? "");
   const [bio, setBio] = useState(initialData?.bio ?? "");
@@ -48,11 +49,40 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
   const [techStack, setTechStack] = useState(
     initialData?.tech_stack?.join(", ") ?? "",
   );
-  const [targetLocales, setTargetLocales] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [toast, setToast] = useState<Toast | null>(null);
+
+  const {
+    id,
+    isEditMode,
+    locale,
+    setLocale,
+    targetLocales,
+    toggleTargetLocale,
+    isSubmitting,
+    isDeleting,
+    showDeleteModal,
+    setShowDeleteModal,
+    toast,
+    handleSubmit,
+    handleDelete,
+  } = useAdminEditor({
+    initialId: initialData?.id,
+    entityType: "developer",
+    listPath: "/admin/developers",
+    getSubmitBody: () => ({
+      name,
+      role,
+      bio,
+      tiptap_json: tiptapJson,
+      avatar_url: avatarUrl || null,
+      github_url: githubUrl || null,
+      email: email || null,
+      website_url: websiteUrl || null,
+      tech_stack: techStack ? techStack.split(",").map((s) => s.trim()) : null,
+      certifications: null,
+      education: null,
+      target_locales: targetLocales,
+    }),
+  });
 
   useEffect(() => {
     if (initialData) {
@@ -67,104 +97,9 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
       setWebsiteUrl(initialData.website_url ?? "");
       setTechStack(initialData.tech_stack?.join(", ") ?? "");
     }
-  }, [initialData]);
-
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 4000);
-    return () => clearTimeout(timer);
-  }, [toast]);
-
-  const handleTiptapChange = useCallback((json: string) => {
-    setTiptapJson(json);
-  }, []);
+  }, [initialData, setLocale]);
 
   const editorKey = `${id || "new"}-${locale}`;
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setIsSubmitting(true);
-
-    const body = {
-      name,
-      role,
-      bio,
-      tiptap_json: tiptapJson,
-      avatar_url: avatarUrl || null,
-      github_url: githubUrl || null,
-      email: email || null,
-      website_url: websiteUrl || null,
-      tech_stack: techStack ? techStack.split(",").map((s) => s.trim()) : null,
-      certifications: null,
-      education: null,
-      target_locales: targetLocales,
-    };
-
-    try {
-      const url = isEditMode
-        ? `/api/admin/developers/${id}?locale=${encodeURIComponent(locale)}`
-        : "/api/admin/developers";
-      const response = await fetch(url, {
-        method: isEditMode ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: isEditMode
-          ? JSON.stringify(body)
-          : JSON.stringify({ id, locale, ...body }),
-      });
-
-      if (!response.ok) {
-        const data = (await response.json()) as { error?: string };
-        throw new Error(data.error || "Failed to save");
-      }
-
-      setToast({ type: "success", message: "Saved successfully" });
-    } catch (error) {
-      setToast({
-        type: "error",
-        message: error instanceof Error ? error.message : "Failed to save",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDelete = async (allLocales: boolean) => {
-    if (!id || !locale) return;
-    setIsDeleting(true);
-    try {
-      const params = new URLSearchParams();
-      params.set("confirmation", "delete");
-      if (!allLocales) params.set("locale", locale);
-      else params.set("all", "true");
-
-      const response = await fetch(
-        `/api/admin/developers/${id}?${params.toString()}`,
-        { method: "DELETE" },
-      );
-
-      if (!response.ok) {
-        const data = (await response.json()) as { error?: string };
-        throw new Error(data.error || "Failed to delete");
-      }
-
-      window.location.href = "/admin/developers";
-    } catch (error) {
-      setIsDeleting(false);
-      setShowDeleteModal(false);
-      setToast({
-        type: "error",
-        message: error instanceof Error ? error.message : "Failed to delete",
-      });
-    }
-  };
-
-  const toggleTargetLocale = (code: string) => {
-    setTargetLocales((prev) =>
-      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code],
-    );
-  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
@@ -180,7 +115,7 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
         </div>
       )}
 
-      <AdminSection title="Basic Information">
+      <AdminSection title={t("admin.basicInformation", "Basic Information")}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="block">
             <span className="text-sm font-medium text-text-primary">ID</span>
@@ -194,7 +129,7 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
 
           <label className="block">
             <span className="text-sm font-medium text-text-primary">
-              Locale
+              {t("admin.locale", "Locale")}
             </span>
             <select
               value={locale}
@@ -213,7 +148,9 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
           <label className="block">
-            <span className="text-sm font-medium text-text-primary">Name</span>
+            <span className="text-sm font-medium text-text-primary">
+              {t("admin.name", "Name")}
+            </span>
             <input
               type="text"
               value={name}
@@ -224,7 +161,9 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
           </label>
 
           <label className="block">
-            <span className="text-sm font-medium text-text-primary">Role</span>
+            <span className="text-sm font-medium text-text-primary">
+              {t("admin.role", "Role")}
+            </span>
             <input
               type="text"
               value={role}
@@ -236,7 +175,9 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
         </div>
 
         <label className="block mt-4">
-          <span className="text-sm font-medium text-text-primary">Bio</span>
+          <span className="text-sm font-medium text-text-primary">
+            {t("admin.bio", "Bio")}
+          </span>
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
@@ -247,10 +188,10 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
         </label>
       </AdminSection>
 
-      <AdminSection title="Media">
+      <AdminSection title={t("admin.media", "Media")}>
         <label className="block">
           <span className="text-sm font-medium text-text-primary">
-            Avatar URL
+            {t("admin.avatarUrl", "Avatar URL")}
           </span>
           <div className="flex gap-2 mt-1.5">
             <input
@@ -268,11 +209,11 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
         </label>
       </AdminSection>
 
-      <AdminSection title="Links">
+      <AdminSection title={t("admin.links", "Links")}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="block">
             <span className="text-sm font-medium text-text-primary">
-              GitHub URL
+              {t("admin.githubUrl", "GitHub URL")}
             </span>
             <input
               type="url"
@@ -284,7 +225,7 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
 
           <label className="block">
             <span className="text-sm font-medium text-text-primary">
-              Website URL
+              {t("admin.websiteUrl", "Website URL")}
             </span>
             <input
               type="url"
@@ -296,7 +237,9 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
         </div>
 
         <label className="block mt-4">
-          <span className="text-sm font-medium text-text-primary">Email</span>
+          <span className="text-sm font-medium text-text-primary">
+            {t("admin.email", "Email")}
+          </span>
           <input
             type="email"
             value={email}
@@ -306,28 +249,33 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
         </label>
       </AdminSection>
 
-      <AdminSection title="Tech Stack">
+      <AdminSection title={t("admin.techStack", "Tech Stack")}>
         <label className="block">
           <span className="text-sm font-medium text-text-primary">
-            Tech Stack (comma separated)
+            {t("admin.techStack", "Tech Stack")}
           </span>
           <input
             type="text"
             value={techStack}
             onChange={(e) => setTechStack(e.target.value)}
-            placeholder="React, TypeScript, Node.js"
+            placeholder={t(
+              "admin.techStackPlaceholder",
+              "React, TypeScript, Node.js",
+            )}
             className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
           />
         </label>
       </AdminSection>
 
-      <AdminSection title="Content">
+      <AdminSection title={t("admin.content", "Content")}>
         <div className="space-y-2">
-          <span className="text-sm font-medium text-text-primary">Body</span>
+          <span className="text-sm font-medium text-text-primary">
+            {t("admin.content", "Body")}
+          </span>
           <TiptapEditor
             key={editorKey}
             content={tiptapJson}
-            onChange={handleTiptapChange}
+            onChange={setTiptapJson}
             placeholder="Write additional content..."
             entityType="developer"
             entityId={id}
@@ -335,10 +283,13 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
         </div>
       </AdminSection>
 
-      <AdminSection title="Translations">
+      <AdminSection title={t("admin.translations", "Translations")}>
         <div className="space-y-2">
           <p className="text-sm text-text-secondary">
-            Auto-translate to additional languages on save:
+            {t(
+              "admin.translateDescription",
+              "Auto-translate to additional languages on save:",
+            )}
           </p>
           <div className="flex flex-wrap gap-4">
             {Object.values(LANGUAGE_CONFIGS)
@@ -387,16 +338,16 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
               </svg>
             )}
             {isSubmitting
-              ? "Saving..."
+              ? t("admin.saving", "Saving...")
               : isEditMode
-                ? "Update Profile"
-                : "Save Profile"}
+                ? t("admin.updateProfile", "Update Profile")
+                : t("admin.saveProfile", "Save Profile")}
           </button>
           <a
             href="/admin/developers"
             className="px-5 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-bg-tertiary rounded-lg transition-colors"
           >
-            Cancel
+            {t("admin.cancel", "Cancel")}
           </a>
         </div>
 
@@ -416,16 +367,17 @@ export default function DeveloperEditor({ initialData }: DeveloperEditorProps) {
             >
               <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
             </svg>
-            Delete
+            {t("admin.delete", "Delete")}
           </button>
         )}
       </div>
 
       {showDeleteModal && (
         <DeleteModal
-          title="Delete developer profile?"
+          title={t("admin.deleteProfile", "Delete developer profile?")}
           itemName={name || id}
           locale={locale}
+          translations={translations}
           onConfirm={handleDelete}
           onCancel={() => setShowDeleteModal(false)}
         />

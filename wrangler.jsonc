@@ -4,7 +4,7 @@
   "compatibility_date": "2026-05-29",
   "compatibility_flags": ["global_fetch_strictly_public"],
   "vars": {
-    "R2_PUBLIC_URL": "https://static.mandacode.com"
+    "R2_PUBLIC_URL": "https://static.mandacode.com",
   },
   "assets": {
     "directory": "./dist",

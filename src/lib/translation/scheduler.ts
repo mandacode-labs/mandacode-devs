@@ -24,8 +24,12 @@ export async function scheduleTranslations(
   );
 
   const runJobs = async () => {
-    for (const job of jobs) {
-      await runTranslationJob(job);
+    try {
+      for (const job of jobs) {
+        await runTranslationJob(job);
+      }
+    } catch (error) {
+      console.error("Translation job failed:", error);
     }
   };
 

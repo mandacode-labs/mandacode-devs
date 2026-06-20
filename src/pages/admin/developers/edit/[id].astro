@@ -4,6 +4,7 @@ import DeveloperEditor from "@/components/admin/DeveloperEditor";
 import { requireAuth } from "@/lib/auth";
 import { getDeveloperById } from "@/lib/db/developers";
 import { useTranslations } from "@/lib/i18n/utils";
+import { ui } from "@/lib/i18n";
 import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
 
 requireAuth(Astro);
@@ -54,8 +55,12 @@ const initialData = {
   headerTitle={t("admin.edit")}
   headerSubtitle={developer?.name ?? `${id} (${locale})`}
   backHref="/admin/developers"
-  backLabel="Back to developer profiles"
+  backLabel={t("admin.backToDevelopers")}
   currentPath="/admin/developers"
 >
-  <DeveloperEditor client:only="react" initialData={initialData} />
+  <DeveloperEditor
+    client:only="react"
+    initialData={initialData}
+    translations={ui[DEFAULT_LANGUAGE] ?? {}}
+  />
 </AdminFormLayout>

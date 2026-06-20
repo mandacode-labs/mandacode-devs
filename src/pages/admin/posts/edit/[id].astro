@@ -4,6 +4,7 @@ import PostEditor from "@/components/admin/PostEditor";
 import { requireAuth } from "@/lib/auth";
 import { getPostById } from "@/lib/db/posts";
 import { useTranslations } from "@/lib/i18n/utils";
+import { ui } from "@/lib/i18n";
 import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
 
 requireAuth(Astro);
@@ -40,8 +41,12 @@ const initialData = {
   headerTitle={t("admin.edit")}
   headerSubtitle={post.title}
   backHref="/admin/posts"
-  backLabel="Back to posts"
+  backLabel={t("admin.backToPosts")}
   currentPath="/admin/posts"
 >
-  <PostEditor client:only="react" initialData={initialData} />
+  <PostEditor
+    client:only="react"
+    initialData={initialData}
+    translations={ui[DEFAULT_LANGUAGE] ?? {}}
+  />
 </AdminFormLayout>

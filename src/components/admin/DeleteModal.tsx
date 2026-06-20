@@ -1,9 +1,14 @@
 import { useState } from "react";
+import {
+  useAdminTranslations,
+  type AdminTranslations,
+} from "@/components/admin/use-admin-translations";
 
 interface DeleteModalProps {
   title: string;
   itemName: string;
   locale?: string;
+  translations: AdminTranslations;
   onConfirm: (allLocales: boolean) => void | Promise<void>;
   onCancel: () => void;
 }
@@ -12,9 +17,11 @@ export default function DeleteModal({
   title,
   itemName,
   locale,
+  translations,
   onConfirm,
   onCancel,
 }: DeleteModalProps) {
+  const t = useAdminTranslations(translations);
   const [confirmation, setConfirmation] = useState("");
   const [allLocales, setAllLocales] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -63,7 +70,10 @@ export default function DeleteModal({
                   (<span className="uppercase">{locale}</span>)
                 </>
               )}{" "}
-              will be permanently deleted. This action cannot be undone.
+              {t(
+                "admin.deleteWarning",
+                "will be permanently deleted. This action cannot be undone.",
+              )}
             </p>
           </div>
         </div>
@@ -76,11 +86,11 @@ export default function DeleteModal({
               onChange={(e) => setAllLocales(e.target.checked)}
               className="rounded border-border text-accent focus:ring-accent"
             />
-            Delete all language versions
+            {t("admin.deleteAllLocales", "Delete all language versions")}
           </label>
 
           <label className="block text-sm font-medium text-text-primary mb-1.5">
-            Type "delete" to confirm
+            {t("admin.confirmDelete", 'Type "delete" to confirm')}
           </label>
           <input
             type="text"
@@ -103,7 +113,7 @@ export default function DeleteModal({
             disabled={isDeleting}
             className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-bg-secondary rounded-lg transition-colors disabled:opacity-50"
           >
-            Cancel
+            {t("admin.cancel", "Cancel")}
           </button>
           <button
             type="button"
@@ -111,7 +121,9 @@ export default function DeleteModal({
             disabled={confirmation !== "delete" || isDeleting}
             className="px-4 py-2 text-sm font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {isDeleting ? "Deleting..." : "Delete"}
+            {isDeleting
+              ? t("admin.deleting", "Deleting...")
+              : t("admin.delete", "Delete")}
           </button>
         </div>
       </div>

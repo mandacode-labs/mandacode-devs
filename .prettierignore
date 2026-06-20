@@ -3,3 +3,4 @@ dist
 .astro
 .playwright-mcp
 .git
+worker-configuration.d.ts

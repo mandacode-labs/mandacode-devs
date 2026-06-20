@@ -4,6 +4,7 @@ import ProjectEditor from "@/components/admin/ProjectEditor";
 import { requireAuth } from "@/lib/auth";
 import { getProjectById } from "@/lib/db/projects";
 import { useTranslations } from "@/lib/i18n/utils";
+import { ui } from "@/lib/i18n";
 import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
 
 requireAuth(Astro);
@@ -46,8 +47,12 @@ const initialData = {
   headerTitle={t("admin.edit")}
   headerSubtitle={project.title}
   backHref="/admin/projects"
-  backLabel="Back to projects"
+  backLabel={t("admin.backToProjects")}
   currentPath="/admin/projects"
 >
-  <ProjectEditor client:only="react" initialData={initialData} />
+  <ProjectEditor
+    client:only="react"
+    initialData={initialData}
+    translations={ui[DEFAULT_LANGUAGE] ?? {}}
+  />
 </AdminFormLayout>

@@ -70,7 +70,7 @@ export default function mermaidIntegration(
     theme = "default",
     autoTheme = true,
     mermaidConfig = {},
-    enableLog = true,
+    enableLog = false,
   } = options;
 
   return {
@@ -84,14 +84,11 @@ export default function mermaidIntegration(
               rehypePlugins: [rehypeMermaid],
             }),
           },
-          vite: {
-            optimizeDeps: { include: ["mermaid"] },
-          },
         });
 
         const mermaidScript = `
 const log = ${enableLog} ? (...args) => console.log('[mermaid]', ...args) : () => {};
-const logError = (...args) => console.error('[mermaid]', ...args);
+const logError = ${enableLog} ? (...args) => console.error('[mermaid]', ...args) : () => {};
 
 let mermaidPromise = null;
 async function loadMermaid() {

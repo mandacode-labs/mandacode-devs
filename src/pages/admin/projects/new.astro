@@ -3,6 +3,7 @@ import AdminFormLayout from "@/components/admin/AdminFormLayout.astro";
 import ProjectEditor from "@/components/admin/ProjectEditor";
 import { requireAuth } from "@/lib/auth";
 import { useTranslations } from "@/lib/i18n/utils";
+import { ui } from "@/lib/i18n";
 import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
 
 requireAuth(Astro);
@@ -13,8 +14,11 @@ const t = useTranslations(DEFAULT_LANGUAGE);
   title={t("admin.newProject")}
   headerTitle={t("admin.newProject")}
   backHref="/admin/projects"
-  backLabel="Back to projects"
+  backLabel={t("admin.backToProjects")}
   currentPath="/admin/projects"
 >
-  <ProjectEditor client:only="react" />
+  <ProjectEditor
+    client:only="react"
+    translations={ui[DEFAULT_LANGUAGE] ?? {}}
+  />
 </AdminFormLayout>

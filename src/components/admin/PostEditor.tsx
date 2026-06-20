@@ -1,10 +1,14 @@
-import { useCallback, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import TiptapEditor from "@/components/editor/TiptapEditor";
 import ImageUploadButton from "@/components/editor/ImageUploadButton";
 import DeleteModal from "@/components/admin/DeleteModal";
 import { AdminSection } from "@/components/admin/AdminSection";
 import { LANGUAGE_CONFIGS } from "@/lib/config/languages";
-import { generateEntityId } from "@/lib/id";
+import { useAdminEditor } from "@/components/admin/use-admin-editor";
+import {
+  useAdminTranslations,
+  type AdminTranslations,
+} from "@/components/admin/use-admin-translations";
 
 export interface PostEditorInitialData {
   id: string;
@@ -20,17 +24,14 @@ export interface PostEditorInitialData {
 
 interface PostEditorProps {
   initialData?: PostEditorInitialData;
+  translations: AdminTranslations;
 }
 
-interface Toast {
-  type: "success" | "error";
-  message: string;
-}
-
-export default function PostEditor({ initialData }: PostEditorProps) {
-  const isEditMode = !!initialData;
-  const [id] = useState(() => initialData?.id ?? generateEntityId());
-  const [locale, setLocale] = useState(initialData?.locale ?? "ko");
+export default function PostEditor({
+  initialData,
+  translations,
+}: PostEditorProps) {
+  const t = useAdminTranslations(translations);
   const [title, setTitle] = useState(initialData?.title ?? "");
   const [description, setDescription] = useState(
     initialData?.description ?? "",
@@ -51,11 +52,36 @@ export default function PostEditor({ initialData }: PostEditorProps) {
   const [publishStatus, setPublishStatus] = useState(
     initialData?.publish_status ?? "draft",
   );
-  const [targetLocales, setTargetLocales] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [toast, setToast] = useState<Toast | null>(null);
+
+  const {
+    id,
+    isEditMode,
+    locale,
+    setLocale,
+    targetLocales,
+    toggleTargetLocale,
+    isSubmitting,
+    isDeleting,
+    showDeleteModal,
+    setShowDeleteModal,
+    toast,
+    handleSubmit,
+    handleDelete,
+  } = useAdminEditor({
+    initialId: initialData?.id,
+    entityType: "post",
+    listPath: "/admin/posts",
+    getSubmitBody: () => ({
+      title,
+      description: description || null,
+      tiptap_json: tiptapJson,
+      publish_status: publishStatus,
+      pub_date: new Date(pubDate).toISOString(),
+      cover_image_url: coverImageUrl || null,
+      og_image_url: ogImageUrl || null,
+      target_locales: targetLocales,
+    }),
+  });
 
   useEffect(() => {
     if (initialData) {
@@ -68,100 +94,9 @@ export default function PostEditor({ initialData }: PostEditorProps) {
       setOgImageUrl(initialData.og_image_url ?? "");
       setPublishStatus(initialData.publish_status);
     }
-  }, [initialData]);
-
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 4000);
-    return () => clearTimeout(timer);
-  }, [toast]);
-
-  const handleTiptapChange = useCallback((json: string) => {
-    setTiptapJson(json);
-  }, []);
+  }, [initialData, setLocale]);
 
   const editorKey = `${id || "new"}-${locale}`;
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setIsSubmitting(true);
-
-    const body = {
-      title,
-      description: description || null,
-      tiptap_json: tiptapJson,
-      publish_status: publishStatus,
-      pub_date: new Date(pubDate).toISOString(),
-      cover_image_url: coverImageUrl || null,
-      og_image_url: ogImageUrl || null,
-      target_locales: targetLocales,
-    };
-
-    try {
-      const url = isEditMode
-        ? `/api/admin/posts/${id}?locale=${encodeURIComponent(locale)}`
-        : "/api/admin/posts";
-      const response = await fetch(url, {
-        method: isEditMode ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: isEditMode
-          ? JSON.stringify(body)
-          : JSON.stringify({ id, locale, ...body }),
-      });
-
-      if (!response.ok) {
-        const data = (await response.json()) as { error?: string };
-        throw new Error(data.error || "Failed to save");
-      }
-
-      setToast({ type: "success", message: "Saved successfully" });
-    } catch (error) {
-      setToast({
-        type: "error",
-        message: error instanceof Error ? error.message : "Failed to save",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDelete = async (allLocales: boolean) => {
-    if (!id || !locale) return;
-    setIsDeleting(true);
-    try {
-      const params = new URLSearchParams();
-      params.set("confirmation", "delete");
-      if (!allLocales) params.set("locale", locale);
-      else params.set("all", "true");
-
-      const response = await fetch(
-        `/api/admin/posts/${id}?${params.toString()}`,
-        { method: "DELETE" },
-      );
-
-      if (!response.ok) {
-        const data = (await response.json()) as { error?: string };
-        throw new Error(data.error || "Failed to delete");
-      }
-
-      window.location.href = "/admin/posts";
-    } catch (error) {
-      setIsDeleting(false);
-      setShowDeleteModal(false);
-      setToast({
-        type: "error",
-        message: error instanceof Error ? error.message : "Failed to delete",
-      });
-    }
-  };
-
-  const toggleTargetLocale = (code: string) => {
-    setTargetLocales((prev) =>
-      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code],
-    );
-  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
@@ -177,7 +112,7 @@ export default function PostEditor({ initialData }: PostEditorProps) {
         </div>
       )}
 
-      <AdminSection title="Basic Information">
+      <AdminSection title={t("admin.basicInformation", "Basic Information")}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="block">
             <span className="text-sm font-medium text-text-primary">ID</span>
@@ -191,7 +126,7 @@ export default function PostEditor({ initialData }: PostEditorProps) {
 
           <label className="block">
             <span className="text-sm font-medium text-text-primary">
-              Locale
+              {t("admin.locale", "Locale")}
             </span>
             <select
               value={locale}
@@ -209,7 +144,9 @@ export default function PostEditor({ initialData }: PostEditorProps) {
         </div>
 
         <label className="block mt-4">
-          <span className="text-sm font-medium text-text-primary">Title</span>
+          <span className="text-sm font-medium text-text-primary">
+            {t("admin.titleLabel", "Title")}
+          </span>
           <input
             type="text"
             value={title}
@@ -221,7 +158,7 @@ export default function PostEditor({ initialData }: PostEditorProps) {
 
         <label className="block mt-4">
           <span className="text-sm font-medium text-text-primary">
-            Description
+            {t("admin.description", "Description")}
           </span>
           <textarea
             value={description}
@@ -232,26 +169,30 @@ export default function PostEditor({ initialData }: PostEditorProps) {
         </label>
       </AdminSection>
 
-      <AdminSection title="Publishing">
+      <AdminSection title={t("admin.publishing", "Publishing")}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <label className="block">
             <span className="text-sm font-medium text-text-primary">
-              Publish Status
+              {t("admin.status", "Publish Status")}
             </span>
             <select
               value={publishStatus}
               onChange={(e) => setPublishStatus(e.target.value)}
               className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
             >
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-              <option value="archived">Archived</option>
+              <option value="draft">{t("admin.draft", "Draft")}</option>
+              <option value="published">
+                {t("admin.published", "Published")}
+              </option>
+              <option value="archived">
+                {t("admin.archived", "Archived")}
+              </option>
             </select>
           </label>
 
           <label className="block">
             <span className="text-sm font-medium text-text-primary">
-              Publish Date
+              {t("admin.publishDate", "Publish Date")}
             </span>
             <input
               type="datetime-local"
@@ -264,11 +205,11 @@ export default function PostEditor({ initialData }: PostEditorProps) {
         </div>
       </AdminSection>
 
-      <AdminSection title="Media">
+      <AdminSection title={t("admin.media", "Media")}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="block">
             <span className="text-sm font-medium text-text-primary">
-              Cover Image URL
+              {t("admin.coverImage", "Cover Image URL")}
             </span>
             <div className="flex gap-2 mt-1.5">
               <input
@@ -287,7 +228,7 @@ export default function PostEditor({ initialData }: PostEditorProps) {
 
           <label className="block">
             <span className="text-sm font-medium text-text-primary">
-              OG Image URL
+              {t("admin.ogImage", "OG Image URL")}
             </span>
             <div className="flex gap-2 mt-1.5">
               <input
@@ -306,13 +247,15 @@ export default function PostEditor({ initialData }: PostEditorProps) {
         </div>
       </AdminSection>
 
-      <AdminSection title="Content">
+      <AdminSection title={t("admin.content", "Content")}>
         <div className="space-y-2">
-          <span className="text-sm font-medium text-text-primary">Body</span>
+          <span className="text-sm font-medium text-text-primary">
+            {t("admin.content", "Body")}
+          </span>
           <TiptapEditor
             key={editorKey}
             content={tiptapJson}
-            onChange={handleTiptapChange}
+            onChange={setTiptapJson}
             placeholder="Write your post content..."
             entityType="post"
             entityId={id}
@@ -320,10 +263,13 @@ export default function PostEditor({ initialData }: PostEditorProps) {
         </div>
       </AdminSection>
 
-      <AdminSection title="Translations">
+      <AdminSection title={t("admin.translations", "Translations")}>
         <div className="space-y-2">
           <p className="text-sm text-text-secondary">
-            Auto-translate to additional languages on save:
+            {t(
+              "admin.translateDescription",
+              "Auto-translate to additional languages on save:",
+            )}
           </p>
           <div className="flex flex-wrap gap-4">
             {Object.values(LANGUAGE_CONFIGS)
@@ -372,16 +318,16 @@ export default function PostEditor({ initialData }: PostEditorProps) {
               </svg>
             )}
             {isSubmitting
-              ? "Saving..."
+              ? t("admin.saving", "Saving...")
               : isEditMode
-                ? "Update Post"
-                : "Save Post"}
+                ? t("admin.updatePost", "Update Post")
+                : t("admin.savePost", "Save Post")}
           </button>
           <a
             href="/admin/posts"
             className="px-5 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-bg-tertiary rounded-lg transition-colors"
           >
-            Cancel
+            {t("admin.cancel", "Cancel")}
           </a>
         </div>
 
@@ -401,16 +347,17 @@ export default function PostEditor({ initialData }: PostEditorProps) {
             >
               <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
             </svg>
-            Delete
+            {t("admin.delete", "Delete")}
           </button>
         )}
       </div>
 
       {showDeleteModal && (
         <DeleteModal
-          title="Delete post?"
+          title={t("admin.deletePost", "Delete post?")}
           itemName={title || id}
           locale={locale}
+          translations={translations}
           onConfirm={handleDelete}
           onCancel={() => setShowDeleteModal(false)}
         />
