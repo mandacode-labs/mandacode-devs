@@ -7,7 +7,11 @@ pre-commit:
 
 pre-push:
   commands:
-    test:
-      run: npm test
+    format-check:
+      run: npm run format:check
     check:
       run: npm run check
+    test:
+      run: npm run test
+    build:
+      run: npm run build
