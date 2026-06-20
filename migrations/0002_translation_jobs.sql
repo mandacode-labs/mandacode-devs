@@ -1,9 +1,3 @@
-DROP INDEX IF EXISTS idx_posts_hidden;
-DROP INDEX IF EXISTS idx_projects_hidden;
-
-ALTER TABLE posts DROP COLUMN hidden;
-ALTER TABLE projects DROP COLUMN hidden;
-
 CREATE TABLE IF NOT EXISTS translation_jobs (
   id TEXT PRIMARY KEY,
   content_type TEXT NOT NULL CHECK(content_type IN ('post', 'project', 'developer')),

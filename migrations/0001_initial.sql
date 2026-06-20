@@ -86,9 +86,7 @@ CREATE TABLE IF NOT EXISTS project_tags (
 );
 
 CREATE INDEX IF NOT EXISTS idx_posts_status ON posts(publish_status);
-CREATE INDEX IF NOT EXISTS idx_posts_hidden ON posts(hidden);
 CREATE INDEX IF NOT EXISTS idx_posts_pub_date ON posts(pub_date);
 CREATE INDEX IF NOT EXISTS idx_projects_order ON projects(project_order);
 CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(publish_status);
-CREATE INDEX IF NOT EXISTS idx_projects_hidden ON projects(hidden);
 CREATE INDEX IF NOT EXISTS idx_developers_name ON developers(name);
