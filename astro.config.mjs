@@ -15,17 +15,8 @@ export default defineConfig({
   trailingSlash: "ignore",
   output: "server",
   adapter: cloudflare({
-    imageService: "cloudflare",
+    imageService: "passthrough",
   }),
-  image: {
-    domains: ["static.mandacode.com"],
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "static.mandacode.com",
-      },
-    ],
-  },
   vite: {
     plugins: [tailwindcss()],
     resolve: {

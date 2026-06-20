@@ -1,6 +1,4 @@
 ---
-import { Image } from "astro:assets";
-
 interface Props {
   src: string;
   alt: string;
@@ -29,7 +27,7 @@ const {
   data-cover-image
 >
   <div class="shimmer absolute inset-0 z-10" data-shimmer></div>
-  <Image
+  <img
     src={src}
     alt={alt}
     width={width}
@@ -45,7 +43,7 @@ const {
     fetchpriority={fetchpriority}
     data-lazy-image
     onload="this.style.opacity='1'"
-    onerror="this.style.opacity='1'; this.previousElementSibling.style.display='none'"
+    onerror="this.style.opacity='1'; this.closest('[data-cover-image]')?.querySelector('[data-shimmer]')?.remove()"
   />
 </div>
 
