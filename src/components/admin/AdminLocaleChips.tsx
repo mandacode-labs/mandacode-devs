@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useTranslationStatus } from "@/hooks/use-translation-status";
 import type {
   TranslationContentType,
@@ -17,11 +18,11 @@ interface AdminLocaleChipsProps {
   locales: LocaleInfo[];
 }
 
-const statusDotClass: Record<TranslationJobStatus, string> = {
-  pending: "bg-neutral-400",
-  running: "bg-blue-500 animate-pulse",
-  completed: "bg-green-500",
-  failed: "bg-red-500",
+const statusChipClass: Record<TranslationJobStatus, string> = {
+  pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
+  running: "bg-blue-50 text-blue-700 border-blue-200",
+  completed: "bg-green-50 text-green-700 border-green-200",
+  failed: "bg-red-50 text-red-700 border-red-200",
 };
 
 export function AdminLocaleChips({
@@ -29,9 +30,10 @@ export function AdminLocaleChips({
   contentId,
   locales,
 }: AdminLocaleChipsProps) {
+  const ids = useMemo(() => [contentId], [contentId]);
   const { getStatus } = useTranslationStatus({
     contentType,
-    ids: [contentId],
+    ids,
     interval: 5000,
   });
 
@@ -42,22 +44,20 @@ export function AdminLocaleChips({
         const clickable =
           active || status === "completed" || status === "failed";
 
+        const statusClass = status
+          ? statusChipClass[status]
+          : active
+            ? "bg-accent-subtle text-accent border-accent/20"
+            : "bg-bg-secondary text-text-secondary border-border";
+
         const chip = (
           <span
-            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium uppercase tracking-wide border ${
-              active
-                ? "bg-accent-subtle text-accent border-accent/20"
-                : "bg-bg-secondary text-text-secondary border-border"
-            } ${!clickable ? "opacity-60" : ""}`}
+            className={`inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium uppercase tracking-wide border ${statusClass} ${
+              !clickable ? "opacity-60" : ""
+            }`}
             title={title}
           >
             {locale}
-            {status && (
-              <span
-                className={`inline-block w-1.5 h-1.5 rounded-full ${statusDotClass[status]}`}
-                aria-hidden="true"
-              />
-            )}
           </span>
         );
 

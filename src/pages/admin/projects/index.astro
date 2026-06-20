@@ -2,15 +2,13 @@
 import AdminLayout from "@/components/layouts/AdminLayout.astro";
 import AdminSidebar from "@/components/admin/AdminSidebar.astro";
 import AdminHeader from "@/components/admin/AdminHeader.astro";
-import AdminCard from "@/components/admin/AdminCard.astro";
-import StatusBadge from "@/components/admin/StatusBadge.astro";
-import EmptyState from "@/components/admin/EmptyState.astro";
-import { AdminLocaleChips } from "@/components/admin/AdminLocaleChips";
+import { AdminList } from "@/components/admin/AdminList";
 import { requireAuth } from "@/lib/auth";
 import { getAllProjects } from "@/lib/db/projects";
 import { useTranslations } from "@/lib/i18n/utils";
 import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@/lib/config/languages";
 import type { Project } from "@/lib/db/schema";
+import type { AdminListItem } from "@/components/admin/AdminList";
 
 requireAuth(Astro);
 
@@ -42,6 +40,44 @@ function formatDate(iso: string): string {
     day: "numeric",
   });
 }
+
+function formatProjectPeriod(start: string | null, end: string | null): string {
+  if (start && end) return `${start} ~ ${end}`;
+  if (start) return `${start} ~`;
+  if (end) return `~ ${end}`;
+  return "-";
+}
+
+const items: AdminListItem[] = groupedArray.map(
+  ({ id, locales, primary, missingLocales }) => ({
+    id,
+    title: primary.title,
+    href: `/admin/projects/edit/${id}?locale=${DEFAULT_LANGUAGE}`,
+    meta: `/${id}`,
+    status: primary.publish_status,
+    locales: [
+      ...locales.map((project) => ({
+        locale: project.locale,
+        href: `/admin/projects/edit/${project.id}?locale=${project.locale}`,
+        active: project.publish_status !== "archived",
+        title: `Edit ${project.locale}`,
+      })),
+      ...missingLocales.map((locale) => ({
+        locale,
+        href: `/admin/projects/edit/${id}?locale=${locale}`,
+        active: false,
+        title: `Create ${locale}`,
+      })),
+    ],
+    extras: {
+      order: `#${primary.project_order}`,
+      period: formatProjectPeriod(primary.start_date, primary.end_date),
+      updated: formatDate(primary.updated_at),
+    },
+  }),
+);
+
+const translations: Record<string, string> = {};
 ---
 
 <AdminLayout title={t("admin.projects")}>
@@ -84,129 +120,34 @@ function formatDate(iso: string): string {
           </a>
         </div>
 
-        {
-          groupedArray.length === 0 ? (
-            <AdminCard>
-              <EmptyState
-                title="No projects yet"
-                message="Create your first project to get started."
-              />
-            </AdminCard>
-          ) : (
-            <AdminCard class="overflow-hidden">
-              <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                  <thead class="bg-bg-secondary border-b border-border">
-                    <tr>
-                      <th class="px-5 py-3.5 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
-                        Project
-                      </th>
-                      <th class="px-5 py-3.5 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
-                        Locales
-                      </th>
-                      <th class="px-5 py-3.5 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
-                        Primary Status
-                      </th>
-                      <th class="px-5 py-3.5 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
-                        Order
-                      </th>
-                      <th class="px-5 py-3.5 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
-                        Updated
-                      </th>
-                      <th class="px-5 py-3.5 text-right font-semibold text-text-secondary text-xs uppercase tracking-wide">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-border">
-                    {groupedArray.map(
-                      ({ id, locales, primary, missingLocales }) => (
-                        <tr class="hover:bg-bg-secondary/50 transition-colors group">
-                          <td class="px-5 py-4">
-                            <div class="flex items-start gap-3">
-                              <div class="w-9 h-9 rounded-lg bg-bg-tertiary flex items-center justify-center shrink-0">
-                                <svg
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  stroke-width="1.5"
-                                  class="w-4.5 h-4.5 text-text-muted"
-                                >
-                                  <path d="M3 3h18v18H3z" />
-                                  <path d="M3 9h18" />
-                                  <path d="M9 21V9" />
-                                </svg>
-                              </div>
-                              <div>
-                                <p class="font-medium text-text-primary">
-                                  {primary.title}
-                                </p>
-                                <p class="text-xs text-text-muted font-mono mt-0.5">
-                                  /{id}
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-                          <td class="px-5 py-4">
-                            <AdminLocaleChips
-                              contentType="project"
-                              contentId={id}
-                              locales={[
-                                ...locales.map((project) => ({
-                                  locale: project.locale,
-                                  href: `/admin/projects/edit/${project.id}?locale=${project.locale}`,
-                                  active: project.publish_status !== "archived",
-                                  title: `Edit ${project.locale}`,
-                                })),
-                                ...missingLocales.map((locale) => ({
-                                  locale,
-                                  href: `/admin/projects/edit/${id}?locale=${locale}`,
-                                  active: false,
-                                  title: `Create ${locale}`,
-                                })),
-                              ]}
-                              client:only="react"
-                            />
-                          </td>
-                          <td class="px-5 py-4">
-                            <StatusBadge status={primary.publish_status} />
-                            {primary.publish_status === "archived" && (
-                              <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border bg-neutral-100 text-neutral-600 border-neutral-200">
-                                Archived
-                              </span>
-                            )}
-                          </td>
-                          <td class="px-5 py-4 text-text-secondary">
-                            #{primary.project_order}
-                          </td>
-                          <td class="px-5 py-4 text-text-secondary">
-                            {formatDate(primary.updated_at)}
-                          </td>
-                          <td class="px-5 py-4 text-right">
-                            <div class="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
-                              <a
-                                href={`/admin/projects/edit/${id}?locale=${DEFAULT_LANGUAGE}`}
-                                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-text-primary bg-bg-secondary hover:bg-bg-tertiary border border-border rounded-md transition-colors"
-                              >
-                                Edit
-                              </a>
-                              <a
-                                href={`/admin/projects/edit/${id}?locale=${DEFAULT_LANGUAGE}`}
-                                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-accent hover:text-accent-hover hover:bg-accent-subtle rounded-md transition-colors"
-                              >
-                                View
-                              </a>
-                            </div>
-                          </td>
-                        </tr>
-                      ),
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </AdminCard>
-          )
-        }
+        <AdminList
+          items={items}
+          contentType="project"
+          entityType="projects"
+          reorderable={true}
+          reorderLabels={{
+            start: t("admin.reorder"),
+            save: t("admin.saveOrder"),
+            saving: t("admin.savingOrder"),
+            saved: t("admin.orderSaved"),
+            failed: t("admin.orderSaveFailed"),
+            cancel: t("admin.cancel"),
+            hint: t("admin.reorderHint"),
+            activeHint: t("admin.reorderActiveHint"),
+          }}
+          reorderEndpoint="/api/admin/projects/reorder"
+          columns={[
+            { key: "status", label: t("admin.status") },
+            { key: "order", label: t("admin.order"), width: "w-24" },
+            { key: "period", label: t("admin.duration") },
+            { key: "updated", label: t("admin.updated") },
+          ]}
+          emptyTitle={t("admin.noItems")}
+          emptyMessage="Create your first project to get started."
+          deleteModalTitle={t("admin.deleteProject")}
+          translations={translations}
+          client:only="react"
+        />
       </main>
     </div>
   </div>

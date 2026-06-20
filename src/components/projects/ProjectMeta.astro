@@ -1,6 +1,7 @@
 ---
 import Badge from "@/components/ui/Badge.astro";
 import { useTranslations } from "@/lib/i18n/utils";
+import { formatProjectPeriod } from "@/lib/content/project-period";
 import type { Lang } from "@/types";
 import type { UnifiedProject } from "@/lib/content/types";
 import type { UIKey } from "@/lib/i18n";
@@ -37,7 +38,7 @@ const statusKey = `status.${project.status}` as UIKey;
     <h6 class="text-text-muted uppercase tracking-wider mb-2">
       {t("duration")}
     </h6>
-    <p class="text-text-primary">{project.duration}</p>
+    <p class="text-text-primary">{formatProjectPeriod(project)}</p>
   </div>
   <div>
     <h6 class="text-text-muted uppercase tracking-wider mb-2">

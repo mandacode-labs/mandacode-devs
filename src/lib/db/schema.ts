@@ -58,6 +58,8 @@ export interface Project {
   publish_status: PublishStatus;
   project_status: ProjectStatus;
   duration: string;
+  start_date: string | null;
+  end_date: string | null;
   team_size: number;
   role: string;
   project_order: number;
