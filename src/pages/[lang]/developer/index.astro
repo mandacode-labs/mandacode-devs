@@ -6,8 +6,7 @@ import Certifications from "@/components/developer/Certifications.astro";
 import Education from "@/components/developer/Education.astro";
 import ProjectTimeline from "@/components/developer/ProjectTimeline.astro";
 import ContentRenderer from "@/components/shared/ContentRenderer.astro";
-import { getCollection } from "astro:content";
-import { getDeveloper } from "@/lib/content/service";
+import { getDeveloper, getProjects } from "@/lib/content/service";
 import { sortProjectsByDate } from "@/lib/content/projects";
 import { isValidLanguage, MAIN_DEVELOPER_ID } from "@/lib/config/languages";
 
@@ -26,11 +25,7 @@ if (!developer) {
 const name = developer.name;
 const bio = developer.bio;
 
-const projects = sortProjectsByDate(
-  await getCollection("projects", (project) =>
-    project.id.startsWith(`${lang}/`),
-  ),
-);
+const projects = sortProjectsByDate(await getProjects(lang));
 ---
 
 <Layout title={name} description={bio}>
