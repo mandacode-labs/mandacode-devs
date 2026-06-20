@@ -3,7 +3,7 @@ title: Korean License Plate Detector
 description: YOLO-based Korean license plate detection and recognition system
 sourceUrl: "https://github.com/sauce-git/korean-license-plate-detector"
 status: completed
-techStack:
+tags:
   - Python
   - ONNX Runtime
   - YOLO

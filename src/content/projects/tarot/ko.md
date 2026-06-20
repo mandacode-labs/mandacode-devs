@@ -3,7 +3,7 @@ title: 타로카드
 description: AI 기반 타로 카드 리딩 서비스
 url: "https://tarot.mandacode.com"
 status: production
-techStack:
+tags:
   - TypeScript
   - NestJS
   - React

@@ -1,4 +1,5 @@
 import * as postsRepo from "@/lib/db/posts";
+import * as tagsRepo from "@/lib/db/tags";
 import { createPostSchema, updatePostSchema } from "@/lib/api/validation";
 import { ApiError } from "@/lib/api/response";
 import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
@@ -34,9 +35,10 @@ export const postAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
       publish_status: body.publish_status,
       pub_date: body.pub_date,
       cover_image_url: body.cover_image_url ?? null,
-      og_image_url: body.og_image_url ?? null,
       published_at: publishedAt,
     });
+
+    await tagsRepo.setPostTags(body.id, body.locale, body.tags);
   },
   update: async (id, locale, body, existing) => {
     if (!existing) {
@@ -51,7 +53,6 @@ export const postAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
       publish_status: body.publish_status,
       pub_date: body.pub_date,
       cover_image_url: body.cover_image_url,
-      og_image_url: body.og_image_url,
     };
 
     if (
@@ -63,13 +64,22 @@ export const postAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
     }
 
     await postsRepo.updatePost(id, locale, updateData);
+
+    if (body.tags !== undefined) {
+      await tagsRepo.setPostTags(id, locale, body.tags);
+    }
   },
   getLocales: postsRepo.getPostLocales,
   getLocalesWithContent: postsRepo.getPostLocalesWithContent,
-  delete: postsRepo.deletePost,
-  deleteAllLocales: postsRepo.deleteAllPostLocales,
+  delete: async (id, locale) => {
+    await tagsRepo.deletePostTags(id, locale);
+    await postsRepo.deletePost(id, locale);
+  },
+  deleteAllLocales: async (id) => {
+    await tagsRepo.deletePostTags(id);
+    await postsRepo.deleteAllPostLocales(id);
+  },
   getImageUrls: (body) => ({
     cover_image_url: body.cover_image_url ?? null,
-    og_image_url: body.og_image_url ?? null,
   }),
 };

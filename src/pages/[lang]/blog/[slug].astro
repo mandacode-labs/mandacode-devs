@@ -23,7 +23,7 @@ if (!post) {
 
 const title = post.title;
 const description = post.description ?? "";
-const image = post.coverImage || post.ogImage;
+const image = post.coverImage;
 ---
 
 <Layout title={title} description={description} ogImage={image ?? undefined}>

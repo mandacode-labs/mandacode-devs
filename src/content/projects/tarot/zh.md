@@ -3,7 +3,7 @@ title: 塔罗牌
 description: 基于AI的塔罗牌解读服务
 url: "https://tarot.mandacode.com"
 status: production
-techStack:
+tags:
   - TypeScript
   - NestJS
   - React

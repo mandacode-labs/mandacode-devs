@@ -3,7 +3,7 @@ title: 韩国车牌检测器
 description: 基于YOLO的韩国车牌检测与识别系统
 sourceUrl: "https://github.com/sauce-git/korean-license-plate-detector"
 status: completed
-techStack:
+tags:
   - Python
   - ONNX Runtime
   - YOLO

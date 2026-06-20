@@ -4,7 +4,7 @@ description: 外部存储集成文件管理和存储服务
 url: "https://retrowin.mandacode.com"
 sourceUrl: "https://github.com/mandacode-labs/retrowin-go"
 status: production
-techStack:
+tags:
   - Go
   - Kubernetes
   - AWS S3

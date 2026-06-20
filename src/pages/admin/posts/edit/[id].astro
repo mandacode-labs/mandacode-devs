@@ -3,6 +3,7 @@ import AdminFormLayout from "@/components/admin/AdminFormLayout.astro";
 import PostEditor from "@/components/admin/PostEditor";
 import { requireAuth } from "@/lib/auth";
 import { getPostById } from "@/lib/db/posts";
+import { getPostTags } from "@/lib/db/tags";
 import { useTranslations } from "@/lib/i18n/utils";
 import { ui } from "@/lib/i18n";
 import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
@@ -23,6 +24,8 @@ if (!post) {
   return Astro.redirect("/admin/posts");
 }
 
+const tags = await getPostTags(id, locale);
+
 const initialData = {
   id: post.id,
   locale: post.locale,
@@ -32,7 +35,7 @@ const initialData = {
   publish_status: post.publish_status,
   pub_date: post.pub_date,
   cover_image_url: post.cover_image_url,
-  og_image_url: post.og_image_url,
+  tags,
 };
 ---
 

@@ -3,7 +3,7 @@ title: 韓国語自動車ナンバープレート検出器
 description: YOLOベースの韓国語自動車ナンバープレート検出および認識システム
 sourceUrl: "https://github.com/sauce-git/korean-license-plate-detector"
 status: completed
-techStack:
+tags:
   - Python
   - ONNX Runtime
   - YOLO

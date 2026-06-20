@@ -1,4 +1,5 @@
 import * as projectsRepo from "@/lib/db/projects";
+import * as tagsRepo from "@/lib/db/tags";
 import { createProjectSchema, updateProjectSchema } from "@/lib/api/validation";
 import { ApiError } from "@/lib/api/response";
 import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
@@ -44,6 +45,8 @@ export const projectAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
       cover_image_url: body.cover_image_url ?? null,
       published_at: publishedAt,
     });
+
+    await tagsRepo.setProjectTags(body.id, body.locale, body.tags);
   },
   update: async (id, locale, body, existing) => {
     if (!existing) {
@@ -77,11 +80,21 @@ export const projectAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
     }
 
     await projectsRepo.updateProject(id, locale, updateData);
+
+    if (body.tags !== undefined) {
+      await tagsRepo.setProjectTags(id, locale, body.tags);
+    }
   },
   getLocales: projectsRepo.getProjectLocales,
   getLocalesWithContent: projectsRepo.getProjectLocalesWithContent,
-  delete: projectsRepo.deleteProject,
-  deleteAllLocales: projectsRepo.deleteAllProjectLocales,
+  delete: async (id, locale) => {
+    await tagsRepo.deleteProjectTags(id, locale);
+    await projectsRepo.deleteProject(id, locale);
+  },
+  deleteAllLocales: async (id) => {
+    await tagsRepo.deleteProjectTags(id);
+    await projectsRepo.deleteAllProjectLocales(id);
+  },
   getImageUrls: (body) => ({
     cover_image_url: body.cover_image_url ?? null,
   }),

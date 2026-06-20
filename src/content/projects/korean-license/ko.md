@@ -3,7 +3,7 @@ title: 한국어 자동차 번호판 검출기
 description: YOLO 기반 한국어 자동차 번호판 검출 및 인식 시스템
 sourceUrl: "https://github.com/sauce-git/korean-license-plate-detector"
 status: completed
-techStack:
+tags:
   - Python
   - ONNX Runtime
   - YOLO

@@ -3,7 +3,7 @@ title: 미어캣
 description: AI 에이전트 기반 로그 분석 및 모니터링 시스템
 sourceUrl: "https://github.com/serengeti-sh/meerkat"
 status: production
-techStack:
+tags:
   - Go
   - gRPC
   - OpenTelemetry

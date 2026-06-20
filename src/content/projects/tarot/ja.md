@@ -3,7 +3,7 @@ title: タロットカード
 description: AIベースのタロットカードリーディングサービス
 url: "https://tarot.mandacode.com"
 status: production
-techStack:
+tags:
   - TypeScript
   - NestJS
   - React

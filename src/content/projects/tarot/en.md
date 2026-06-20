@@ -3,7 +3,7 @@ title: Tarot Cards
 description: AI-based Tarot Card Reading Service
 url: "https://tarot.mandacode.com"
 status: production
-techStack:
+tags:
   - TypeScript
   - NestJS
   - React

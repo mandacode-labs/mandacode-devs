@@ -4,7 +4,7 @@ description: External storage integration file management and storage service
 url: "https://retrowin.mandacode.com"
 sourceUrl: "https://github.com/mandacode-labs/retrowin-go"
 status: production
-techStack:
+tags:
   - Go
   - Kubernetes
   - AWS S3

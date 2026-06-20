@@ -12,7 +12,6 @@ export interface UnifiedPost extends BaseUnifiedContent {
   description: string | null;
   pubDate: Date;
   coverImage: string | null;
-  ogImage: string | null;
   tags: string[];
   hidden: boolean;
 }
@@ -21,7 +20,7 @@ export interface UnifiedProject extends BaseUnifiedContent {
   title: string;
   description: string | null;
   status: ProjectStatus;
-  techStack: string[];
+  tags: string[];
   duration: string;
   startDate: string | null;
   endDate: string | null;

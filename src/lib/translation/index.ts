@@ -2,6 +2,7 @@ import { translateFields } from "@/lib/openai/translation";
 import * as postsRepo from "@/lib/db/posts";
 import * as projectsRepo from "@/lib/db/projects";
 import * as developersRepo from "@/lib/db/developers";
+import * as tagsRepo from "@/lib/db/tags";
 import { updateTranslationJobStatus } from "@/lib/db/translation-jobs";
 import type { Language } from "@/lib/config/languages";
 import type { TranslationContentType } from "@/lib/db/schema";
@@ -45,9 +46,11 @@ async function translatePost(job: TranslationJobInput): Promise<void> {
     publish_status: source.publish_status,
     pub_date: source.pub_date,
     cover_image_url: source.cover_image_url,
-    og_image_url: source.og_image_url,
     published_at: source.published_at ? now : null,
   });
+
+  const sourceTags = await tagsRepo.getPostTags(job.id, job.sourceLocale);
+  await tagsRepo.setPostTags(job.id, job.targetLocale, sourceTags);
 }
 
 async function translateProject(job: TranslationJobInput): Promise<void> {
@@ -89,6 +92,9 @@ async function translateProject(job: TranslationJobInput): Promise<void> {
     cover_image_url: source.cover_image_url,
     published_at: source.published_at ? now : null,
   });
+
+  const sourceTags = await tagsRepo.getProjectTags(job.id, job.sourceLocale);
+  await tagsRepo.setProjectTags(job.id, job.targetLocale, sourceTags);
 }
 
 async function translateDeveloper(job: TranslationJobInput): Promise<void> {
