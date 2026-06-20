@@ -70,7 +70,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   if (shouldCache(context) && response.status === 200) {
     context.locals.cfContext?.waitUntil(
-      cacheResponse(context.request, response),
+      cacheResponse(context.request, response).catch((error) => {
+        console.error("Cache write failed:", error);
+      }),
     );
   }
 

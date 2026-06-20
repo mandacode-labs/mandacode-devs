@@ -103,6 +103,8 @@ export const PUT: APIRoute = async (context) => {
     context.locals.cfContext?.waitUntil(
       cleanupDeveloperAssets(id, locale, body.tiptap_json, {
         avatar_url: body.avatar_url ?? null,
+      }).catch((error) => {
+        console.error("Asset cleanup failed:", error);
       }),
     );
     await scheduleTranslations(
@@ -115,7 +117,13 @@ export const PUT: APIRoute = async (context) => {
     );
 
     context.locals.cfContext?.waitUntil(
-      invalidateContentCache("developer", id, SUPPORTED_LANGUAGES as string[]),
+      invalidateContentCache(
+        "developer",
+        id,
+        SUPPORTED_LANGUAGES as string[],
+      ).catch((error) => {
+        console.error("Cache invalidation failed:", error);
+      }),
     );
 
     return jsonResponse({ success: true });
@@ -144,7 +152,9 @@ export const DELETE: APIRoute = async (context) => {
     if (all) {
       await developersRepo.deleteAllDeveloperLocales(id);
       context.locals.cfContext?.waitUntil(
-        deleteEntityDirectory("developer", id),
+        deleteEntityDirectory("developer", id).catch((error) => {
+          console.error("Entity directory deletion failed:", error);
+        }),
       );
     } else {
       if (!locale) {
@@ -154,7 +164,9 @@ export const DELETE: APIRoute = async (context) => {
       if (remainingLocales.length <= 1) {
         await developersRepo.deleteDeveloper(id, locale);
         context.locals.cfContext?.waitUntil(
-          deleteEntityDirectory("developer", id),
+          deleteEntityDirectory("developer", id).catch((error) => {
+            console.error("Entity directory deletion failed:", error);
+          }),
         );
       } else {
         await developersRepo.deleteDeveloper(id, locale);
@@ -162,7 +174,13 @@ export const DELETE: APIRoute = async (context) => {
     }
 
     context.locals.cfContext?.waitUntil(
-      invalidateContentCache("developer", id, SUPPORTED_LANGUAGES as string[]),
+      invalidateContentCache(
+        "developer",
+        id,
+        SUPPORTED_LANGUAGES as string[],
+      ).catch((error) => {
+        console.error("Cache invalidation failed:", error);
+      }),
     );
 
     return jsonResponse({ success: true });

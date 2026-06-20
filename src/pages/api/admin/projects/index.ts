@@ -59,7 +59,9 @@ export const POST: APIRoute = async (context) => {
         "project",
         body.id,
         SUPPORTED_LANGUAGES as string[],
-      ),
+      ).catch((error) => {
+        console.error("Cache invalidation failed:", error);
+      }),
     );
 
     return jsonResponse({ success: true });

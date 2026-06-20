@@ -1,3 +1,5 @@
+import { AuthError } from "@/lib/auth";
+
 export class ApiError extends Error {
   readonly statusCode: number;
 
@@ -18,9 +20,16 @@ export function jsonResponse<T>(data: T, status = 200): Response {
 }
 
 export function errorResponse(error: unknown): Response {
-  if (error instanceof ApiError || error instanceof Error) {
-    const status = error instanceof ApiError ? error.statusCode : 500;
-    return jsonResponse({ error: error.message }, status);
+  if (error instanceof ApiError) {
+    return jsonResponse({ error: error.message }, error.statusCode);
+  }
+
+  if (error instanceof AuthError) {
+    return jsonResponse({ error: error.message }, error.statusCode);
+  }
+
+  if (error instanceof Error) {
+    return jsonResponse({ error: "Internal server error" }, 500);
   }
 
   return jsonResponse({ error: "Internal server error" }, 500);

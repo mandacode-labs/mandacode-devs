@@ -49,7 +49,13 @@ export const POST: APIRoute = async (context) => {
     );
 
     context.locals.cfContext?.waitUntil(
-      invalidateContentCache("post", body.id, SUPPORTED_LANGUAGES as string[]),
+      invalidateContentCache(
+        "post",
+        body.id,
+        SUPPORTED_LANGUAGES as string[],
+      ).catch((error) => {
+        console.error("Cache invalidation failed:", error);
+      }),
     );
 
     return jsonResponse({ success: true });

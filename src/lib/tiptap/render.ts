@@ -1,4 +1,5 @@
 import type { JSONContent } from "@tiptap/core";
+import { sanitizeUrl } from "@/lib/tiptap-utils";
 
 function escapeHtml(text: string): string {
   return text
@@ -7,6 +8,14 @@ function escapeHtml(text: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function safeHref(href: string): string {
+  return sanitizeUrl(href, "http://localhost");
+}
+
+function safeSrc(src: string): string {
+  return sanitizeUrl(src, "http://localhost");
 }
 
 function renderStyle(attrs?: Record<string, unknown>): string {
@@ -28,9 +37,10 @@ function renderMarks(node: JSONContent): string {
     const linkIndex = marks.indexOf(linkMark);
     const before = marks.slice(0, linkIndex);
     const after = marks.slice(linkIndex + 1);
+    const href = safeHref(String(linkMark.attrs?.href ?? "#"));
     return renderMarkStack(
       { ...node, text, marks: before },
-      `<a href="${escapeHtml(linkMark.attrs?.href ?? "#")}" target="_blank" rel="noopener noreferrer">${renderMarkStack({ ...node, text, marks: after })}</a>`,
+      `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${renderMarkStack({ ...node, text, marks: after })}</a>`,
     );
   }
 
@@ -102,8 +112,11 @@ export function renderTiptapNode(node: JSONContent): string {
       return children;
     case "paragraph":
       return `<p${style}>${children}</p>`;
-    case "heading":
-      return `<h${node.attrs?.level}${style}>${children}</h${node.attrs?.level}>`;
+    case "heading": {
+      const level = Number(node.attrs?.level);
+      const safeLevel = level >= 1 && level <= 6 ? level : 2;
+      return `<h${safeLevel}${style}>${children}</h${safeLevel}>`;
+    }
     case "bulletList":
       return `<ul>${children}</ul>`;
     case "orderedList":
@@ -114,8 +127,12 @@ export function renderTiptapNode(node: JSONContent): string {
       return `<blockquote>${children}</blockquote>`;
     case "codeBlock":
       return `<pre><code>${children}</code></pre>`;
-    case "image":
-      return `<img src="${escapeHtml(node.attrs?.src ?? "")}" alt="${escapeHtml(node.attrs?.alt ?? "")}" />`;
+    case "image": {
+      const src = safeSrc(String(node.attrs?.src ?? ""));
+      return src
+        ? `<img src="${escapeHtml(src)}" alt="${escapeHtml(node.attrs?.alt ?? "")}" />`
+        : "";
+    }
     case "hardBreak":
       return "<br />";
     case "horizontalRule":

@@ -18,6 +18,15 @@ if (!id) {
 
 const developer = await getDeveloperById(id, locale);
 
+function safeParseJson<T>(value: string | null): T | null {
+  if (!value) return null;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
+}
+
 const initialData = {
   id: developer?.id ?? id,
   locale: developer?.locale ?? locale,
@@ -30,11 +39,13 @@ const initialData = {
   github_url: developer?.github_url ?? null,
   email: developer?.email ?? null,
   website_url: developer?.website_url ?? null,
-  tech_stack: developer?.tech_stack
-    ? (JSON.parse(developer.tech_stack) as string[])
-    : null,
-  certifications: null,
-  education: null,
+  tech_stack: safeParseJson<string[]>(developer?.tech_stack ?? null),
+  certifications: safeParseJson<Record<string, unknown>[]>(
+    developer?.certifications ?? null,
+  ),
+  education: safeParseJson<Record<string, unknown>[]>(
+    developer?.education ?? null,
+  ),
 };
 ---
 

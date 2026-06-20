@@ -19,6 +19,27 @@ const ENTITY_PREFIX: Record<EntityType, string> = {
 
 const DEV_PREFIX = "dev/";
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+const ALLOWED_IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+  "image/avif",
+]);
+
+const ALLOWED_IMAGE_EXTENSIONS = new Set([
+  "jpg",
+  "jpeg",
+  "png",
+  "gif",
+  "webp",
+  "svg",
+  "avif",
+]);
+
 function getExtension(filename: string): string {
   const parts = filename.split(".");
   return parts.length > 1 ? parts.pop()!.toLowerCase() : "";
@@ -53,11 +74,38 @@ function getEntityPrefix(entityType: EntityType): string {
   return `${getEnvPrefix()}${ENTITY_PREFIX[entityType]}`;
 }
 
+function validateImageFile(file: File): void {
+  if (file.size > MAX_FILE_SIZE) {
+    throw new ApiError(
+      `File size exceeds maximum allowed (${MAX_FILE_SIZE / (1024 * 1024)}MB)`,
+      413,
+    );
+  }
+
+  const extension = getExtension(file.name);
+  if (!ALLOWED_IMAGE_EXTENSIONS.has(extension)) {
+    throw new ApiError(
+      `Invalid file extension. Allowed: ${[...ALLOWED_IMAGE_EXTENSIONS].join(", ")}`,
+      415,
+    );
+  }
+
+  const contentType = file.type || "application/octet-stream";
+  if (!ALLOWED_IMAGE_TYPES.has(contentType)) {
+    throw new ApiError(
+      `Invalid file type. Allowed: ${[...ALLOWED_IMAGE_TYPES].join(", ")}`,
+      415,
+    );
+  }
+}
+
 export async function uploadEntityFile(
   entityType: EntityType,
   entityId: string,
   file: File,
 ): Promise<UploadedAsset> {
+  validateImageFile(file);
+
   const key = generateKey(entityType, entityId, file.name);
   const arrayBuffer = await file.arrayBuffer();
 
@@ -69,6 +117,10 @@ export async function uploadEntityFile(
   await bucket.put(key, arrayBuffer, {
     httpMetadata: {
       contentType: file.type || "application/octet-stream",
+      cacheControl: "public, max-age=31536000, immutable",
+    },
+    customMetadata: {
+      "uploaded-by": "admin",
     },
   });
 

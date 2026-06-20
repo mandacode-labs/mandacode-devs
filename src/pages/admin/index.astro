@@ -5,7 +5,7 @@ import AdminHeader from "@/components/admin/AdminHeader.astro";
 import AdminCard from "@/components/admin/AdminCard.astro";
 import StatusBadge from "@/components/admin/StatusBadge.astro";
 import LocaleChip from "@/components/admin/LocaleChip.astro";
-import { getAuthenticatedUser } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth";
 import { useTranslations } from "@/lib/i18n/utils";
 import { DEFAULT_LANGUAGE, MAIN_DEVELOPER_ID } from "@/lib/config/languages";
 import { getAllPosts } from "@/lib/db/posts";
@@ -13,7 +13,7 @@ import { getAllProjects } from "@/lib/db/projects";
 import { getAllDevelopers } from "@/lib/db/developers";
 import type { Post, Project } from "@/lib/db/schema";
 
-const user = getAuthenticatedUser(Astro);
+requireAuth(Astro);
 const t = useTranslations(DEFAULT_LANGUAGE);
 
 const [posts, projects, developers] = await Promise.all([
@@ -90,14 +90,6 @@ function formatDate(iso: string): string {
       />
 
       <main class="p-4 sm:p-6 lg:p-8">
-        {
-          !user && (
-            <div class="mb-6 p-4 rounded-lg border border-yellow-200 bg-yellow-50 text-yellow-800 text-sm">
-              Not authenticated
-            </div>
-          )
-        }
-
         <!-- Stats -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <AdminCard class="p-5">

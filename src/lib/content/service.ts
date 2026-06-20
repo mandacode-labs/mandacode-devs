@@ -89,6 +89,15 @@ function mapCollectionProject(
   };
 }
 
+function safeJsonParse<T>(value: string | null): T | null {
+  if (!value) return null;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
+}
+
 function mapD1Developer(developer: Developer): UnifiedDeveloper {
   return {
     id: developer.id,
@@ -100,17 +109,13 @@ function mapD1Developer(developer: Developer): UnifiedDeveloper {
     github: developer.github_url,
     email: developer.email,
     website: developer.website_url,
-    techStack: developer.tech_stack
-      ? (JSON.parse(developer.tech_stack) as string[])
-      : [],
-    certifications: developer.certifications
-      ? (JSON.parse(
-          developer.certifications,
-        ) as UnifiedDeveloper["certifications"])
-      : [],
-    education: developer.education
-      ? (JSON.parse(developer.education) as UnifiedDeveloper["education"])
-      : [],
+    techStack: safeJsonParse<string[]>(developer.tech_stack) ?? [],
+    certifications:
+      safeJsonParse<UnifiedDeveloper["certifications"]>(
+        developer.certifications,
+      ) ?? [],
+    education:
+      safeJsonParse<UnifiedDeveloper["education"]>(developer.education) ?? [],
     d1Content: developer.tiptap_json,
   };
 }

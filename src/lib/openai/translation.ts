@@ -29,13 +29,21 @@ Do not add or remove information.
 Return JSON matching the requested schema exactly.`;
 
 function getOpenAIClient(): OpenAI {
-  const apiKey = env.OPENAI_API_KEY;
+  const { OPENAI_API_KEY } = env as Env & { OPENAI_API_KEY?: string };
 
-  if (!apiKey) {
+  if (!OPENAI_API_KEY) {
     throw new ApiError("OPENAI_API_KEY is not configured", 500);
   }
 
-  return new OpenAI({ apiKey });
+  return new OpenAI({ apiKey: OPENAI_API_KEY });
+}
+
+function safeJsonParse<T>(value: string): T {
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    throw new ApiError("Invalid JSON content", 400);
+  }
 }
 
 function buildTranslationPayload(fields: TranslatableFields): {
@@ -44,7 +52,7 @@ function buildTranslationPayload(fields: TranslatableFields): {
   role: string | null;
   tiptapTexts: TextNode[];
 } {
-  const tiptapJson = JSON.parse(fields.tiptapJson) as unknown;
+  const tiptapJson = safeJsonParse<unknown>(fields.tiptapJson);
   const textNodes = extractTexts(tiptapJson);
 
   return {
@@ -65,7 +73,7 @@ function assembleTranslatedFields(
   },
   originalTiptapJson: string,
 ): TranslatedFields {
-  const originalJson = JSON.parse(originalTiptapJson) as unknown;
+  const originalJson = safeJsonParse<unknown>(originalTiptapJson);
 
   const textNodes = payload.tiptapTexts.map((node, index) => ({
     path: node.path,
@@ -130,12 +138,12 @@ export async function translateFields(
     throw new ApiError("Translation response is empty", 500);
   }
 
-  const parsed = JSON.parse(content) as {
+  const parsed = safeJsonParse<{
     title: string;
     description: string | null;
     role: string | null;
     tiptapTexts: string[];
-  };
+  }>(content);
 
   return assembleTranslatedFields(payload, parsed, fields.tiptapJson);
 }
