@@ -1,12 +1,13 @@
 ---
 import Layout from "@/components/layouts/Layout.astro";
 import HomePage from "@/components/home/HomePage.astro";
-import { isValidLanguage } from "@/lib/config/languages";
+import { isValidLanguage, getLocaleFromRequest } from "@/lib/config/languages";
 
 const { lang } = Astro.params;
 
 if (!lang || !isValidLanguage(lang)) {
-  return Astro.redirect("/ko");
+  const locale = getLocaleFromRequest(Astro.request, Astro.url.pathname);
+  return Astro.redirect(`/${locale}`);
 }
 ---
 

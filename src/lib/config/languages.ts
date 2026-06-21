@@ -62,3 +62,25 @@ export function getRelativeLocaleUrl(lang: Language, path: string): string {
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
   return `/${lang}${cleanPath}`;
 }
+
+export function getLocaleFromRequest(
+  request: Request,
+  pathname: string,
+): Language {
+  const pathLocale = getLocaleFromPath(pathname);
+  if (pathLocale !== DEFAULT_LANGUAGE) return pathLocale;
+
+  const cookie = request.headers.get("cookie") || "";
+  const langMatch = cookie.match(/lang=([a-z]{2})/);
+  if (langMatch && isValidLanguage(langMatch[1])) {
+    return langMatch[1] as Language;
+  }
+
+  const acceptLang = request.headers.get("accept-language") || "";
+  const preferred = acceptLang.split(",")[0]?.split("-")[0];
+  if (preferred && isValidLanguage(preferred)) {
+    return preferred as Language;
+  }
+
+  return DEFAULT_LANGUAGE;
+}
