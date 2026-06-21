@@ -143,6 +143,24 @@ export function renderTiptapNode(node: JSONContent): string {
         ? `<img src="${escapeHtml(src)}" alt="${escapeHtml(node.attrs?.alt ?? "")}" />`
         : "";
     }
+    case "table":
+      return `<table>${children}</table>`;
+    case "tableRow":
+      return `<tr>${children}</tr>`;
+    case "tableCell": {
+      const colspan = node.attrs?.colspan as number | undefined;
+      const rowspan = node.attrs?.rowspan as number | undefined;
+      const colspanAttr = colspan && colspan > 1 ? ` colspan="${colspan}"` : "";
+      const rowspanAttr = rowspan && rowspan > 1 ? ` rowspan="${rowspan}"` : "";
+      return `<td${colspanAttr}${rowspanAttr}>${children}</td>`;
+    }
+    case "tableHeader": {
+      const colspan = node.attrs?.colspan as number | undefined;
+      const rowspan = node.attrs?.rowspan as number | undefined;
+      const colspanAttr = colspan && colspan > 1 ? ` colspan="${colspan}"` : "";
+      const rowspanAttr = rowspan && rowspan > 1 ? ` rowspan="${rowspan}"` : "";
+      return `<th${colspanAttr}${rowspanAttr}>${children}</th>`;
+    }
     case "hardBreak":
       return "<br />";
     case "horizontalRule":

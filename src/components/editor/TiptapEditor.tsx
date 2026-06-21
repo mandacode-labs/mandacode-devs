@@ -12,6 +12,10 @@ import { TextStyle } from "@tiptap/extension-text-style";
 import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
 import { Selection } from "@tiptap/extensions";
+import { Table } from "@tiptap/extension-table";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
 import { createLowlight, common } from "lowlight";
 
 const lowlight = createLowlight(common);
@@ -35,6 +39,7 @@ import "@/components/tiptap-node/list-node/list-node.scss";
 import "@/components/tiptap-node/image-node/image-node.scss";
 import "@/components/tiptap-node/heading-node/heading-node.scss";
 import "@/components/tiptap-node/paragraph-node/paragraph-node.scss";
+import "@/components/tiptap-node/table-node/table-node.scss";
 
 import { HeadingDropdownMenu } from "@/components/tiptap-ui/heading-dropdown-menu";
 import { ImageUploadButton } from "@/components/tiptap-ui/image-upload-button";
@@ -47,6 +52,7 @@ import { LinkPopover } from "@/components/tiptap-ui/link-popover";
 import { MarkButton } from "@/components/tiptap-ui/mark-button";
 import { TextAlignButton } from "@/components/tiptap-ui/text-align-button";
 import { UndoRedoButton } from "@/components/tiptap-ui/undo-redo-button";
+import { TableDropdownMenu } from "@/components/tiptap-ui/table-dropdown-menu";
 
 import {
   createHandleImageUpload,
@@ -114,6 +120,7 @@ const MainToolbarContent = () => {
       <ToolbarSeparator />
 
       <ToolbarGroup>
+        <TableDropdownMenu />
         <ImageUploadButton text="Add image" />
       </ToolbarGroup>
 
@@ -212,6 +219,12 @@ export default function TiptapEditor({
       Selection,
       TextStyle,
       Color.configure({ types: ["textStyle"] }),
+      Table.configure({
+        resizable: true,
+      }),
+      TableRow,
+      TableCell,
+      TableHeader,
       ImageUploadNode.configure({
         accept: "image/*",
         maxSize: MAX_FILE_SIZE,
