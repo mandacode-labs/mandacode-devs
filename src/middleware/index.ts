@@ -1,21 +1,9 @@
 import { defineMiddleware } from "astro:middleware";
 import type { APIContext } from "astro";
 import { env } from "cloudflare:workers";
-import {
-  DEFAULT_LANGUAGE,
-  isValidLanguage,
-  getLocaleFromRequest,
-} from "@/lib/config/languages";
+import { getLocaleFromRequest } from "@/lib/config/languages";
 import { applySecurityHeaders } from "@/lib/config/security";
 import { getCachedResponse, cacheResponse } from "@/lib/cache";
-
-function getLanguageFromPath(pathname: string): string {
-  const firstSegment = pathname.split("/")[1];
-  if (firstSegment && isValidLanguage(firstSegment)) {
-    return firstSegment;
-  }
-  return DEFAULT_LANGUAGE;
-}
 
 function shouldCache(context: APIContext): boolean {
   return (
