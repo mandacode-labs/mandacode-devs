@@ -57,6 +57,7 @@ export interface UpdateProjectInput {
 
 export interface GetProjectsOptions {
   publishStatus?: PublishStatus;
+  includeUnpublished?: boolean;
 }
 
 export interface ProjectWithTranslation extends Project {
@@ -162,12 +163,17 @@ function buildListQuery(options: GetProjectsOptions = {}): {
       ON p.id = orig.project_id AND orig.locale = p.original_locale
     LEFT JOIN project_translations trans
       ON p.id = trans.project_id AND trans.locale = ?
-    WHERE orig.publish_status = ?
   `;
-  params.push("placeholder-locale", "published");
+  params.push("placeholder-locale");
+
+  if (!options.includeUnpublished) {
+    query += " WHERE orig.publish_status = ?";
+    params.push("published");
+  }
 
   if (options.publishStatus) {
-    query += " AND trans.publish_status = ?";
+    query += options.includeUnpublished ? " WHERE " : " AND ";
+    query += "trans.publish_status = ?";
     params.push(options.publishStatus);
   }
 

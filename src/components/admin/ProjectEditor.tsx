@@ -20,6 +20,8 @@ const PROJECT_STATUS_OPTIONS = [
 export interface ProjectEditorInitialData {
   id: string;
   locale: string;
+  original_locale: string;
+  existing_locales: string[];
   title: string;
   description: string | null;
   tiptap_json: string;
@@ -86,6 +88,9 @@ export default function ProjectEditor({
     isEditMode,
     locale,
     setLocale,
+    originalLocale,
+    setOriginalLocale,
+    existingLocales,
     targetLocales,
     toggleTargetLocale,
     isSubmitting,
@@ -97,6 +102,9 @@ export default function ProjectEditor({
     handleDelete,
   } = useAdminEditor({
     initialId: initialData?.id,
+    initialLocale: initialData?.locale,
+    initialOriginalLocale: initialData?.original_locale,
+    existingLocales: initialData?.existing_locales ?? [],
     entityType: "project",
     listPath: "/admin/projects",
     getSubmitBody: () => ({
@@ -122,6 +130,7 @@ export default function ProjectEditor({
   useEffect(() => {
     if (initialData) {
       setLocale(initialData.locale);
+      setOriginalLocale(initialData.original_locale);
       setTitle(initialData.title);
       setDescription(initialData.description ?? "");
       setTiptapJson(initialData.tiptap_json);
@@ -138,7 +147,7 @@ export default function ProjectEditor({
       setTags(initialData.tags ?? []);
       setPublishStatus(initialData.publish_status);
     }
-  }, [initialData, setLocale]);
+  }, [initialData, setLocale, setOriginalLocale]);
 
   const fetchTagSuggestions = useCallback(async (query: string) => {
     if (!query.trim()) {
@@ -287,6 +296,23 @@ export default function ProjectEditor({
               ))}
             </select>
           </label>
+
+          <label className="block">
+            <span className="text-sm font-medium text-text-primary">
+              {t("admin.originalLocale", "Original Locale")}
+            </span>
+            <select
+              value={originalLocale}
+              onChange={(e) => setOriginalLocale(e.target.value)}
+              className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+            >
+              {Object.values(LANGUAGE_CONFIGS).map((loc) => (
+                <option key={loc.code} value={loc.code}>
+                  {loc.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
 
         <label className="block mt-4">
@@ -316,7 +342,7 @@ export default function ProjectEditor({
       </AdminSection>
 
       <AdminSection title={t("admin.publishing", "Publishing")}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="block">
             <span className="text-sm font-medium text-text-primary">
               {t("admin.projectStatus", "Project Status")}
@@ -579,19 +605,42 @@ export default function ProjectEditor({
             )}
           </p>
           <div className="flex flex-wrap gap-4">
-            {Object.values(LANGUAGE_CONFIGS)
-              .filter((loc) => loc.code !== locale)
-              .map((loc) => (
-                <label key={loc.code} className="flex items-center gap-2">
+            {Object.values(LANGUAGE_CONFIGS).map((loc) => {
+              const isOriginal = loc.code === originalLocale;
+              const isExisting = existingLocales.includes(loc.code);
+              const isChecked =
+                isOriginal || isExisting || targetLocales.includes(loc.code);
+
+              return (
+                <label
+                  key={loc.code}
+                  className={`flex items-center gap-2 ${
+                    isOriginal || isExisting ? "opacity-60" : ""
+                  }`}
+                >
                   <input
                     type="checkbox"
-                    checked={targetLocales.includes(loc.code)}
+                    checked={isChecked}
                     onChange={() => toggleTargetLocale(loc.code)}
-                    className="w-4 h-4 rounded border-border text-accent focus:ring-accent"
+                    disabled={isOriginal || isExisting}
+                    className="w-4 h-4 rounded border-border text-accent focus:ring-accent disabled:opacity-60"
                   />
-                  <span className="text-sm text-text-primary">{loc.label}</span>
+                  <span className="text-sm text-text-primary">
+                    {loc.label}
+                    {isOriginal && (
+                      <span className="ml-1 text-xs text-blue-600 font-medium">
+                        {t("admin.original", "Original")}
+                      </span>
+                    )}
+                    {isExisting && !isOriginal && (
+                      <span className="ml-1 text-xs text-green-600 font-medium">
+                        {t("admin.translated", "Translated")}
+                      </span>
+                    )}
+                  </span>
                 </label>
-              ))}
+              );
+            })}
           </div>
         </div>
       </AdminSection>

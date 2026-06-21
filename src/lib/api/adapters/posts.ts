@@ -23,17 +23,18 @@ export const postAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
   create: async (body, user) => {
     const publishedAt =
       body.publish_status === "published" ? new Date().toISOString() : null;
+    const originalLocale = body.original_locale ?? body.locale;
 
     await postsRepo.createPost({
       id: body.id,
       author_id: user.email,
-      original_locale: body.locale,
+      original_locale: originalLocale,
     });
 
     await postsRepo.createPostTranslation({
-      id: `${body.id}_${body.locale}`,
+      id: `${body.id}_${originalLocale}`,
       post_id: body.id,
-      locale: body.locale,
+      locale: originalLocale,
       title: body.title,
       description: body.description ?? null,
       tiptap_json: body.tiptap_json,
@@ -67,6 +68,10 @@ export const postAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
     }
 
     await postsRepo.updatePostTranslation(id, locale, updateData);
+
+    if (body.original_locale !== undefined) {
+      await postsRepo.updatePost(id, { original_locale: body.original_locale });
+    }
 
     if (body.tags !== undefined) {
       await tagsRepo.setPostTags(id, body.tags);

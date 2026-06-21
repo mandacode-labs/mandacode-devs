@@ -24,6 +24,7 @@ export const developerAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
   create: async (body, user) => {
     const publishedAt =
       body.publish_status === "published" ? new Date().toISOString() : null;
+    const originalLocale = body.original_locale ?? body.locale;
 
     await developersRepo.createDeveloper({
       id: body.id,
@@ -36,13 +37,13 @@ export const developerAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
         ? JSON.stringify(body.certifications)
         : null,
       education: body.education ? JSON.stringify(body.education) : null,
-      original_locale: body.locale,
+      original_locale: originalLocale,
     });
 
     await developersRepo.createDeveloperTranslation({
-      id: `${body.id}_${body.locale}`,
+      id: `${body.id}_${originalLocale}`,
       developer_id: body.id,
-      locale: body.locale,
+      locale: originalLocale,
       name: body.name,
       role: body.role,
       bio: body.bio,
@@ -62,6 +63,7 @@ export const developerAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
         ? JSON.stringify(body.certifications)
         : undefined,
       education: body.education ? JSON.stringify(body.education) : undefined,
+      original_locale: body.original_locale,
     };
 
     await developersRepo.updateDeveloper(id, mainUpdate);

@@ -110,11 +110,12 @@ function rowToDeveloperWithTranslation(
   };
 }
 
-function buildListQuery(): {
+function buildListQuery(options: GetDevelopersOptions = {}): {
   query: string;
   params: string[];
 } {
-  const query = `
+  const params: string[] = [];
+  let query = `
     SELECT
       d.id,
       d.author_id,
@@ -146,11 +147,37 @@ function buildListQuery(): {
       ON d.id = orig.developer_id AND orig.locale = d.original_locale
     LEFT JOIN developer_translations trans
       ON d.id = trans.developer_id AND trans.locale = ?
-    WHERE orig.publish_status = 'published'
-    ORDER BY orig.name ASC
   `;
+  params.push("placeholder-locale");
 
-  return { query, params: ["placeholder-locale"] };
+  if (!options.includeUnpublished) {
+    query += " WHERE orig.publish_status = 'published'";
+  }
+
+  query += " ORDER BY orig.name ASC";
+
+  return { query, params };
+}
+
+export interface GetDevelopersOptions {
+  includeUnpublished?: boolean;
+}
+
+export async function getDevelopers(
+  locale: string,
+  options: GetDevelopersOptions = {},
+): Promise<DeveloperWithTranslation[]> {
+  const db = getDatabase();
+  const { query, params } = buildListQuery(options);
+  params[0] = locale;
+
+  const result = await db
+    .prepare(query)
+    .bind(...params)
+    .all();
+  return ((result.results ?? []) as Record<string, unknown>[]).map(
+    rowToDeveloperWithTranslation,
+  );
 }
 
 export async function getDevelopers(

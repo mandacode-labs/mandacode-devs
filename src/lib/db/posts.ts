@@ -34,6 +34,7 @@ export interface UpdatePostInput {
 
 export interface GetPostsOptions {
   publishStatus?: PublishStatus;
+  includeUnpublished?: boolean;
 }
 
 export interface PostWithTranslation extends Post {
@@ -117,12 +118,17 @@ function buildListQuery(options: GetPostsOptions = {}): {
       ON p.id = orig.post_id AND orig.locale = p.original_locale
     LEFT JOIN post_translations trans
       ON p.id = trans.post_id AND trans.locale = ?
-    WHERE orig.publish_status = ?
   `;
-  params.push("placeholder-locale", "published");
+  params.push("placeholder-locale");
+
+  if (!options.includeUnpublished) {
+    query += " WHERE orig.publish_status = ?";
+    params.push("published");
+  }
 
   if (options.publishStatus) {
-    query += " AND trans.publish_status = ?";
+    query += options.includeUnpublished ? " WHERE " : " AND ";
+    query += "trans.publish_status = ?";
     params.push(options.publishStatus);
   }
 

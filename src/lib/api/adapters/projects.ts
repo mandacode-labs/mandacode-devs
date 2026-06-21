@@ -22,6 +22,7 @@ export const projectAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
   create: async (body, user) => {
     const publishedAt =
       body.publish_status === "published" ? new Date().toISOString() : null;
+    const originalLocale = body.original_locale ?? body.locale;
 
     await projectsRepo.createProject({
       id: body.id,
@@ -34,13 +35,13 @@ export const projectAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
       url: body.url ?? null,
       source_url: body.source_url ?? null,
       blog_url: body.blog_url ?? null,
-      original_locale: body.locale,
+      original_locale: originalLocale,
     });
 
     await projectsRepo.createProjectTranslation({
-      id: `${body.id}_${body.locale}`,
+      id: `${body.id}_${originalLocale}`,
       project_id: body.id,
-      locale: body.locale,
+      locale: originalLocale,
       title: body.title,
       description: body.description ?? null,
       tiptap_json: body.tiptap_json,
@@ -76,6 +77,24 @@ export const projectAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
     }
 
     await projectsRepo.updateProjectTranslation(id, locale, translationUpdate);
+
+    const mainUpdate: projectsRepo.UpdateProjectInput = {};
+    if (body.original_locale !== undefined)
+      mainUpdate.original_locale = body.original_locale;
+    if (body.project_status !== undefined)
+      mainUpdate.project_status = body.project_status;
+    if (body.start_date !== undefined) mainUpdate.start_date = body.start_date;
+    if (body.end_date !== undefined) mainUpdate.end_date = body.end_date;
+    if (body.team_size !== undefined) mainUpdate.team_size = body.team_size;
+    if (body.project_order !== undefined)
+      mainUpdate.project_order = body.project_order;
+    if (body.url !== undefined) mainUpdate.url = body.url;
+    if (body.source_url !== undefined) mainUpdate.source_url = body.source_url;
+    if (body.blog_url !== undefined) mainUpdate.blog_url = body.blog_url;
+
+    if (Object.keys(mainUpdate).length > 0) {
+      await projectsRepo.updateProject(id, mainUpdate);
+    }
 
     if (body.tags !== undefined) {
       await tagsRepo.setProjectTags(id, body.tags);

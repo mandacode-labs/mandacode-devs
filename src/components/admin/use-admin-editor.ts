@@ -8,16 +8,33 @@ export interface Toast {
 
 export interface UseAdminEditorOptions {
   initialId?: string;
+  initialLocale?: string;
+  initialOriginalLocale?: string;
+  existingLocales?: string[];
   entityType: "post" | "project" | "developer";
   listPath: string;
   getSubmitBody: () => Record<string, unknown>;
 }
 
 export function useAdminEditor(options: UseAdminEditorOptions) {
-  const { initialId, entityType, listPath, getSubmitBody } = options;
+  const {
+    initialId,
+    initialLocale = "ko",
+    initialOriginalLocale,
+    existingLocales: initialExistingLocales = [],
+    entityType,
+    listPath,
+    getSubmitBody,
+  } = options;
   const isEditMode = !!initialId;
   const [id] = useState(() => initialId ?? generateEntityId());
-  const [locale, setLocale] = useState("ko");
+  const [locale, setLocale] = useState(initialLocale);
+  const [originalLocale, setOriginalLocale] = useState(
+    initialOriginalLocale ?? initialLocale,
+  );
+  const [existingLocales, setExistingLocales] = useState(
+    initialExistingLocales,
+  );
   const [targetLocales, setTargetLocales] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -29,6 +46,15 @@ export function useAdminEditor(options: UseAdminEditorOptions) {
     const timer = setTimeout(() => setToast(null), 4000);
     return () => clearTimeout(timer);
   }, [toast]);
+
+  useEffect(() => {
+    if (initialOriginalLocale) {
+      setOriginalLocale(initialOriginalLocale);
+    }
+    if (initialExistingLocales.length > 0) {
+      setExistingLocales(initialExistingLocales);
+    }
+  }, [initialOriginalLocale, initialExistingLocales]);
 
   const showSuccess = useCallback((message: string) => {
     setToast({ type: "success", message });
@@ -48,7 +74,12 @@ export function useAdminEditor(options: UseAdminEditorOptions) {
         : `/api/admin/${entityType}s`;
       const body = isEditMode
         ? getSubmitBody()
-        : { id, locale, ...getSubmitBody() };
+        : {
+            id,
+            locale,
+            original_locale: originalLocale,
+            ...getSubmitBody(),
+          };
 
       const response = await fetch(url, {
         method: isEditMode ? "PUT" : "POST",
@@ -99,8 +130,12 @@ export function useAdminEditor(options: UseAdminEditorOptions) {
   };
 
   const toggleTargetLocale = (code: string) => {
-    setTargetLocales((prev) =>
-      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code],
+    if (code === originalLocale) return;
+    if (existingLocales.includes(code)) return;
+    setTargetLocales(
+      (prev = prev.includes(code)
+        ? prev.filter((c) => c !== code)
+        : [...prev, code]),
     );
   };
 
@@ -109,6 +144,10 @@ export function useAdminEditor(options: UseAdminEditorOptions) {
     isEditMode,
     locale,
     setLocale,
+    originalLocale,
+    setOriginalLocale,
+    existingLocales,
+    setExistingLocales,
     targetLocales,
     toggleTargetLocale,
     isSubmitting,

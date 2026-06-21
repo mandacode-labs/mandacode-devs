@@ -13,11 +13,12 @@ import {
 export interface PostEditorInitialData {
   id: string;
   locale: string;
+  original_locale: string;
+  existing_locales: string[];
   title: string;
   description: string | null;
   tiptap_json: string;
   publish_status: string;
-  pub_date: string;
   cover_image_url: string | null;
   tags: string[];
 }
@@ -39,12 +40,6 @@ export default function PostEditor({
   const [tiptapJson, setTiptapJson] = useState(
     initialData?.tiptap_json ?? JSON.stringify({ type: "doc", content: [] }),
   );
-  const [pubDate, setPubDate] = useState(() => {
-    if (initialData?.pub_date) {
-      return new Date(initialData.pub_date).toISOString().slice(0, 16);
-    }
-    return new Date().toISOString().slice(0, 16);
-  });
   const [coverImageUrl, setCoverImageUrl] = useState(
     initialData?.cover_image_url ?? "",
   );
@@ -64,6 +59,9 @@ export default function PostEditor({
     isEditMode,
     locale,
     setLocale,
+    originalLocale,
+    setOriginalLocale,
+    existingLocales,
     targetLocales,
     toggleTargetLocale,
     isSubmitting,
@@ -75,6 +73,9 @@ export default function PostEditor({
     handleDelete,
   } = useAdminEditor({
     initialId: initialData?.id,
+    initialLocale: initialData?.locale,
+    initialOriginalLocale: initialData?.original_locale,
+    existingLocales: initialData?.existing_locales ?? [],
     entityType: "post",
     listPath: "/admin/posts",
     getSubmitBody: () => ({
@@ -82,7 +83,6 @@ export default function PostEditor({
       description: description || null,
       tiptap_json: tiptapJson,
       publish_status: publishStatus,
-      pub_date: new Date(pubDate).toISOString(),
       cover_image_url: coverImageUrl || null,
       tags,
       target_locales: targetLocales,
@@ -92,15 +92,15 @@ export default function PostEditor({
   useEffect(() => {
     if (initialData) {
       setLocale(initialData.locale);
+      setOriginalLocale(initialData.original_locale);
       setTitle(initialData.title);
       setDescription(initialData.description ?? "");
       setTiptapJson(initialData.tiptap_json);
-      setPubDate(new Date(initialData.pub_date).toISOString().slice(0, 16));
       setCoverImageUrl(initialData.cover_image_url ?? "");
       setTags(initialData.tags ?? []);
       setPublishStatus(initialData.publish_status);
     }
-  }, [initialData, setLocale]);
+  }, [initialData, setLocale, setOriginalLocale]);
 
   const fetchTagSuggestions = useCallback(async (query: string) => {
     if (!query.trim()) {
@@ -249,6 +249,23 @@ export default function PostEditor({
               ))}
             </select>
           </label>
+
+          <label className="block">
+            <span className="text-sm font-medium text-text-primary">
+              {t("admin.originalLocale", "Original Locale")}
+            </span>
+            <select
+              value={originalLocale}
+              onChange={(e) => setOriginalLocale(e.target.value)}
+              className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+            >
+              {Object.values(LANGUAGE_CONFIGS).map((loc) => (
+                <option key={loc.code} value={loc.code}>
+                  {loc.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
 
         <label className="block mt-4">
@@ -278,39 +295,22 @@ export default function PostEditor({
       </AdminSection>
 
       <AdminSection title={t("admin.publishing", "Publishing")}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <label className="block">
-            <span className="text-sm font-medium text-text-primary">
-              {t("admin.status", "Publish Status")}
-            </span>
-            <select
-              value={publishStatus}
-              onChange={(e) => setPublishStatus(e.target.value)}
-              className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-            >
-              <option value="draft">{t("admin.draft", "Draft")}</option>
-              <option value="published">
-                {t("admin.published", "Published")}
-              </option>
-              <option value="archived">
-                {t("admin.archived", "Archived")}
-              </option>
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="text-sm font-medium text-text-primary">
-              {t("admin.publishDate", "Publish Date")}
-            </span>
-            <input
-              type="datetime-local"
-              value={pubDate}
-              onChange={(e) => setPubDate(e.target.value)}
-              required
-              className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-            />
-          </label>
-        </div>
+        <label className="block">
+          <span className="text-sm font-medium text-text-primary">
+            {t("admin.status", "Publish Status")}
+          </span>
+          <select
+            value={publishStatus}
+            onChange={(e) => setPublishStatus(e.target.value)}
+            className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+          >
+            <option value="draft">{t("admin.draft", "Draft")}</option>
+            <option value="published">
+              {t("admin.published", "Published")}
+            </option>
+            <option value="archived">{t("admin.archived", "Archived")}</option>
+          </select>
+        </label>
       </AdminSection>
 
       <AdminSection title={t("admin.media", "Media")}>
@@ -427,19 +427,42 @@ export default function PostEditor({
             )}
           </p>
           <div className="flex flex-wrap gap-4">
-            {Object.values(LANGUAGE_CONFIGS)
-              .filter((loc) => loc.code !== locale)
-              .map((loc) => (
-                <label key={loc.code} className="flex items-center gap-2">
+            {Object.values(LANGUAGE_CONFIGS).map((loc) => {
+              const isOriginal = loc.code === originalLocale;
+              const isExisting = existingLocales.includes(loc.code);
+              const isChecked =
+                isOriginal || isExisting || targetLocales.includes(loc.code);
+
+              return (
+                <label
+                  key={loc.code}
+                  className={`flex items-center gap-2 ${
+                    isOriginal || isExisting ? "opacity-60" : ""
+                  }`}
+                >
                   <input
                     type="checkbox"
-                    checked={targetLocales.includes(loc.code)}
+                    checked={isChecked}
                     onChange={() => toggleTargetLocale(loc.code)}
-                    className="w-4 h-4 rounded border-border text-accent focus:ring-accent"
+                    disabled={isOriginal || isExisting}
+                    className="w-4 h-4 rounded border-border text-accent focus:ring-accent disabled:opacity-60"
                   />
-                  <span className="text-sm text-text-primary">{loc.label}</span>
+                  <span className="text-sm text-text-primary">
+                    {loc.label}
+                    {isOriginal && (
+                      <span className="ml-1 text-xs text-blue-600 font-medium">
+                        {t("admin.original", "Original")}
+                      </span>
+                    )}
+                    {isExisting && !isOriginal && (
+                      <span className="ml-1 text-xs text-green-600 font-medium">
+                        {t("admin.translated", "Translated")}
+                      </span>
+                    )}
+                  </span>
                 </label>
-              ))}
+              );
+            })}
           </div>
         </div>
       </AdminSection>

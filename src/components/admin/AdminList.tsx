@@ -42,6 +42,8 @@ export interface AdminListItem {
   href: string;
   meta?: string;
   status?: "draft" | "published" | "archived";
+  originalLocale: string;
+  existingLocales: string[];
   locales: AdminListLocaleInfo[];
   extras?: Record<string, string | number | null>;
 }
@@ -354,6 +356,8 @@ export function AdminList({
                       <AdminLocaleChips
                         contentType={contentType}
                         contentId={item.id}
+                        originalLocale={item.originalLocale}
+                        existingLocales={item.existingLocales}
                         locales={item.locales}
                       />
                     </td>
@@ -525,6 +529,8 @@ function SortableRow({
         <AdminLocaleChips
           contentType={contentType}
           contentId={item.id}
+          originalLocale={item.originalLocale}
+          existingLocales={item.existingLocales}
           locales={item.locales}
         />
       </td>
