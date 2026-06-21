@@ -105,6 +105,12 @@ const defaultConfig = ${sanitizeJsonForScript(JSON.stringify({ startOnLoad: fals
 
 const themeMap = { light: 'default', dark: 'dark' };
 
+function decodeHtmlEntities(text) {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+}
+
 async function initMermaid() {
   const diagrams = document.querySelectorAll('pre.mermaid');
   if (!diagrams.length) return;
@@ -118,7 +124,7 @@ async function initMermaid() {
   mermaid.initialize({ ...defaultConfig, theme: currentTheme });
   for (const diagram of diagrams) {
     if (diagram.hasAttribute('data-processed')) continue;
-    const definition = diagram.textContent || '';
+    const definition = decodeHtmlEntities(diagram.textContent || '');
     const id = 'mermaid-' + Math.random().toString(36).slice(2, 11);
     try {
       const { svg } = await mermaid.render(id, definition);
@@ -141,7 +147,18 @@ async function initMermaid() {
   }
 }
 
-if (document.querySelectorAll('pre.mermaid').length) initMermaid();
+function runInitMermaid() {
+  if (document.querySelectorAll('pre.mermaid').length) initMermaid();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', runInitMermaid);
+} else {
+  runInitMermaid();
+}
+
+document.addEventListener('astro:page-load', runInitMermaid);
+document.addEventListener('astro:after-swap', runInitMermaid);
 
 if (${autoTheme}) {
   new MutationObserver((mutations) => {
