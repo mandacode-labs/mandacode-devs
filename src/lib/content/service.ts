@@ -283,6 +283,50 @@ function mergeContent<T extends { id: string; markdownContent?: string }>(
   return d1Item ?? collectionItem;
 }
 
+export async function getPostForAdminPreview(
+  id: string,
+  lang: Language,
+): Promise<UnifiedPost | null> {
+  const post = await postsRepo.getPostById(id, lang);
+  if (!post) return null;
+  return mapD1Post(post, lang, await tagsRepo.getPostTags(post.id));
+}
+
+export async function getProjectForAdminPreview(
+  id: string,
+  lang: Language,
+): Promise<UnifiedProject | null> {
+  const project = await projectsRepo.getProjectById(id, lang);
+  if (!project) return null;
+  return mapD1Project(project, lang, await tagsRepo.getProjectTags(project.id));
+}
+
+export async function getProjectsForAdminPreview(
+  lang: Language,
+): Promise<UnifiedProject[]> {
+  const d1Projects = await projectsRepo
+    .getProjects(lang, { includeUnpublished: true })
+    .then((projects) =>
+      Promise.all(
+        projects.map(async (project) => {
+          const tags = await tagsRepo.getProjectTags(project.id);
+          return mapD1Project(project, lang, tags);
+        }),
+      ),
+    );
+
+  return d1Projects.sort((a, b) => a.order - b.order);
+}
+
+export async function getDeveloperForAdminPreview(
+  id: string,
+  lang: Language,
+): Promise<UnifiedDeveloper | null> {
+  const developer = await developersRepo.getDeveloperById(id, lang);
+  if (!developer) return null;
+  return mapD1Developer(developer, lang);
+}
+
 export async function getDevelopers(
   lang: Language,
 ): Promise<UnifiedDeveloper[]> {

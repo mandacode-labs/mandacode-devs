@@ -1,0 +1,63 @@
+---
+import AdminPreviewLayout from "@/components/admin/AdminPreviewLayout.astro";
+import ProjectHero from "@/components/projects/ProjectHero.astro";
+import ProjectMeta from "@/components/projects/ProjectMeta.astro";
+import ProjectActions from "@/components/projects/ProjectActions.astro";
+import ContentRenderer from "@/components/shared/ContentRenderer.astro";
+import { getProjectForAdminPreview } from "@/lib/content/service";
+import { requireAuth } from "@/lib/auth";
+import { useTranslations } from "@/lib/i18n/utils";
+import { isValidLanguage, DEFAULT_LANGUAGE } from "@/lib/config/languages";
+import type { Lang } from "@/types";
+
+requireAuth(Astro);
+
+const { id } = Astro.params;
+const localeParam = Astro.url.searchParams.get("locale") || DEFAULT_LANGUAGE;
+const locale = isValidLanguage(localeParam)
+  ? (localeParam as Lang)
+  : DEFAULT_LANGUAGE;
+
+if (!id) {
+  return Astro.redirect("/admin/projects");
+}
+
+const project = await getProjectForAdminPreview(id, locale);
+
+if (!project) {
+  return Astro.redirect("/admin/projects");
+}
+
+const t = useTranslations(locale);
+const title = project.title;
+const coverImage = project.coverImage;
+---
+
+<AdminPreviewLayout
+  title={`${t("admin.preview")} · ${title}`}
+  headerTitle={t("admin.preview")}
+  headerSubtitle={title}
+  backHref="/admin/projects"
+  backLabel={t("admin.backToProjects")}
+  currentPath="/admin/projects"
+  lang={locale}
+  locale={locale}
+  originalLocale={project.originalLocale}
+  publishStatus={project.publishStatus}
+  isFallback={project.isFallback}
+>
+  <div class="max-w-4xl mx-auto">
+    <ProjectHero title={title} coverImage={coverImage ?? undefined} />
+
+    <ProjectMeta project={project} lang={locale} />
+
+    <ContentRenderer
+      d1Content={project.d1Content}
+      markdownContent={project.markdownContent}
+      mode="stack"
+      class="mb-8"
+    />
+
+    <ProjectActions project={project} lang={locale} />
+  </div>
+</AdminPreviewLayout>

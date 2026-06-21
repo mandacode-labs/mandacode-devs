@@ -11,7 +11,11 @@ import { Color } from "@tiptap/extension-color";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
+import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
 import { Selection } from "@tiptap/extensions";
+import { createLowlight, common } from "lowlight";
+
+const lowlight = createLowlight(common);
 
 import { Spacer } from "@/components/tiptap-ui-primitive/spacer";
 import {
@@ -35,6 +39,7 @@ import { ImageUploadButton } from "@/components/tiptap-ui/image-upload-button";
 import { ListDropdownMenu } from "@/components/tiptap-ui/list-dropdown-menu";
 import { BlockquoteButton } from "@/components/tiptap-ui/blockquote-button";
 import { CodeBlockButton } from "@/components/tiptap-ui/code-block-button";
+import { CodeBlockLanguageDropdown } from "@/components/tiptap-ui/code-block-language-dropdown";
 import { ColorHighlightPopover } from "@/components/tiptap-ui/color-highlight-popover";
 import { LinkPopover } from "@/components/tiptap-ui/link-popover";
 import { MarkButton } from "@/components/tiptap-ui/mark-button";
@@ -81,6 +86,7 @@ const MainToolbarContent = () => {
         />
         <BlockquoteButton />
         <CodeBlockButton />
+        <CodeBlockLanguageDropdown />
       </ToolbarGroup>
 
       <ToolbarSeparator />
@@ -179,9 +185,17 @@ export default function TiptapEditor({
     extensions: [
       StarterKit.configure({
         horizontalRule: false,
+        codeBlock: false,
         link: {
           openOnClick: false,
           enableClickSelection: true,
+        },
+      }),
+      CodeBlockLowlight.configure({
+        lowlight,
+        defaultLanguage: "plaintext",
+        HTMLAttributes: {
+          class: "language-",
         },
       }),
       HorizontalRule,

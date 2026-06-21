@@ -125,8 +125,18 @@ export function renderTiptapNode(node: JSONContent): string {
       return `<li>${children}</li>`;
     case "blockquote":
       return `<blockquote>${children}</blockquote>`;
-    case "codeBlock":
-      return `<pre><code>${children}</code></pre>`;
+    case "codeBlock": {
+      const language = node.attrs?.language as string | undefined;
+      const code = children;
+      if (language === "mermaid") {
+        return `<pre class="mermaid">${code}</pre>`;
+      }
+      const langAttr =
+        language && language !== "plaintext"
+          ? ` class="language-${language}"`
+          : "";
+      return `<pre><code${langAttr}>${code}</code></pre>`;
+    }
     case "image": {
       const src = safeSrc(String(node.attrs?.src ?? ""));
       return src

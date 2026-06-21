@@ -1,0 +1,69 @@
+---
+import AdminPreviewLayout from "@/components/admin/AdminPreviewLayout.astro";
+import CoverImage from "@/components/ui/CoverImage.astro";
+import BlogHeader from "@/components/blog/BlogHeader.astro";
+import ContentRenderer from "@/components/shared/ContentRenderer.astro";
+import { getPostForAdminPreview } from "@/lib/content/service";
+import { requireAuth } from "@/lib/auth";
+import { useTranslations } from "@/lib/i18n/utils";
+import { isValidLanguage, DEFAULT_LANGUAGE } from "@/lib/config/languages";
+import type { Lang } from "@/types";
+
+requireAuth(Astro);
+
+const { id } = Astro.params;
+const localeParam = Astro.url.searchParams.get("locale") || DEFAULT_LANGUAGE;
+const locale = isValidLanguage(localeParam)
+  ? (localeParam as Lang)
+  : DEFAULT_LANGUAGE;
+
+if (!id) {
+  return Astro.redirect("/admin/posts");
+}
+
+const post = await getPostForAdminPreview(id, locale);
+
+if (!post) {
+  return Astro.redirect("/admin/posts");
+}
+
+const t = useTranslations(locale);
+const title = post.title;
+const image = post.coverImage;
+---
+
+<AdminPreviewLayout
+  title={`${t("admin.preview")} · ${title}`}
+  headerTitle={t("admin.preview")}
+  headerSubtitle={title}
+  backHref="/admin/posts"
+  backLabel={t("admin.backToPosts")}
+  currentPath="/admin/posts"
+  lang={locale}
+  locale={locale}
+  originalLocale={post.originalLocale}
+  publishStatus={post.publishStatus}
+  isFallback={post.isFallback}
+>
+  <div class="max-w-3xl mx-auto">
+    {
+      image && (
+        <CoverImage
+          src={image}
+          alt={title}
+          class="flex w-full max-h-[30rem] rounded-xl mb-8"
+          fetchpriority="high"
+        />
+      )
+    }
+
+    <BlogHeader post={post} lang={locale} />
+
+    <ContentRenderer
+      d1Content={post.d1Content}
+      markdownContent={post.markdownContent}
+      mode="stack"
+      class="mt-12"
+    />
+  </div>
+</AdminPreviewLayout>

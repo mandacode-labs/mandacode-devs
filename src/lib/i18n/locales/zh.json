@@ -127,6 +127,10 @@
   "admin.setAsOriginalLocale": "设为原始语言",
   "admin.originalLocaleHint": "这是原始语言版本。",
   "admin.translatedLocaleHint": "您正在编辑{locale}翻译。原始语言是{original}。",
+  "admin.preview": "预览",
+  "admin.previewMode": "预览模式",
+  "admin.fallbackPreview": "由于没有{locale}翻译，显示原始{originalLocale}内容。",
+  "admin.view": "查看",
   "admin.certifications": "证书",
   "admin.education": "学历"
 }

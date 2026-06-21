@@ -127,6 +127,10 @@
   "admin.setAsOriginalLocale": "原稿言語に設定",
   "admin.originalLocaleHint": "これは原稿言語バージョンです。",
   "admin.translatedLocaleHint": "{locale}翻訳を編集中です。原稿言語は{original}です。",
+  "admin.preview": "プレビュー",
+  "admin.previewMode": "プレビューモード",
+  "admin.fallbackPreview": "{locale}の翻訳がないため、原稿{originalLocale}の内容を表示しています。",
+  "admin.view": "表示",
   "admin.certifications": "資格",
   "admin.education": "学歴"
 }

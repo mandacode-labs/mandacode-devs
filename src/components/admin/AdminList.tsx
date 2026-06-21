@@ -40,6 +40,7 @@ export interface AdminListItem {
   id: string;
   title: string;
   href: string;
+  viewHref?: string;
   meta?: string;
   status?: "draft" | "published" | "archived";
   originalLocale: string;
@@ -293,6 +294,7 @@ export function AdminList({
                         index={index}
                         columns={columns}
                         contentType={contentType}
+                        translations={translations}
                       />
                     ))}
                   </tbody>
@@ -383,6 +385,24 @@ export function AdminList({
                     ))}
                     <td className="px-4 py-4 text-right">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {item.viewHref && (
+                          <a
+                            href={item.viewHref}
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-text-secondary hover:text-accent hover:bg-accent-subtle transition-colors"
+                            title={translations["admin.view"] ?? "View"}
+                          >
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              className="w-4 h-4"
+                            >
+                              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                              <circle cx="12" cy="12" r="3" />
+                            </svg>
+                          </a>
+                        )}
                         <a
                           href={item.href}
                           className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-text-secondary hover:text-accent hover:bg-accent-subtle transition-colors"
@@ -455,11 +475,13 @@ function SortableRow({
   index,
   columns,
   contentType,
+  translations,
 }: {
   item: AdminListItem;
   index: number;
   columns: AdminListColumn[];
   contentType: TranslationContentType;
+  translations: AdminTranslations;
 }) {
   const {
     attributes,
@@ -556,6 +578,24 @@ function SortableRow({
       ))}
       <td className="px-4 py-4 text-right">
         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {item.viewHref && (
+            <a
+              href={item.viewHref}
+              className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-text-secondary hover:text-accent hover:bg-accent-subtle transition-colors"
+              title={translations["admin.view"] ?? "View"}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="w-4 h-4"
+              >
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </a>
+          )}
           <a
             href={item.href}
             className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-text-secondary hover:text-accent hover:bg-accent-subtle transition-colors"

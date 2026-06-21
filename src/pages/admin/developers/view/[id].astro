@@ -1,0 +1,73 @@
+---
+import AdminPreviewLayout from "@/components/admin/AdminPreviewLayout.astro";
+import DeveloperProfile from "@/components/developer/DeveloperProfile.astro";
+import TechStack from "@/components/developer/TechStack.astro";
+import Certifications from "@/components/developer/Certifications.astro";
+import Education from "@/components/developer/Education.astro";
+import ProjectTimeline from "@/components/developer/ProjectTimeline.astro";
+import ContentRenderer from "@/components/shared/ContentRenderer.astro";
+import {
+  getDeveloperForAdminPreview,
+  getProjectsForAdminPreview,
+} from "@/lib/content/service";
+import { sortProjectsByDate } from "@/lib/content/projects";
+import { requireAuth } from "@/lib/auth";
+import { useTranslations } from "@/lib/i18n/utils";
+import { isValidLanguage, DEFAULT_LANGUAGE } from "@/lib/config/languages";
+import type { Lang } from "@/types";
+
+requireAuth(Astro);
+
+const { id } = Astro.params;
+const localeParam = Astro.url.searchParams.get("locale") || DEFAULT_LANGUAGE;
+const locale = isValidLanguage(localeParam)
+  ? (localeParam as Lang)
+  : DEFAULT_LANGUAGE;
+
+if (!id) {
+  return Astro.redirect("/admin/developers");
+}
+
+const developer = await getDeveloperForAdminPreview(id, locale);
+
+if (!developer) {
+  return Astro.redirect("/admin/developers");
+}
+
+const t = useTranslations(locale);
+const title = developer.name;
+const projects = sortProjectsByDate(await getProjectsForAdminPreview(locale));
+---
+
+<AdminPreviewLayout
+  title={`${t("admin.preview")} · ${title}`}
+  headerTitle={t("admin.preview")}
+  headerSubtitle={title}
+  backHref="/admin/developers"
+  backLabel={t("admin.backToDevelopers")}
+  currentPath="/admin/developers"
+  lang={locale}
+  locale={locale}
+  originalLocale={developer.originalLocale}
+  publishStatus={developer.publishStatus}
+  isFallback={developer.isFallback}
+>
+  <div class="max-w-4xl mx-auto">
+    <DeveloperProfile developer={developer} lang={locale} />
+
+    <ContentRenderer
+      d1Content={developer.d1Content}
+      markdownContent={developer.markdownContent}
+      mode="fallback"
+      class="mb-10"
+    />
+
+    <TechStack developer={developer} lang={locale} />
+
+    <Certifications developer={developer} lang={locale} />
+
+    <Education developer={developer} lang={locale} />
+
+    <ProjectTimeline projects={projects} lang={locale} />
+  </div>
+</AdminPreviewLayout>

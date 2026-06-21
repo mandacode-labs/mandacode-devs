@@ -44,6 +44,7 @@ const items: AdminListItem[] = itemsWithLocales.map(
     id: developer.id,
     title: developer.name,
     href: `/admin/developers/edit/${developer.id}?locale=${DEFAULT_LANGUAGE}`,
+    viewHref: `/admin/developers/view/${developer.id}?locale=${DEFAULT_LANGUAGE}`,
     meta: `/${developer.id}`,
     originalLocale: developer.original_locale,
     existingLocales,
