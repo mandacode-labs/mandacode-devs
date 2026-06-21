@@ -31,10 +31,7 @@ export function getProjectEndDate(project: UnifiedProject): Date {
       return new Date(Number(year), Number(month) - 1);
     }
   }
-  const match = project.duration.match(/(\d{4})\.(\d{1,2})\s*$/);
-  if (!match) return new Date(0);
-  const [, year, month] = match;
-  return new Date(Number(year), Number(month) - 1);
+  return new Date(0);
 }
 
 export function getProjectStartDate(project: UnifiedProject): Date {
@@ -45,10 +42,7 @@ export function getProjectStartDate(project: UnifiedProject): Date {
       return new Date(Number(year), Number(month) - 1);
     }
   }
-  const match = project.duration.match(/^(\d{4})\.(\d{1,2})/);
-  if (!match) return new Date(0);
-  const [, year, month] = match;
-  return new Date(Number(year), Number(month) - 1);
+  return new Date(0);
 }
 
 export function getProjectSlug(project: UnifiedProject): string {

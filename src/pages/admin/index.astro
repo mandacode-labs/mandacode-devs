@@ -8,18 +8,19 @@ import LocaleChip from "@/components/admin/LocaleChip.astro";
 import { requireAuth } from "@/lib/auth";
 import { useTranslations } from "@/lib/i18n/utils";
 import { DEFAULT_LANGUAGE, MAIN_DEVELOPER_ID } from "@/lib/config/languages";
-import { getAllPosts } from "@/lib/db/posts";
-import { getAllProjects } from "@/lib/db/projects";
-import { getAllDevelopers } from "@/lib/db/developers";
-import type { Post, Project } from "@/lib/db/schema";
+import { getPosts } from "@/lib/db/posts";
+import { getProjects } from "@/lib/db/projects";
+import { getDevelopers } from "@/lib/db/developers";
+import type { PostWithTranslation } from "@/lib/db/posts";
+import type { ProjectWithTranslation } from "@/lib/db/projects";
 
 requireAuth(Astro);
 const t = useTranslations(DEFAULT_LANGUAGE);
 
 const [posts, projects, developers] = await Promise.all([
-  getAllPosts(),
-  getAllProjects(),
-  getAllDevelopers(),
+  getPosts(DEFAULT_LANGUAGE, { includeUnpublished: true }),
+  getProjects(DEFAULT_LANGUAGE, { includeUnpublished: true }),
+  getDevelopers(DEFAULT_LANGUAGE, { includeUnpublished: true }),
 ]);
 
 const publishedPosts = posts.filter((p) => p.publish_status === "published");
@@ -34,11 +35,7 @@ const archivedProjects = projects.filter(
 );
 
 const developerName =
-  developers.find(
-    (d) => d.id === MAIN_DEVELOPER_ID && d.locale === DEFAULT_LANGUAGE,
-  )?.name ??
-  developers.find((d) => d.id === MAIN_DEVELOPER_ID)?.name ??
-  "—";
+  developers.find((d) => d.id === MAIN_DEVELOPER_ID)?.name ?? "—";
 
 interface RecentItem {
   id: string;
@@ -50,17 +47,17 @@ interface RecentItem {
 }
 
 const recentItems: RecentItem[] = [
-  ...posts.map((p: Post) => ({
+  ...posts.map((p: PostWithTranslation) => ({
     id: p.id,
-    locale: p.locale,
+    locale: p.original_locale,
     title: p.title,
     type: "post" as const,
     publish_status: p.publish_status,
     updated: p.updated_at,
   })),
-  ...projects.map((p: Project) => ({
+  ...projects.map((p: ProjectWithTranslation) => ({
     id: p.id,
-    locale: p.locale,
+    locale: p.original_locale,
     title: p.title,
     type: "project" as const,
     publish_status: p.publish_status,

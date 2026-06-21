@@ -4,40 +4,24 @@ import AdminSidebar from "@/components/admin/AdminSidebar.astro";
 import AdminHeader from "@/components/admin/AdminHeader.astro";
 import { AdminList } from "@/components/admin/AdminList";
 import { requireAuth } from "@/lib/auth";
-import { getAllDevelopers } from "@/lib/db/developers";
+import { getDevelopers, getDeveloperLocales } from "@/lib/db/developers";
 import { useTranslations } from "@/lib/i18n/utils";
 import {
   DEFAULT_LANGUAGE,
   SUPPORTED_LANGUAGES,
   MAIN_DEVELOPER_ID,
 } from "@/lib/config/languages";
-import type { Developer } from "@/lib/db/schema";
 import type { AdminListItem } from "@/components/admin/AdminList";
 
 requireAuth(Astro);
 
-const developers = await getAllDevelopers();
+const developers = await getDevelopers(DEFAULT_LANGUAGE, {
+  includeUnpublished: true,
+});
 const t = useTranslations(DEFAULT_LANGUAGE);
 
-const grouped = developers.reduce(
-  (acc, developer) => {
-    if (!acc[developer.id]) acc[developer.id] = [];
-    acc[developer.id].push(developer);
-    return acc;
-  },
-  {} as Record<string, Developer[]>,
-);
-
-const groupedArray = Object.entries(grouped).map(([id, locales]) => {
-  const primary =
-    locales.find((d) => d.locale === DEFAULT_LANGUAGE) || locales[0];
-  const missingLocales = SUPPORTED_LANGUAGES.filter(
-    (lang) => !locales.some((d) => d.locale === lang),
-  );
-  return { id, locales, primary, missingLocales };
-});
-
-function formatDate(iso: string): string {
+function formatDate(iso: string | null): string {
+  if (!iso) return "-";
   return new Date(iso).toLocaleDateString("ko-KR", {
     year: "numeric",
     month: "short",
@@ -45,31 +29,48 @@ function formatDate(iso: string): string {
   });
 }
 
-const items: AdminListItem[] = groupedArray.map(
-  ({ id, locales, primary, missingLocales }) => ({
-    id,
-    title: primary.name,
-    href: `/admin/developers/edit/${id}?locale=${DEFAULT_LANGUAGE}`,
-    meta: `/${id}`,
+const itemsWithLocales = await Promise.all(
+  developers.map(async (developer) => {
+    const existingLocales = await getDeveloperLocales(developer.id);
+    const missingLocales = SUPPORTED_LANGUAGES.filter(
+      (lang) => !existingLocales.includes(lang),
+    );
+    return { developer, existingLocales, missingLocales };
+  }),
+);
+
+const items: AdminListItem[] = itemsWithLocales.map(
+  ({ developer, existingLocales, missingLocales }) => ({
+    id: developer.id,
+    title: developer.name,
+    href: `/admin/developers/edit/${developer.id}?locale=${DEFAULT_LANGUAGE}`,
+    meta: `/${developer.id}`,
+    originalLocale: developer.original_locale,
+    existingLocales,
     locales: [
-      ...locales.map((developer) => ({
-        locale: developer.locale,
-        href: `/admin/developers/edit/${developer.id}?locale=${developer.locale}`,
+      ...existingLocales.map((locale) => ({
+        locale,
+        href: `/admin/developers/edit/${developer.id}?locale=${locale}`,
         active: true,
-        title: `Edit ${developer.locale}`,
+        title: `Edit ${locale}`,
       })),
       ...missingLocales.map((locale) => ({
         locale,
-        href: `/admin/developers/edit/${id}?locale=${locale}`,
+        href: `/admin/developers/edit/${developer.id}?locale=${locale}`,
         active: false,
         title: `Create ${locale}`,
       })),
     ],
     extras: {
-      role: primary.role,
-      updated: formatDate(primary.updated_at),
+      role: developer.role,
+      updated: formatDate(developer.updated_at),
     },
   }),
+);
+
+const totalLocales = itemsWithLocales.reduce(
+  (sum, { existingLocales }) => sum + existingLocales.length,
+  0,
 );
 
 const translations: Record<string, string> = {};
@@ -94,8 +95,7 @@ const translations: Record<string, string> = {};
               {t("admin.developer")}
             </h1>
             <p class="text-sm text-text-secondary mt-1">
-              {Object.keys(grouped).length} profiles · {developers.length} language
-              versions
+              {developers.length} profiles · {totalLocales} language versions
             </p>
           </div>
           <a

@@ -24,34 +24,42 @@ const urlOrPathSchema = z
     },
   );
 
-export const createPostSchema = z.object({
-  id: z.string().min(1),
-  locale: localeSchema,
-  title: z.string().min(1),
-  description: z.string().nullable().optional(),
-  tiptap_json: z.string().min(1),
-  publish_status: publishStatusSchema.default("draft"),
-  pub_date: z.string().datetime(),
-  cover_image_url: urlOrPathSchema.nullable().optional(),
-  tags: z.array(z.string()).default([]),
-  target_locales: z.array(localeSchema).default([]),
-});
-
-export const updatePostSchema = createPostSchema
-  .omit({ id: true, locale: true })
-  .partial()
-  .extend({
-    target_locales: z.array(localeSchema).optional(),
-  });
-
 const dateStringSchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format")
   .nullable();
 
+export const postTranslationSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().nullable().optional(),
+  tiptap_json: z.string().min(1),
+  cover_image_url: urlOrPathSchema.nullable().optional(),
+  publish_status: publishStatusSchema.default("draft"),
+});
+
+export const createPostSchema = z.object({
+  id: z.string().min(1),
+  locale: localeSchema,
+  original_locale: localeSchema.optional(),
+  title: z.string().min(1),
+  description: z.string().nullable().optional(),
+  tiptap_json: z.string().min(1),
+  publish_status: publishStatusSchema.default("draft"),
+  cover_image_url: urlOrPathSchema.nullable().optional(),
+  tags: z.array(z.string()).default([]),
+  target_locales: z.array(localeSchema).default([]),
+});
+
+export const updatePostSchema = postTranslationSchema.partial().extend({
+  original_locale: localeSchema.optional(),
+  tags: z.array(z.string()).optional(),
+  target_locales: z.array(localeSchema).optional(),
+});
+
 export const createProjectSchema = z.object({
   id: z.string().min(1),
   locale: localeSchema,
+  original_locale: localeSchema.optional(),
   title: z.string().min(1),
   description: z.string().nullable().optional(),
   tiptap_json: z.string().min(1),
@@ -70,21 +78,36 @@ export const createProjectSchema = z.object({
   target_locales: z.array(localeSchema).default([]),
 });
 
-export const updateProjectSchema = createProjectSchema
-  .omit({ id: true, locale: true })
-  .partial()
-  .extend({
-    target_locales: z.array(localeSchema).optional(),
-  });
+export const updateProjectSchema = z.object({
+  original_locale: localeSchema.optional(),
+  title: z.string().min(1).optional(),
+  description: z.string().nullable().optional(),
+  tiptap_json: z.string().min(1).optional(),
+  role: z.string().min(1).optional(),
+  cover_image_url: urlOrPathSchema.nullable().optional(),
+  publish_status: publishStatusSchema.optional(),
+  project_status: projectStatusSchema.optional(),
+  start_date: dateStringSchema.optional(),
+  end_date: dateStringSchema.optional(),
+  team_size: z.number().int().positive().optional(),
+  project_order: z.number().int().optional(),
+  url: z.string().url().nullable().optional(),
+  source_url: z.string().url().nullable().optional(),
+  blog_url: z.string().url().nullable().optional(),
+  tags: z.array(z.string()).optional(),
+  target_locales: z.array(localeSchema).optional(),
+});
 
 export const createDeveloperSchema = z.object({
   id: z.string().min(1),
   locale: localeSchema,
+  original_locale: localeSchema.optional(),
   name: z.string().min(1),
   role: z.string().min(1),
   bio: z.string().min(1),
   tiptap_json: z.string().min(1),
   avatar_url: urlOrPathSchema.nullable().optional(),
+  publish_status: publishStatusSchema.default("draft"),
   github_url: z.string().url().nullable().optional(),
   email: z.string().email().nullable().optional(),
   website_url: z.string().url().nullable().optional(),
@@ -94,16 +117,25 @@ export const createDeveloperSchema = z.object({
     .nullable()
     .optional(),
   education: z.array(z.record(z.string(), z.unknown())).nullable().optional(),
-  published_at: z.string().datetime().nullable().optional(),
   target_locales: z.array(localeSchema).default([]),
 });
 
-export const updateDeveloperSchema = createDeveloperSchema
-  .omit({ id: true, locale: true })
-  .partial()
-  .extend({
-    target_locales: z.array(localeSchema).optional(),
-  });
+export const updateDeveloperSchema = z.object({
+  original_locale: localeSchema.optional(),
+  name: z.string().min(1).optional(),
+  role: z.string().min(1).optional(),
+  bio: z.string().min(1).optional(),
+  tiptap_json: z.string().min(1).optional(),
+  avatar_url: urlOrPathSchema.nullable().optional(),
+  publish_status: publishStatusSchema.optional(),
+  github_url: z.string().url().nullable().optional(),
+  email: z.string().email().nullable().optional(),
+  website_url: z.string().url().nullable().optional(),
+  tech_stack: z.array(z.string()).nullable().optional(),
+  certifications: z.array(z.record(z.string(), z.unknown())).optional(),
+  education: z.array(z.record(z.string(), z.unknown())).optional(),
+  target_locales: z.array(localeSchema).optional(),
+});
 
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type UpdatePostInput = z.infer<typeof updatePostSchema>;

@@ -2,7 +2,11 @@
 import AdminFormLayout from "@/components/admin/AdminFormLayout.astro";
 import DeveloperEditor from "@/components/admin/DeveloperEditor";
 import { requireAuth } from "@/lib/auth";
-import { getDeveloperById } from "@/lib/db/developers";
+import {
+  getDeveloperById,
+  getDeveloperTranslationById,
+  getDeveloperLocales,
+} from "@/lib/db/developers";
 import { useTranslations } from "@/lib/i18n/utils";
 import { ui } from "@/lib/i18n";
 import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
@@ -19,6 +23,15 @@ if (!id) {
 
 const developer = await getDeveloperById(id, locale);
 
+if (!developer) {
+  return Astro.redirect("/admin/developers");
+}
+
+const [translation, existingLocales] = await Promise.all([
+  getDeveloperTranslationById(id, locale),
+  getDeveloperLocales(id),
+]);
+
 function safeParseJson<T>(value: string | null): T | null {
   if (!value) return null;
   try {
@@ -28,32 +41,34 @@ function safeParseJson<T>(value: string | null): T | null {
   }
 }
 
+const data = translation ?? developer;
+
 const initialData = {
-  id: developer?.id ?? id,
-  locale: developer?.locale ?? locale,
-  name: developer?.name ?? "",
-  role: developer?.role ?? "",
-  bio: developer?.bio ?? "",
-  tiptap_json:
-    developer?.tiptap_json ?? JSON.stringify({ type: "doc", content: [] }),
-  avatar_url: developer?.avatar_url ?? null,
-  github_url: developer?.github_url ?? null,
-  email: developer?.email ?? null,
-  website_url: developer?.website_url ?? null,
-  tech_stack: safeParseJson<string[]>(developer?.tech_stack ?? null),
+  id: developer.id,
+  locale,
+  original_locale: developer.original_locale,
+  existing_locales: existingLocales,
+  name: data.name,
+  role: data.role,
+  bio: data.bio,
+  tiptap_json: data.tiptap_json,
+  avatar_url: data.avatar_url,
+  publish_status: data.publish_status,
+  github_url: developer.github_url,
+  email: developer.email,
+  website_url: developer.website_url,
+  tech_stack: safeParseJson<string[]>(developer.tech_stack),
   certifications: safeParseJson<Record<string, unknown>[]>(
-    developer?.certifications ?? null,
+    developer.certifications,
   ),
-  education: safeParseJson<Record<string, unknown>[]>(
-    developer?.education ?? null,
-  ),
+  education: safeParseJson<Record<string, unknown>[]>(developer.education),
 };
 ---
 
 <AdminFormLayout
-  title={`${t("admin.edit")} ${developer?.name ? `· ${developer.name}` : ""}`}
+  title={`${t("admin.edit")} · ${developer.name}`}
   headerTitle={t("admin.edit")}
-  headerSubtitle={developer?.name ?? `${id} (${locale})`}
+  headerSubtitle={developer.name}
   backHref="/admin/developers"
   backLabel={t("admin.backToDevelopers")}
   currentPath="/admin/developers"

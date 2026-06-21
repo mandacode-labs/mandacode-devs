@@ -2,7 +2,11 @@
 import AdminFormLayout from "@/components/admin/AdminFormLayout.astro";
 import ProjectEditor from "@/components/admin/ProjectEditor";
 import { requireAuth } from "@/lib/auth";
-import { getProjectById } from "@/lib/db/projects";
+import {
+  getProjectById,
+  getProjectTranslationById,
+  getProjectLocales,
+} from "@/lib/db/projects";
 import { getProjectTags } from "@/lib/db/tags";
 import { useTranslations } from "@/lib/i18n/utils";
 import { ui } from "@/lib/i18n";
@@ -24,25 +28,33 @@ if (!project) {
   return Astro.redirect("/admin/projects");
 }
 
-const tags = await getProjectTags(id, locale);
+const [translation, existingLocales, tags] = await Promise.all([
+  getProjectTranslationById(id, locale),
+  getProjectLocales(id),
+  getProjectTags(id),
+]);
+
+const data = translation ?? project;
 
 const initialData = {
   id: project.id,
-  locale: project.locale,
-  title: project.title,
-  description: project.description,
-  tiptap_json: project.tiptap_json,
-  publish_status: project.publish_status,
+  locale,
+  original_locale: project.original_locale,
+  existing_locales: existingLocales,
+  title: data.title,
+  description: data.description,
+  tiptap_json: data.tiptap_json,
+  publish_status: data.publish_status,
   project_status: project.project_status,
   start_date: project.start_date,
   end_date: project.end_date,
   team_size: project.team_size,
-  role: project.role,
+  role: data.role,
   project_order: project.project_order,
   url: project.url,
   source_url: project.source_url,
   blog_url: project.blog_url,
-  cover_image_url: project.cover_image_url,
+  cover_image_url: data.cover_image_url,
   tags,
 };
 ---

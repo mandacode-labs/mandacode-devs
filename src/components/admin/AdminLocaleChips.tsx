@@ -15,19 +15,44 @@ interface LocaleInfo {
 interface AdminLocaleChipsProps {
   contentType: TranslationContentType;
   contentId: string;
+  originalLocale: string;
+  existingLocales: string[];
   locales: LocaleInfo[];
 }
 
-const statusChipClass: Record<TranslationJobStatus, string> = {
+const jobStatusChipClass: Record<TranslationJobStatus, string> = {
   pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  running: "bg-blue-50 text-blue-700 border-blue-200",
+  running: "bg-yellow-50 text-yellow-700 border-yellow-200",
   completed: "bg-green-50 text-green-700 border-green-200",
   failed: "bg-red-50 text-red-700 border-red-200",
 };
 
+function getLocaleChipClass(
+  locale: string,
+  originalLocale: string,
+  existingLocales: string[],
+  jobStatus: TranslationJobStatus | null,
+): string {
+  if (jobStatus) {
+    return jobStatusChipClass[jobStatus];
+  }
+
+  if (locale === originalLocale) {
+    return "bg-blue-50 text-blue-700 border-blue-200";
+  }
+
+  if (existingLocales.includes(locale)) {
+    return "bg-green-50 text-green-700 border-green-200";
+  }
+
+  return "bg-bg-secondary text-text-secondary border-border";
+}
+
 export function AdminLocaleChips({
   contentType,
   contentId,
+  originalLocale,
+  existingLocales,
   locales,
 }: AdminLocaleChipsProps) {
   const ids = useMemo(() => [contentId], [contentId]);
@@ -41,14 +66,16 @@ export function AdminLocaleChips({
     <div className="flex flex-wrap items-center gap-1.5">
       {locales.map(({ locale, href, active, title }) => {
         const status = getStatus(contentId, locale);
-        const clickable =
-          active || status === "completed" || status === "failed";
+        const hasTranslation = existingLocales.includes(locale);
+        const isOriginal = locale === originalLocale;
+        const clickable = active || isOriginal || hasTranslation || !!status;
 
-        const statusClass = status
-          ? statusChipClass[status]
-          : active
-            ? "bg-accent-subtle text-accent border-accent/20"
-            : "bg-bg-secondary text-text-secondary border-border";
+        const statusClass = getLocaleChipClass(
+          locale,
+          originalLocale,
+          existingLocales,
+          status,
+        );
 
         const chip = (
           <span

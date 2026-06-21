@@ -1,15 +1,15 @@
+import { ulid } from "ulid";
 import * as postsRepo from "@/lib/db/posts";
 import * as tagsRepo from "@/lib/db/tags";
 import { createPostSchema, updatePostSchema } from "@/lib/api/validation";
 import { ApiError } from "@/lib/api/response";
-import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
 import type { AdminCrudAdapter } from "@/lib/api/admin-crud";
 import type { z } from "zod";
 
 type CreateBody = z.infer<typeof createPostSchema>;
 type UpdateBody = z.infer<typeof updatePostSchema>;
 
-interface ExistingPost {
+interface ExistingPostTranslation {
   publish_status: string;
   published_at: string | null;
 }
@@ -19,40 +19,44 @@ export const postAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
   entityName: "Post",
   createSchema: createPostSchema,
   updateSchema: updatePostSchema,
-  getById: postsRepo.getPostById,
+  getById: postsRepo.getPostTranslationById,
   create: async (body, user) => {
     const publishedAt =
       body.publish_status === "published" ? new Date().toISOString() : null;
+    const originalLocale = body.original_locale ?? body.locale;
 
     await postsRepo.createPost({
       id: body.id,
-      locale: body.locale,
-      origin: body.locale === DEFAULT_LANGUAGE ? null : DEFAULT_LANGUAGE,
       author_id: user.email,
+      original_locale: originalLocale,
+    });
+
+    await postsRepo.createPostTranslation({
+      id: `${body.id}_${originalLocale}`,
+      post_id: body.id,
+      locale: originalLocale,
       title: body.title,
       description: body.description ?? null,
       tiptap_json: body.tiptap_json,
-      publish_status: body.publish_status,
-      pub_date: body.pub_date,
       cover_image_url: body.cover_image_url ?? null,
+      publish_status: body.publish_status,
       published_at: publishedAt,
     });
 
-    await tagsRepo.setPostTags(body.id, body.locale, body.tags);
+    await tagsRepo.setPostTags(body.id, body.tags);
   },
   update: async (id, locale, body, existing) => {
     if (!existing) {
-      throw new ApiError("Post not found", 404);
+      throw new ApiError("Post translation not found", 404);
     }
 
-    const existingPost = existing as ExistingPost;
-    const updateData: postsRepo.UpdatePostInput = {
+    const existingPost = existing as ExistingPostTranslation;
+    const updateData: postsRepo.UpdatePostTranslationInput = {
       title: body.title,
       description: body.description,
       tiptap_json: body.tiptap_json,
-      publish_status: body.publish_status,
-      pub_date: body.pub_date,
       cover_image_url: body.cover_image_url,
+      publish_status: body.publish_status,
     };
 
     if (
@@ -63,23 +67,42 @@ export const postAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
       updateData.published_at = new Date().toISOString();
     }
 
-    await postsRepo.updatePost(id, locale, updateData);
+    await postsRepo.updatePostTranslation(id, locale, updateData);
+
+    if (body.original_locale !== undefined) {
+      await postsRepo.updatePost(id, { original_locale: body.original_locale });
+    }
 
     if (body.tags !== undefined) {
-      await tagsRepo.setPostTags(id, locale, body.tags);
+      await tagsRepo.setPostTags(id, body.tags);
     }
   },
   getLocales: postsRepo.getPostLocales,
   getLocalesWithContent: postsRepo.getPostLocalesWithContent,
   delete: async (id, locale) => {
-    await tagsRepo.deletePostTags(id, locale);
-    await postsRepo.deletePost(id, locale);
+    if (!locale) {
+      throw new ApiError("Missing locale", 400);
+    }
+    const post = await postsRepo.getPostById(id, locale);
+    if (post && post.original_locale === locale) {
+      throw new ApiError("Cannot delete original locale translation", 400);
+    }
+    await tagsRepo.deletePostTags(id);
+    await postsRepo.deletePostTranslation(id, locale);
   },
   deleteAllLocales: async (id) => {
     await tagsRepo.deletePostTags(id);
-    await postsRepo.deleteAllPostLocales(id);
+    await postsRepo.deleteAllPostTranslations(id);
+    await postsRepo.deletePost(id);
   },
   getImageUrls: (body) => ({
     cover_image_url: body.cover_image_url ?? null,
   }),
 };
+
+export function generatePostTranslationId(
+  postId: string,
+  locale: string,
+): string {
+  return `${postId}_${locale}_${ulid()}`;
+}

@@ -4,36 +4,20 @@ import AdminSidebar from "@/components/admin/AdminSidebar.astro";
 import AdminHeader from "@/components/admin/AdminHeader.astro";
 import { AdminList } from "@/components/admin/AdminList";
 import { requireAuth } from "@/lib/auth";
-import { getAllProjects } from "@/lib/db/projects";
+import { getProjects, getProjectLocales } from "@/lib/db/projects";
 import { useTranslations } from "@/lib/i18n/utils";
 import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@/lib/config/languages";
-import type { Project } from "@/lib/db/schema";
 import type { AdminListItem } from "@/components/admin/AdminList";
 
 requireAuth(Astro);
 
-const projects = await getAllProjects();
+const projects = await getProjects(DEFAULT_LANGUAGE, {
+  includeUnpublished: true,
+});
 const t = useTranslations(DEFAULT_LANGUAGE);
 
-const grouped = projects.reduce(
-  (acc, project) => {
-    if (!acc[project.id]) acc[project.id] = [];
-    acc[project.id].push(project);
-    return acc;
-  },
-  {} as Record<string, Project[]>,
-);
-
-const groupedArray = Object.entries(grouped).map(([id, locales]) => {
-  const primary =
-    locales.find((p) => p.locale === DEFAULT_LANGUAGE) || locales[0];
-  const missingLocales = SUPPORTED_LANGUAGES.filter(
-    (lang) => !locales.some((p) => p.locale === lang),
-  );
-  return { id, locales, primary, missingLocales };
-});
-
-function formatDate(iso: string): string {
+function formatDate(iso: string | null): string {
+  if (!iso) return "-";
   return new Date(iso).toLocaleDateString("ko-KR", {
     year: "numeric",
     month: "short",
@@ -48,33 +32,50 @@ function formatProjectPeriod(start: string | null, end: string | null): string {
   return "-";
 }
 
-const items: AdminListItem[] = groupedArray.map(
-  ({ id, locales, primary, missingLocales }) => ({
-    id,
-    title: primary.title,
-    href: `/admin/projects/edit/${id}?locale=${DEFAULT_LANGUAGE}`,
-    meta: `/${id}`,
-    status: primary.publish_status,
+const itemsWithLocales = await Promise.all(
+  projects.map(async (project) => {
+    const existingLocales = await getProjectLocales(project.id);
+    const missingLocales = SUPPORTED_LANGUAGES.filter(
+      (lang) => !existingLocales.includes(lang),
+    );
+    return { project, existingLocales, missingLocales };
+  }),
+);
+
+const items: AdminListItem[] = itemsWithLocales.map(
+  ({ project, existingLocales, missingLocales }) => ({
+    id: project.id,
+    title: project.title,
+    href: `/admin/projects/edit/${project.id}?locale=${DEFAULT_LANGUAGE}`,
+    meta: `/${project.id}`,
+    status: project.publish_status,
+    originalLocale: project.original_locale,
+    existingLocales,
     locales: [
-      ...locales.map((project) => ({
-        locale: project.locale,
-        href: `/admin/projects/edit/${project.id}?locale=${project.locale}`,
-        active: project.publish_status !== "archived",
-        title: `Edit ${project.locale}`,
+      ...existingLocales.map((locale) => ({
+        locale,
+        href: `/admin/projects/edit/${project.id}?locale=${locale}`,
+        active: true,
+        title: `Edit ${locale}`,
       })),
       ...missingLocales.map((locale) => ({
         locale,
-        href: `/admin/projects/edit/${id}?locale=${locale}`,
+        href: `/admin/projects/edit/${project.id}?locale=${locale}`,
         active: false,
         title: `Create ${locale}`,
       })),
     ],
     extras: {
-      order: `#${primary.project_order}`,
-      period: formatProjectPeriod(primary.start_date, primary.end_date),
-      updated: formatDate(primary.updated_at),
+      order: `#${project.project_order}`,
+      period: formatProjectPeriod(project.start_date, project.end_date),
+      updated: formatDate(project.updated_at),
     },
   }),
+);
+
+const totalLocales = itemsWithLocales.reduce(
+  (sum, { existingLocales }) => sum + existingLocales.length,
+  0,
 );
 
 const translations: Record<string, string> = {};
@@ -99,8 +100,7 @@ const translations: Record<string, string> = {};
               {t("admin.projects")}
             </h1>
             <p class="text-sm text-text-secondary mt-1">
-              {Object.keys(grouped).length} projects · {projects.length} language
-              versions
+              {projects.length} projects · {totalLocales} language versions
             </p>
           </div>
           <a

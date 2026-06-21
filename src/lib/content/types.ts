@@ -1,8 +1,11 @@
-import type { ProjectStatus } from "@/lib/db/schema";
+import type { ProjectStatus, PublishStatus } from "@/lib/db/schema";
 
 interface BaseUnifiedContent {
   id: string;
   locale: string;
+  originalLocale: string;
+  publishStatus: PublishStatus;
+  isFallback: boolean;
   d1Content?: string;
   markdownContent?: string;
 }
@@ -21,7 +24,6 @@ export interface UnifiedProject extends BaseUnifiedContent {
   description: string | null;
   status: ProjectStatus;
   tags: string[];
-  duration: string;
   startDate: string | null;
   endDate: string | null;
   teamSize: number;

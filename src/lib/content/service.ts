@@ -3,7 +3,10 @@ import * as postsRepo from "@/lib/db/posts";
 import * as projectsRepo from "@/lib/db/projects";
 import * as developersRepo from "@/lib/db/developers";
 import * as tagsRepo from "@/lib/db/tags";
-import type { Post, Project, Developer } from "@/lib/db/schema";
+import type { PostWithTranslation } from "@/lib/db/posts";
+import type { ProjectWithTranslation } from "@/lib/db/projects";
+import type { DeveloperWithTranslation } from "@/lib/db/developers";
+import type { PublishStatus } from "@/lib/db/schema";
 import type {
   UnifiedPost,
   UnifiedProject,
@@ -12,17 +15,25 @@ import type {
 import type { Language } from "@/lib/config/languages";
 import { getSlugFromEntryId } from "@/lib/content/utils";
 
-async function mapD1Post(post: Post): Promise<UnifiedPost> {
-  const tags = await tagsRepo.getPostTags(post.id, post.locale);
+function mapD1Post(
+  post: PostWithTranslation,
+  lang: Language,
+  tags: string[],
+): UnifiedPost {
   return {
     id: post.id,
-    locale: post.locale,
+    locale: lang,
+    originalLocale: post.original_locale,
     title: post.title,
     description: post.description,
-    pubDate: new Date(post.pub_date),
+    pubDate: post.published_at
+      ? new Date(post.published_at)
+      : new Date(post.created_at),
     coverImage: post.cover_image_url,
     tags,
     hidden: post.publish_status === "archived",
+    publishStatus: post.publish_status,
+    isFallback: post.is_fallback,
     d1Content: post.tiptap_json,
   };
 }
@@ -34,26 +45,32 @@ function mapCollectionPost(
   return {
     id: getSlugFromEntryId(post.id),
     locale,
+    originalLocale: locale,
     title: post.data.title,
     description: post.data.description,
     pubDate: post.data.pubDate,
     coverImage: post.data.coverImage ?? null,
     tags: post.data.tags,
     hidden: false,
+    publishStatus: "published" as PublishStatus,
+    isFallback: false,
     markdownContent: post.rendered?.html ?? post.body,
   };
 }
 
-async function mapD1Project(project: Project): Promise<UnifiedProject> {
-  const tags = await tagsRepo.getProjectTags(project.id, project.locale);
+function mapD1Project(
+  project: ProjectWithTranslation,
+  lang: Language,
+  tags: string[],
+): UnifiedProject {
   return {
     id: project.id,
-    locale: project.locale,
+    locale: lang,
+    originalLocale: project.original_locale,
     title: project.title,
     description: project.description,
     status: project.project_status,
     tags,
-    duration: project.duration,
     startDate: project.start_date,
     endDate: project.end_date,
     teamSize: project.team_size,
@@ -64,6 +81,8 @@ async function mapD1Project(project: Project): Promise<UnifiedProject> {
     blogUrl: project.blog_url,
     coverImage: project.cover_image_url,
     hidden: project.publish_status === "archived",
+    publishStatus: project.publish_status,
+    isFallback: project.is_fallback,
     d1Content: project.tiptap_json,
   };
 }
@@ -77,10 +96,14 @@ function safeJsonParse<T>(value: string | null): T | null {
   }
 }
 
-function mapD1Developer(developer: Developer): UnifiedDeveloper {
+function mapD1Developer(
+  developer: DeveloperWithTranslation,
+  lang: Language,
+): UnifiedDeveloper {
   return {
     id: developer.id,
-    locale: developer.locale,
+    locale: lang,
+    originalLocale: developer.original_locale,
     name: developer.name,
     role: developer.role,
     bio: developer.bio,
@@ -95,6 +118,8 @@ function mapD1Developer(developer: Developer): UnifiedDeveloper {
       ) ?? [],
     education:
       safeJsonParse<UnifiedDeveloper["education"]>(developer.education) ?? [],
+    publishStatus: developer.publish_status,
+    isFallback: developer.is_fallback,
     d1Content: developer.tiptap_json,
   };
 }
@@ -106,6 +131,7 @@ function mapCollectionDeveloper(
   return {
     id: getSlugFromEntryId(developer.id),
     locale,
+    originalLocale: locale,
     name: developer.data.name,
     role: developer.data.role,
     bio: developer.data.bio,
@@ -116,15 +142,22 @@ function mapCollectionDeveloper(
     techStack: developer.data.techStack ?? [],
     certifications: developer.data.certifications ?? [],
     education: developer.data.education ?? [],
+    publishStatus: "published" as PublishStatus,
+    isFallback: false,
     markdownContent: developer.rendered?.html ?? developer.body,
   };
 }
 
 export async function getPosts(lang: Language): Promise<UnifiedPost[]> {
   const [d1Posts, collectionPosts] = await Promise.all([
-    postsRepo
-      .getPosts(lang, { publishStatus: "published" })
-      .then((posts) => Promise.all(posts.map(mapD1Post))),
+    postsRepo.getPosts(lang, { publishStatus: "published" }).then((posts) =>
+      Promise.all(
+        posts.map(async (post) => {
+          const tags = await tagsRepo.getPostTags(post.id);
+          return mapD1Post(post, lang, tags);
+        }),
+      ),
+    ),
     getCollection("blog", (post) => {
       const entryLang = post.id.split("/")[0];
       return entryLang === lang && !post.data.draft;
@@ -144,7 +177,9 @@ export async function getPost(
     postsRepo
       .getPostById(slug, lang)
       .then(async (post) =>
-        post?.publish_status === "published" ? await mapD1Post(post) : null,
+        post && post.publish_status === "published"
+          ? mapD1Post(post, lang, await tagsRepo.getPostTags(post.id))
+          : null,
       ),
     (async () => {
       const post = await getEntry("blog", `${lang}/${slug}`);
@@ -155,9 +190,13 @@ export async function getPost(
   const merged = mergeContent(d1Post, collectionPost);
   if (merged) return merged;
 
-  const fallbackPost = await postsRepo.getPostById(slug, "ko");
-  if (fallbackPost?.publish_status === "published") {
-    return mapD1Post(fallbackPost);
+  const fallbackPost = await postsRepo.getPostById(slug, lang);
+  if (fallbackPost && fallbackPost.publish_status === "published") {
+    return mapD1Post(
+      fallbackPost,
+      lang,
+      await tagsRepo.getPostTags(fallbackPost.id),
+    );
   }
 
   return null;
@@ -166,7 +205,14 @@ export async function getPost(
 export async function getProjects(lang: Language): Promise<UnifiedProject[]> {
   const d1Projects = await projectsRepo
     .getProjects(lang, { publishStatus: "published" })
-    .then((projects) => Promise.all(projects.map(mapD1Project)));
+    .then((projects) =>
+      Promise.all(
+        projects.map(async (project) => {
+          const tags = await tagsRepo.getProjectTags(project.id);
+          return mapD1Project(project, lang, tags);
+        }),
+      ),
+    );
 
   return d1Projects
     .filter((project) => !project.hidden)
@@ -180,16 +226,20 @@ export async function getProject(
   const d1Project = await projectsRepo
     .getProjectById(slug, lang)
     .then(async (project) =>
-      project?.publish_status === "published"
-        ? await mapD1Project(project)
+      project && project.publish_status === "published"
+        ? mapD1Project(project, lang, await tagsRepo.getProjectTags(project.id))
         : null,
     );
 
   if (d1Project) return d1Project;
 
-  const fallbackProject = await projectsRepo.getProjectById(slug, "ko");
-  if (fallbackProject?.publish_status === "published") {
-    return mapD1Project(fallbackProject);
+  const fallbackProject = await projectsRepo.getProjectById(slug, lang);
+  if (fallbackProject && fallbackProject.publish_status === "published") {
+    return mapD1Project(
+      fallbackProject,
+      lang,
+      await tagsRepo.getProjectTags(fallbackProject.id),
+    );
   }
 
   return null;
@@ -239,7 +289,9 @@ export async function getDevelopers(
   const [d1Developers, collectionDevelopers] = await Promise.all([
     developersRepo
       .getDevelopers(lang)
-      .then((developers) => developers.map(mapD1Developer)),
+      .then((developers) =>
+        developers.map((developer) => mapD1Developer(developer, lang)),
+      ),
     getCollection("developers", (developer) => {
       const entryLang = developer.id.split("/")[0];
       return entryLang === lang;
@@ -260,7 +312,9 @@ export async function getDeveloper(
   const [d1Developer, collectionDeveloper] = await Promise.all([
     developersRepo
       .getDeveloperById(slug, lang)
-      .then((developer) => (developer ? mapD1Developer(developer) : null)),
+      .then((developer) =>
+        developer ? mapD1Developer(developer, lang) : null,
+      ),
     (async () => {
       const developer = await getEntry("developers", `${lang}/${slug}`);
       return developer ? mapCollectionDeveloper(developer, lang) : null;
@@ -270,9 +324,9 @@ export async function getDeveloper(
   const merged = mergeContent(d1Developer, collectionDeveloper);
   if (merged) return merged;
 
-  const fallbackDeveloper = await developersRepo.getDeveloperById(slug, "ko");
+  const fallbackDeveloper = await developersRepo.getDeveloperById(slug, lang);
   if (fallbackDeveloper) {
-    return mapD1Developer(fallbackDeveloper);
+    return mapD1Developer(fallbackDeveloper, lang);
   }
 
   return null;

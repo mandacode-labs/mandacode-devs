@@ -13,11 +13,14 @@ import {
 export interface DeveloperEditorInitialData {
   id: string;
   locale: string;
+  original_locale: string;
+  existing_locales: string[];
   name: string;
   role: string;
   bio: string;
   tiptap_json: string;
   avatar_url: string | null;
+  publish_status: string;
   github_url: string | null;
   email: string | null;
   website_url: string | null;
@@ -43,21 +46,35 @@ export default function DeveloperEditor({
     initialData?.tiptap_json ?? JSON.stringify({ type: "doc", content: [] }),
   );
   const [avatarUrl, setAvatarUrl] = useState(initialData?.avatar_url ?? "");
+  const [publishStatus, setPublishStatus] = useState(
+    initialData?.publish_status ?? "draft",
+  );
   const [githubUrl, setGithubUrl] = useState(initialData?.github_url ?? "");
   const [email, setEmail] = useState(initialData?.email ?? "");
   const [websiteUrl, setWebsiteUrl] = useState(initialData?.website_url ?? "");
   const [techStack, setTechStack] = useState(
     initialData?.tech_stack?.join(", ") ?? "",
   );
+  const [certifications, setCertifications] = useState<Array<
+    Record<string, unknown>
+  > | null>(initialData?.certifications ?? null);
+  const [education, setEducation] = useState<Array<
+    Record<string, unknown>
+  > | null>(initialData?.education ?? null);
 
   const {
     id,
     isEditMode,
     locale,
     setLocale,
+    originalLocale,
+    setOriginalLocale,
+    existingLocales,
     targetLocales,
     toggleTargetLocale,
     isSubmitting,
+    isSettingOriginal,
+    setAsOriginalLocale,
     isDeleting,
     showDeleteModal,
     setShowDeleteModal,
@@ -66,6 +83,9 @@ export default function DeveloperEditor({
     handleDelete,
   } = useAdminEditor({
     initialId: initialData?.id,
+    initialLocale: initialData?.locale,
+    initialOriginalLocale: initialData?.original_locale,
+    existingLocales: initialData?.existing_locales ?? [],
     entityType: "developer",
     listPath: "/admin/developers",
     getSubmitBody: () => ({
@@ -74,12 +94,13 @@ export default function DeveloperEditor({
       bio,
       tiptap_json: tiptapJson,
       avatar_url: avatarUrl || null,
+      publish_status: publishStatus,
       github_url: githubUrl || null,
       email: email || null,
       website_url: websiteUrl || null,
       tech_stack: techStack ? techStack.split(",").map((s) => s.trim()) : null,
-      certifications: null,
-      education: null,
+      certifications,
+      education,
       target_locales: targetLocales,
     }),
   });
@@ -87,17 +108,27 @@ export default function DeveloperEditor({
   useEffect(() => {
     if (initialData) {
       setLocale(initialData.locale);
+      setOriginalLocale(initialData.original_locale);
       setName(initialData.name);
       setRole(initialData.role);
       setBio(initialData.bio);
       setTiptapJson(initialData.tiptap_json);
       setAvatarUrl(initialData.avatar_url ?? "");
+      setPublishStatus(initialData.publish_status);
       setGithubUrl(initialData.github_url ?? "");
       setEmail(initialData.email ?? "");
       setWebsiteUrl(initialData.website_url ?? "");
       setTechStack(initialData.tech_stack?.join(", ") ?? "");
+      setCertifications(initialData.certifications);
+      setEducation(initialData.education);
     }
-  }, [initialData, setLocale]);
+  }, [initialData, setLocale, setOriginalLocale]);
+
+  useEffect(() => {
+    if (!isEditMode) {
+      setOriginalLocale(locale);
+    }
+  }, [isEditMode, locale, setOriginalLocale]);
 
   const editorKey = `${id || "new"}-${locale}`;
 
@@ -185,6 +216,25 @@ export default function DeveloperEditor({
             required
             className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent resize-y"
           />
+        </label>
+      </AdminSection>
+
+      <AdminSection title={t("admin.publishing", "Publishing")}>
+        <label className="block">
+          <span className="text-sm font-medium text-text-primary">
+            {t("admin.status", "Publish Status")}
+          </span>
+          <select
+            value={publishStatus}
+            onChange={(e) => setPublishStatus(e.target.value)}
+            className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+          >
+            <option value="draft">{t("admin.draft", "Draft")}</option>
+            <option value="published">
+              {t("admin.published", "Published")}
+            </option>
+            <option value="archived">{t("admin.archived", "Archived")}</option>
+          </select>
         </label>
       </AdminSection>
 
@@ -284,6 +334,58 @@ export default function DeveloperEditor({
       </AdminSection>
 
       <AdminSection title={t("admin.translations", "Translations")}>
+        {isEditMode && (
+          <div className="mb-4 p-4 bg-bg-secondary rounded-lg border border-border">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+              <div>
+                <p className="text-sm font-medium text-text-primary">
+                  {t("admin.originalLocale", "Original Language")}
+                </p>
+                <p className="text-xs text-text-secondary mt-0.5">
+                  {locale === originalLocale
+                    ? t(
+                        "admin.originalLocaleHint",
+                        "This is the original language version.",
+                      )
+                    : t(
+                        "admin.translatedLocaleHint",
+                        "You are editing the {locale} translation. Original is {original}.",
+                        {
+                          locale: LANGUAGE_CONFIGS[locale].label,
+                          original: LANGUAGE_CONFIGS[originalLocale].label,
+                        },
+                      )}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  value={originalLocale}
+                  onChange={(e) => setOriginalLocale(e.target.value)}
+                  className="px-3 py-2 text-sm border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                >
+                  {Object.values(LANGUAGE_CONFIGS).map((loc) => (
+                    <option key={loc.code} value={loc.code}>
+                      {loc.label}
+                    </option>
+                  ))}
+                </select>
+                {locale !== originalLocale && (
+                  <button
+                    type="button"
+                    onClick={setAsOriginalLocale}
+                    disabled={isSettingOriginal}
+                    className="px-3 py-2 text-sm font-medium text-accent border border-accent rounded-lg hover:bg-accent/5 disabled:opacity-60 whitespace-nowrap"
+                  >
+                    {isSettingOriginal
+                      ? t("admin.saving", "Saving...")
+                      : t("admin.setAsOriginalLocale", "Set as original")}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="space-y-2">
           <p className="text-sm text-text-secondary">
             {t(
@@ -292,19 +394,42 @@ export default function DeveloperEditor({
             )}
           </p>
           <div className="flex flex-wrap gap-4">
-            {Object.values(LANGUAGE_CONFIGS)
-              .filter((loc) => loc.code !== locale)
-              .map((loc) => (
-                <label key={loc.code} className="flex items-center gap-2">
+            {Object.values(LANGUAGE_CONFIGS).map((loc) => {
+              const isOriginal = loc.code === originalLocale;
+              const isExisting = existingLocales.includes(loc.code);
+              const isChecked =
+                isOriginal || isExisting || targetLocales.includes(loc.code);
+
+              return (
+                <label
+                  key={loc.code}
+                  className={`flex items-center gap-2 ${
+                    isOriginal || isExisting ? "opacity-60" : ""
+                  }`}
+                >
                   <input
                     type="checkbox"
-                    checked={targetLocales.includes(loc.code)}
+                    checked={isChecked}
                     onChange={() => toggleTargetLocale(loc.code)}
-                    className="w-4 h-4 rounded border-border text-accent focus:ring-accent"
+                    disabled={isOriginal || isExisting}
+                    className="w-4 h-4 rounded border-border text-accent focus:ring-accent disabled:opacity-60"
                   />
-                  <span className="text-sm text-text-primary">{loc.label}</span>
+                  <span className="text-sm text-text-primary">
+                    {loc.label}
+                    {isOriginal && (
+                      <span className="ml-1 text-xs text-blue-600 font-medium">
+                        {t("admin.original", "Original")}
+                      </span>
+                    )}
+                    {isExisting && !isOriginal && (
+                      <span className="ml-1 text-xs text-green-600 font-medium">
+                        {t("admin.translated", "Translated")}
+                      </span>
+                    )}
+                  </span>
                 </label>
-              ))}
+              );
+            })}
           </div>
         </div>
       </AdminSection>

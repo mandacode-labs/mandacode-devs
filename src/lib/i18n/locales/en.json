@@ -121,6 +121,12 @@
   "admin.updateProfile": "Update Profile",
   "admin.updateProject": "Update Project",
   "admin.websiteUrl": "Website URL",
+  "admin.originalLocale": "Original Locale",
+  "admin.original": "Original",
+  "admin.translated": "Translated",
+  "admin.setAsOriginalLocale": "Set as original language",
+  "admin.originalLocaleHint": "This is the original language version.",
+  "admin.translatedLocaleHint": "You are editing the {locale} translation. Original is {original}.",
   "admin.certifications": "Certifications",
   "admin.education": "Education"
 }
