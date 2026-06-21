@@ -7,7 +7,6 @@ import { Button } from "@/components/tiptap-ui-primitive/button";
 import { Code2Icon } from "@/components/tiptap-icons/code2-icon";
 import { PlayIcon } from "@/components/tiptap-icons/play-icon";
 import "@/components/tiptap-node/mermaid-node/mermaid-node.scss";
-import { escapeMermaidBraces } from "@/lib/mermaid/escape";
 
 let mermaidPromise: Promise<typeof import("mermaid").default> | null = null;
 
@@ -33,8 +32,7 @@ function MermaidPreview({ source, onError }: MermaidPreviewProps) {
         const mermaid = await loadMermaid();
         mermaid.initialize({ startOnLoad: false, theme: "default" });
         const id = `editor-mermaid-${Math.random().toString(36).slice(2, 11)}`;
-        const definition = escapeMermaidBraces(source);
-        const { svg } = await mermaid.render(id, definition);
+        const { svg } = await mermaid.render(id, source);
         if (!cancelled && containerRef.current) {
           containerRef.current.innerHTML = svg;
         }

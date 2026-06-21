@@ -105,12 +105,6 @@ const defaultConfig = ${sanitizeJsonForScript(JSON.stringify({ startOnLoad: fals
 
 const themeMap = { light: 'default', dark: 'dark' };
 
-function escapeMermaidBraces(definition) {
-  return definition
-    .replace(/{/g, '#123;')
-    .replace(/}/g, '#125;');
-}
-
 async function initMermaid() {
   const diagrams = document.querySelectorAll('pre.mermaid');
   if (!diagrams.length) return;
@@ -124,7 +118,7 @@ async function initMermaid() {
   mermaid.initialize({ ...defaultConfig, theme: currentTheme });
   for (const diagram of diagrams) {
     if (diagram.hasAttribute('data-processed')) continue;
-    const definition = escapeMermaidBraces(diagram.textContent || '');
+    const definition = diagram.textContent || '';
     const id = 'mermaid-' + Math.random().toString(36).slice(2, 11);
     try {
       const { svg } = await mermaid.render(id, definition);
