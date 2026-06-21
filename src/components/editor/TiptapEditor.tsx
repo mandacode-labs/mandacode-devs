@@ -17,6 +17,9 @@ import { createLowlight, common } from "lowlight";
 
 const lowlight = createLowlight(common);
 
+import { MermaidCodeBlock } from "@/components/tiptap-node/mermaid-node/mermaid-node-extension";
+import "@/components/tiptap-node/mermaid-node/mermaid-node.scss";
+
 import { Spacer } from "@/components/tiptap-ui-primitive/spacer";
 import {
   Toolbar,
@@ -192,6 +195,13 @@ export default function TiptapEditor({
         },
       }),
       CodeBlockLowlight.configure({
+        lowlight,
+        defaultLanguage: "plaintext",
+        HTMLAttributes: {
+          class: "language-",
+        },
+      }),
+      MermaidCodeBlock.configure({
         lowlight,
         defaultLanguage: "plaintext",
         HTMLAttributes: {

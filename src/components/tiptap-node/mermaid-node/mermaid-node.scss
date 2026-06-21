@@ -1,0 +1,125 @@
+.mermaid-node {
+  border: 1px solid var(--tt-toolbar-border-color, #e5e5e5);
+  border-radius: var(--radius-md, 0.5rem);
+  background-color: var(--tt-toolbar-bg-color, #ffffff);
+  overflow: hidden;
+  margin: 1.5rem 0;
+
+  .dark & {
+    background-color: var(--tt-toolbar-bg-color, #1a1a1a);
+  }
+}
+
+.mermaid-node-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  border-bottom: 1px solid var(--tt-toolbar-border-color, #e5e5e5);
+  background-color: var(--tt-gray-light-a-50, #fafafa);
+
+  .dark & {
+    background-color: var(--tt-gray-dark-a-50, #1f1f1f);
+  }
+}
+
+.mermaid-node-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  color: var(--tt-gray-light-a-700, #525252);
+
+  .dark & {
+    color: var(--tt-gray-dark-a-700, #a3a3a3);
+  }
+}
+
+.mermaid-node-toggle {
+  gap: 0.25rem;
+
+  span {
+    font-size: 0.75rem;
+  }
+}
+
+.mermaid-node-preview-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 120px;
+  padding: 1rem;
+  cursor: pointer;
+  background-color: var(--tt-toolbar-bg-color, #ffffff);
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--tt-gray-light-a-50, #fafafa);
+  }
+
+  .dark & {
+    background-color: var(--tt-toolbar-bg-color, #1a1a1a);
+
+    &:hover {
+      background-color: var(--tt-gray-dark-a-50, #1f1f1f);
+    }
+  }
+}
+
+.mermaid-node-preview {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+
+  svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+.mermaid-node-error {
+  color: #dc2626;
+  padding: 0.75rem 1rem;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  background-color: #fef2f2;
+  font-size: 0.875rem;
+
+  .dark & {
+    color: #fca5a5;
+    border-color: #7f1d1d;
+    background-color: #450a0a;
+  }
+}
+
+.mermaid-node-editor {
+  background-color: var(--tt-codeblock-bg, #fafafa);
+  color: var(--tt-codeblock-text, #171717);
+
+  .dark & {
+    background-color: var(--tt-codeblock-bg, #171717);
+    color: var(--tt-codeblock-text, #f5f5f5);
+  }
+}
+
+.mermaid-node-content {
+  min-height: 120px;
+  max-height: 400px;
+  overflow: auto;
+  margin: 0;
+  padding: 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  font-family: "JetBrains Mono NL", monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  white-space: pre;
+  caret-color: currentColor;
+
+  &:focus {
+    outline: none;
+  }
+}
