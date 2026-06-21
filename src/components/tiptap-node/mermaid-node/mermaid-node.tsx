@@ -60,8 +60,30 @@ function MermaidPreview({ source, onError }: MermaidPreviewProps) {
   );
 }
 
+function PlainCodeBlock({
+  language,
+  children,
+}: {
+  language: string | undefined;
+  children: React.ReactNode;
+}) {
+  return (
+    <pre className="mermaid-node-code">
+      <code
+        className={
+          language && language !== "plaintext" ? `language-${language}` : ""
+        }
+      >
+        {children}
+      </code>
+    </pre>
+  );
+}
+
 export function MermaidNode(props: NodeViewProps) {
   const { node, editor } = props;
+  const language = node.attrs.language as string | undefined;
+  const isMermaid = language === "mermaid";
   const [isPreview, setIsPreview] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const sourceRef = useRef(node.textContent ?? "");
@@ -85,10 +107,28 @@ export function MermaidNode(props: NodeViewProps) {
     sourceRef.current = source;
   }, [source]);
 
+  if (!isMermaid) {
+    return (
+      <NodeViewWrapper
+        className="mermaid-node mermaid-node--plain"
+        data-language={language}
+      >
+        <div className="mermaid-node-toolbar" contentEditable={false}>
+          <span className="mermaid-node-label">
+            {language && language !== "plaintext" ? language : "Plain text"}
+          </span>
+        </div>
+        <PlainCodeBlock language={language}>
+          <NodeViewContent as="div" className="mermaid-node-content" />
+        </PlainCodeBlock>
+      </NodeViewWrapper>
+    );
+  }
+
   return (
     <NodeViewWrapper
       className={`mermaid-node ${isPreview ? "mermaid-node--preview" : "mermaid-node--edit"}`}
-      data-language={node.attrs.language}
+      data-language={language}
     >
       <div className="mermaid-node-toolbar" contentEditable={false}>
         <span className="mermaid-node-label">Mermaid</span>

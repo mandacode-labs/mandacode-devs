@@ -93,13 +93,28 @@
   }
 }
 
-.mermaid-node-editor {
-  background-color: var(--tt-codeblock-bg, #fafafa);
-  color: var(--tt-codeblock-text, #171717);
+.mermaid-node--plain {
+  .mermaid-node-code {
+    margin: 0;
+    padding: 0;
+    background-color: var(--tt-codeblock-bg, #fafafa);
+    color: var(--tt-codeblock-text, #171717);
+    border: none;
+    border-radius: 0;
 
-  .dark & {
-    background-color: var(--tt-codeblock-bg, #171717);
-    color: var(--tt-codeblock-text, #f5f5f5);
+    .dark & {
+      background-color: var(--tt-codeblock-bg, #171717);
+      color: var(--tt-codeblock-text, #f5f5f5);
+    }
+
+    code {
+      display: block;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      -webkit-text-fill-color: inherit;
+      color: inherit;
+    }
   }
 }
 
