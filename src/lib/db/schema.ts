@@ -32,15 +32,21 @@ export interface TranslationJob {
 
 export interface Post {
   id: string;
-  locale: string;
-  origin: string | null;
   author_id: string;
+  original_locale: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PostTranslation {
+  id: string;
+  post_id: string;
+  locale: string;
   title: string;
   description: string | null;
   tiptap_json: string;
-  publish_status: PublishStatus;
-  pub_date: string;
   cover_image_url: string | null;
+  publish_status: PublishStatus;
   published_at: string | null;
   created_at: string;
   updated_at: string;
@@ -48,24 +54,30 @@ export interface Post {
 
 export interface Project {
   id: string;
-  locale: string;
-  origin: string | null;
   author_id: string;
-  title: string;
-  description: string | null;
-  tiptap_json: string;
-  publish_status: PublishStatus;
   project_status: ProjectStatus;
-  duration: string;
   start_date: string | null;
   end_date: string | null;
   team_size: number;
-  role: string;
   project_order: number;
   url: string | null;
   source_url: string | null;
   blog_url: string | null;
+  original_locale: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProjectTranslation {
+  id: string;
+  project_id: string;
+  locale: string;
+  title: string;
+  description: string | null;
+  tiptap_json: string;
+  role: string;
   cover_image_url: string | null;
+  publish_status: PublishStatus;
   published_at: string | null;
   created_at: string;
   updated_at: string;
@@ -73,20 +85,28 @@ export interface Project {
 
 export interface Developer {
   id: string;
-  locale: string;
-  origin: string | null;
   author_id: string;
-  name: string;
-  role: string;
-  bio: string;
-  tiptap_json: string;
-  avatar_url: string | null;
   github_url: string | null;
   email: string | null;
   website_url: string | null;
   tech_stack: string | null;
   certifications: string | null;
   education: string | null;
+  original_locale: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DeveloperTranslation {
+  id: string;
+  developer_id: string;
+  locale: string;
+  name: string;
+  role: string;
+  bio: string;
+  tiptap_json: string;
+  avatar_url: string | null;
+  publish_status: PublishStatus;
   published_at: string | null;
   created_at: string;
   updated_at: string;
@@ -99,13 +119,11 @@ export interface Tag {
 
 export interface PostTag {
   post_id: string;
-  post_locale: string;
   tag_id: number;
 }
 
 export interface ProjectTag {
   project_id: string;
-  project_locale: string;
   tag_id: number;
 }
 
