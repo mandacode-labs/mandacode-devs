@@ -72,6 +72,8 @@ const initialData = {
   backHref="/admin/developers"
   backLabel={t("admin.backToDevelopers")}
   currentPath="/admin/developers"
+  viewHref={`/admin/developers/view/${id}?locale=${locale}`}
+  viewLabel={t("admin.view")}
 >
   <DeveloperEditor
     client:only="react"

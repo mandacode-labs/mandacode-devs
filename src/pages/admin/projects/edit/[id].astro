@@ -66,6 +66,8 @@ const initialData = {
   backHref="/admin/projects"
   backLabel={t("admin.backToProjects")}
   currentPath="/admin/projects"
+  viewHref={`/admin/projects/view/${id}?locale=${locale}`}
+  viewLabel={t("admin.view")}
 >
   <ProjectEditor
     client:only="react"

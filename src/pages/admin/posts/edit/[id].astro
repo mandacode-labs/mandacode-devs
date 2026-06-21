@@ -57,6 +57,8 @@ const initialData = {
   backHref="/admin/posts"
   backLabel={t("admin.backToPosts")}
   currentPath="/admin/posts"
+  viewHref={`/admin/posts/view/${id}?locale=${locale}`}
+  viewLabel={t("admin.view")}
 >
   <PostEditor
     client:only="react"

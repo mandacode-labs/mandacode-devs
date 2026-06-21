@@ -127,6 +127,10 @@
   "admin.setAsOriginalLocale": "Set as original language",
   "admin.originalLocaleHint": "This is the original language version.",
   "admin.translatedLocaleHint": "You are editing the {locale} translation. Original is {original}.",
+  "admin.preview": "Preview",
+  "admin.previewMode": "Preview mode",
+  "admin.fallbackPreview": "Showing original {originalLocale} content because {locale} translation does not exist.",
+  "admin.view": "View",
   "admin.certifications": "Certifications",
   "admin.education": "Education"
 }
