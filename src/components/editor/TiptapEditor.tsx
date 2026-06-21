@@ -79,7 +79,7 @@ const MainToolbarContent = () => {
       <ToolbarSeparator />
 
       <ToolbarGroup>
-        <HeadingDropdownMenu modal={false} levels={[2, 3, 4]} />
+        <HeadingDropdownMenu modal={false} levels={[1, 2, 3, 4]} />
         <ListDropdownMenu
           modal={false}
           types={["bulletList", "orderedList", "taskList"]}
