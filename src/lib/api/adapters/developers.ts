@@ -3,35 +3,31 @@ import {
   createDeveloperSchema,
   updateDeveloperSchema,
 } from "@/lib/api/validation";
-import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
+import { ApiError } from "@/lib/api/response";
 import type { AdminCrudAdapter } from "@/lib/api/admin-crud";
 import type { z } from "zod";
 
 type CreateBody = z.infer<typeof createDeveloperSchema>;
 type UpdateBody = z.infer<typeof updateDeveloperSchema>;
 
+interface ExistingDeveloperTranslation {
+  publish_status: string;
+  published_at: string | null;
+}
+
 export const developerAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
   entityType: "developer",
   entityName: "Developer",
   createSchema: createDeveloperSchema,
   updateSchema: updateDeveloperSchema,
-  getById: developersRepo.getDeveloperById,
+  getById: developersRepo.getDeveloperTranslationById,
   create: async (body, user) => {
     const publishedAt =
-      body.published_at !== undefined && body.published_at !== null
-        ? body.published_at
-        : new Date().toISOString();
+      body.publish_status === "published" ? new Date().toISOString() : null;
 
     await developersRepo.createDeveloper({
       id: body.id,
-      locale: body.locale,
-      origin: body.locale === DEFAULT_LANGUAGE ? null : DEFAULT_LANGUAGE,
       author_id: user.email,
-      name: body.name,
-      role: body.role,
-      bio: body.bio,
-      tiptap_json: body.tiptap_json,
-      avatar_url: body.avatar_url ?? null,
       github_url: body.github_url ?? null,
       email: body.email ?? null,
       website_url: body.website_url ?? null,
@@ -40,64 +36,91 @@ export const developerAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
         ? JSON.stringify(body.certifications)
         : null,
       education: body.education ? JSON.stringify(body.education) : null,
+      original_locale: body.locale,
+    });
+
+    await developersRepo.createDeveloperTranslation({
+      id: `${body.id}_${body.locale}`,
+      developer_id: body.id,
+      locale: body.locale,
+      name: body.name,
+      role: body.role,
+      bio: body.bio,
+      tiptap_json: body.tiptap_json,
+      avatar_url: body.avatar_url ?? null,
+      publish_status: body.publish_status,
       published_at: publishedAt,
     });
   },
   update: async (id, locale, body, existing, user) => {
+    const mainUpdate: developersRepo.UpdateDeveloperInput = {
+      github_url: body.github_url,
+      email: body.email,
+      website_url: body.website_url,
+      tech_stack: body.tech_stack ? JSON.stringify(body.tech_stack) : undefined,
+      certifications: body.certifications
+        ? JSON.stringify(body.certifications)
+        : undefined,
+      education: body.education ? JSON.stringify(body.education) : undefined,
+    };
+
+    await developersRepo.updateDeveloper(id, mainUpdate);
+
+    const translationUpdate: developersRepo.UpdateDeveloperTranslationInput = {
+      name: body.name,
+      role: body.role,
+      bio: body.bio,
+      tiptap_json: body.tiptap_json,
+      avatar_url: body.avatar_url,
+      publish_status: body.publish_status,
+    };
+
     if (existing) {
-      const updateData: developersRepo.UpdateDeveloperInput = {
-        name: body.name,
-        role: body.role,
-        bio: body.bio,
-        tiptap_json: body.tiptap_json,
-        avatar_url: body.avatar_url,
-        github_url: body.github_url,
-        email: body.email,
-        website_url: body.website_url,
-        tech_stack: body.tech_stack
-          ? JSON.stringify(body.tech_stack)
-          : undefined,
-        certifications: body.certifications
-          ? JSON.stringify(body.certifications)
-          : undefined,
-        education: body.education ? JSON.stringify(body.education) : undefined,
-        published_at: body.published_at,
-      };
-
-      await developersRepo.updateDeveloper(id, locale, updateData);
-    } else {
-      const publishedAt =
-        body.published_at !== undefined && body.published_at !== null
-          ? body.published_at
-          : new Date().toISOString();
-
-      await developersRepo.createDeveloper({
+      const existingDeveloper = existing as ExistingDeveloperTranslation;
+      if (
+        body.publish_status === "published" &&
+        existingDeveloper.publish_status !== "published" &&
+        !existingDeveloper.published_at
+      ) {
+        translationUpdate.published_at = new Date().toISOString();
+      }
+      await developersRepo.updateDeveloperTranslation(
         id,
         locale,
-        origin: locale === DEFAULT_LANGUAGE ? null : DEFAULT_LANGUAGE,
-        author_id: user.email,
+        translationUpdate,
+      );
+    } else {
+      if (body.publish_status === "published") {
+        translationUpdate.published_at = new Date().toISOString();
+      }
+      await developersRepo.createDeveloperTranslation({
+        id: `${id}_${locale}`,
+        developer_id: id,
+        locale,
         name: body.name ?? "",
         role: body.role ?? "",
         bio: body.bio ?? "",
         tiptap_json:
           body.tiptap_json ?? JSON.stringify({ type: "doc", content: [] }),
         avatar_url: body.avatar_url ?? null,
-        github_url: body.github_url ?? null,
-        email: body.email ?? null,
-        website_url: body.website_url ?? null,
-        tech_stack: body.tech_stack ? JSON.stringify(body.tech_stack) : null,
-        certifications: body.certifications
-          ? JSON.stringify(body.certifications)
-          : null,
-        education: body.education ? JSON.stringify(body.education) : null,
-        published_at: publishedAt,
+        publish_status: body.publish_status ?? "draft",
+        published_at: translationUpdate.published_at ?? null,
       });
     }
   },
   getLocales: developersRepo.getDeveloperLocales,
   getLocalesWithContent: developersRepo.getDeveloperLocalesWithContent,
-  delete: developersRepo.deleteDeveloper,
-  deleteAllLocales: developersRepo.deleteAllDeveloperLocales,
+  delete: async (id, locale) => {
+    const developer = await developersRepo.getDeveloperById(id, locale);
+    if (developer && developer.original_locale === locale) {
+      throw new ApiError("Cannot delete original locale translation", 400);
+    }
+    await developersRepo.deleteDeveloperTranslation(id, locale as string);
+  },
+  deleteAllLocales: async (id) => {
+    await developersRepo.deleteAllDeveloperTranslations(id);
+    await developersRepo.deleteDeveloper(id);
+  },
   getImageUrls: (body) => ({
     avatar_url: body.avatar_url ?? null,
   }),
