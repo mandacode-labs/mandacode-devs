@@ -319,9 +319,6 @@ export default function DeveloperEditor({
 
       <AdminSection title={t("admin.content", "Content")}>
         <div className="space-y-2">
-          <span className="text-sm font-medium text-text-primary">
-            {t("admin.content", "Body")}
-          </span>
           <TiptapEditor
             key={editorKey}
             content={tiptapJson}
