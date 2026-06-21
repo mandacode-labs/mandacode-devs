@@ -18,7 +18,10 @@ export interface TranslationJobInput {
 }
 
 async function translatePost(job: TranslationJobInput): Promise<void> {
-  const source = await postsRepo.getPostById(job.id, job.sourceLocale);
+  const source = await postsRepo.getPostTranslationById(
+    job.id,
+    job.sourceLocale,
+  );
   if (!source) {
     throw new Error(`Source post not found: ${job.id}/${job.sourceLocale}`);
   }
@@ -35,26 +38,27 @@ async function translatePost(job: TranslationJobInput): Promise<void> {
 
   const now = new Date().toISOString();
 
-  await postsRepo.createPost({
-    id: source.id,
+  await postsRepo.createPostTranslation({
+    id: `${source.post_id}_${job.targetLocale}`,
+    post_id: source.post_id,
     locale: job.targetLocale,
-    origin: job.sourceLocale,
-    author_id: job.authorId,
     title: translated.title,
     description: translated.description,
     tiptap_json: translated.tiptapJson,
-    publish_status: source.publish_status,
-    pub_date: source.pub_date,
     cover_image_url: source.cover_image_url,
+    publish_status: source.publish_status,
     published_at: source.published_at ? now : null,
   });
 
-  const sourceTags = await tagsRepo.getPostTags(job.id, job.sourceLocale);
-  await tagsRepo.setPostTags(job.id, job.targetLocale, sourceTags);
+  const sourceTags = await tagsRepo.getPostTags(job.id);
+  await tagsRepo.setPostTags(job.id, sourceTags);
 }
 
 async function translateProject(job: TranslationJobInput): Promise<void> {
-  const source = await projectsRepo.getProjectById(job.id, job.sourceLocale);
+  const source = await projectsRepo.getProjectTranslationById(
+    job.id,
+    job.sourceLocale,
+  );
   if (!source) {
     throw new Error(`Source project not found: ${job.id}/${job.sourceLocale}`);
   }
@@ -71,34 +75,25 @@ async function translateProject(job: TranslationJobInput): Promise<void> {
 
   const now = new Date().toISOString();
 
-  await projectsRepo.createProject({
-    id: source.id,
+  await projectsRepo.createProjectTranslation({
+    id: `${source.project_id}_${job.targetLocale}`,
+    project_id: source.project_id,
     locale: job.targetLocale,
-    origin: job.sourceLocale,
-    author_id: job.authorId,
     title: translated.title,
     description: translated.description,
     tiptap_json: translated.tiptapJson,
-    publish_status: source.publish_status,
-    project_status: source.project_status,
-    start_date: source.start_date,
-    end_date: source.end_date,
-    team_size: source.team_size,
     role: translated.role ?? source.role,
-    project_order: source.project_order,
-    url: source.url,
-    source_url: source.source_url,
-    blog_url: source.blog_url,
     cover_image_url: source.cover_image_url,
+    publish_status: source.publish_status,
     published_at: source.published_at ? now : null,
   });
 
-  const sourceTags = await tagsRepo.getProjectTags(job.id, job.sourceLocale);
-  await tagsRepo.setProjectTags(job.id, job.targetLocale, sourceTags);
+  const sourceTags = await tagsRepo.getProjectTags(job.id);
+  await tagsRepo.setProjectTags(job.id, sourceTags);
 }
 
 async function translateDeveloper(job: TranslationJobInput): Promise<void> {
-  const source = await developersRepo.getDeveloperById(
+  const source = await developersRepo.getDeveloperTranslationById(
     job.id,
     job.sourceLocale,
   );
@@ -120,22 +115,16 @@ async function translateDeveloper(job: TranslationJobInput): Promise<void> {
 
   const now = new Date().toISOString();
 
-  await developersRepo.createDeveloper({
-    id: source.id,
+  await developersRepo.createDeveloperTranslation({
+    id: `${source.developer_id}_${job.targetLocale}`,
+    developer_id: source.developer_id,
     locale: job.targetLocale,
-    origin: job.sourceLocale,
-    author_id: job.authorId,
     name: translated.title,
     role: translated.role ?? source.role,
     bio: translated.description ?? source.bio,
     tiptap_json: translated.tiptapJson,
     avatar_url: source.avatar_url,
-    github_url: source.github_url,
-    email: source.email,
-    website_url: source.website_url,
-    tech_stack: source.tech_stack,
-    certifications: source.certifications,
-    education: source.education,
+    publish_status: source.publish_status,
     published_at: source.published_at ? now : null,
   });
 }
