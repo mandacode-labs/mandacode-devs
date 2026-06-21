@@ -121,6 +121,12 @@
   "admin.updateProfile": "更新资料",
   "admin.updateProject": "更新项目",
   "admin.websiteUrl": "网站 URL",
+  "admin.originalLocale": "原文语言",
+  "admin.original": "原文",
+  "admin.translated": "已翻译",
+  "admin.setAsOriginalLocale": "设为原始语言",
+  "admin.originalLocaleHint": "这是原始语言版本。",
+  "admin.translatedLocaleHint": "您正在编辑{locale}翻译。原始语言是{original}。",
   "admin.certifications": "证书",
   "admin.education": "学历"
 }

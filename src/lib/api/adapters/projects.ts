@@ -103,12 +103,15 @@ export const projectAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
   getLocales: projectsRepo.getProjectLocales,
   getLocalesWithContent: projectsRepo.getProjectLocalesWithContent,
   delete: async (id, locale) => {
+    if (!locale) {
+      throw new ApiError("Missing locale", 400);
+    }
     const project = await projectsRepo.getProjectById(id, locale);
     if (project && project.original_locale === locale) {
       throw new ApiError("Cannot delete original locale translation", 400);
     }
     await tagsRepo.deleteProjectTags(id);
-    await projectsRepo.deleteProjectTranslation(id, locale as string);
+    await projectsRepo.deleteProjectTranslation(id, locale);
   },
   deleteAllLocales: async (id) => {
     await tagsRepo.deleteProjectTags(id);

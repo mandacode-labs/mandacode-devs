@@ -3,11 +3,9 @@ import * as postsRepo from "@/lib/db/posts";
 import * as projectsRepo from "@/lib/db/projects";
 import * as developersRepo from "@/lib/db/developers";
 import * as tagsRepo from "@/lib/db/tags";
-import type {
-  PostWithTranslation,
-  ProjectWithTranslation,
-  DeveloperWithTranslation,
-} from "@/lib/db/posts";
+import type { PostWithTranslation } from "@/lib/db/posts";
+import type { ProjectWithTranslation } from "@/lib/db/projects";
+import type { DeveloperWithTranslation } from "@/lib/db/developers";
 import type { PublishStatus } from "@/lib/db/schema";
 import type {
   UnifiedPost,
@@ -120,7 +118,6 @@ function mapD1Developer(
       ) ?? [],
     education:
       safeJsonParse<UnifiedDeveloper["education"]>(developer.education) ?? [],
-    hidden: developer.publish_status === "archived",
     publishStatus: developer.publish_status,
     isFallback: developer.is_fallback,
     d1Content: developer.tiptap_json,
@@ -145,7 +142,6 @@ function mapCollectionDeveloper(
     techStack: developer.data.techStack ?? [],
     certifications: developer.data.certifications ?? [],
     education: developer.data.education ?? [],
-    hidden: false,
     publishStatus: "published" as PublishStatus,
     isFallback: false,
     markdownContent: developer.rendered?.html ?? developer.body,

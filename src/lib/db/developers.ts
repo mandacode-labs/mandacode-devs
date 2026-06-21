@@ -61,7 +61,7 @@ export interface DeveloperWithTranslation extends Developer {
   is_fallback: boolean;
 }
 
-function rowToDeveloperWithTranslation(
+export function rowToDeveloperWithTranslation(
   row: Record<string, unknown>,
 ): DeveloperWithTranslation {
   const hasTranslation = row.translation_name !== null;
@@ -169,22 +169,6 @@ export async function getDevelopers(
 ): Promise<DeveloperWithTranslation[]> {
   const db = getDatabase();
   const { query, params } = buildListQuery(options);
-  params[0] = locale;
-
-  const result = await db
-    .prepare(query)
-    .bind(...params)
-    .all();
-  return ((result.results ?? []) as Record<string, unknown>[]).map(
-    rowToDeveloperWithTranslation,
-  );
-}
-
-export async function getDevelopers(
-  locale: string,
-): Promise<DeveloperWithTranslation[]> {
-  const db = getDatabase();
-  const { query, params } = buildListQuery();
   params[0] = locale;
 
   const result = await db
@@ -350,6 +334,7 @@ export async function updateDeveloperTranslation(
   const values: unknown[] = [];
 
   for (const [key, value] of Object.entries(input)) {
+    if (value === undefined) continue;
     fields.push(`${key} = ?`);
     values.push(value);
   }

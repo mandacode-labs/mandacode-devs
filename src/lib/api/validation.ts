@@ -107,6 +107,7 @@ export const createDeveloperSchema = z.object({
   bio: z.string().min(1),
   tiptap_json: z.string().min(1),
   avatar_url: urlOrPathSchema.nullable().optional(),
+  publish_status: publishStatusSchema.default("draft"),
   github_url: z.string().url().nullable().optional(),
   email: z.string().email().nullable().optional(),
   website_url: z.string().url().nullable().optional(),

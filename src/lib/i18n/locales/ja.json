@@ -121,6 +121,12 @@
   "admin.updateProfile": "プロフィールを更新",
   "admin.updateProject": "プロジェクトを更新",
   "admin.websiteUrl": "ウェブサイトURL",
+  "admin.originalLocale": "原稿言語",
+  "admin.original": "原稿",
+  "admin.translated": "翻訳済み",
+  "admin.setAsOriginalLocale": "原稿言語に設定",
+  "admin.originalLocaleHint": "これは原稿言語バージョンです。",
+  "admin.translatedLocaleHint": "{locale}翻訳を編集中です。原稿言語は{original}です。",
   "admin.certifications": "資格",
   "admin.education": "学歴"
 }

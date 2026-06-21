@@ -121,6 +121,12 @@
   "admin.updateProfile": "프로필 수정",
   "admin.updateProject": "프로젝트 수정",
   "admin.websiteUrl": "웹사이트 URL",
+  "admin.originalLocale": "원본 언어",
+  "admin.original": "원본",
+  "admin.translated": "번역됨",
+  "admin.setAsOriginalLocale": "원본 언어로 설정",
+  "admin.originalLocaleHint": "원본 언어 버전입니다.",
+  "admin.translatedLocaleHint": "{locale} 번역본을 수정 중입니다. 원본 언어는 {original}입니다.",
   "admin.certifications": "자격증",
   "admin.education": "학력"
 }

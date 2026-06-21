@@ -13,7 +13,7 @@ export async function findOrCreateTags(names: string[]): Promise<Tag[]> {
       .first();
 
     if (existing) {
-      tags.push(existing as Tag);
+      tags.push(existing as unknown as Tag);
       continue;
     }
 
@@ -22,7 +22,7 @@ export async function findOrCreateTags(names: string[]): Promise<Tag[]> {
       .bind(name)
       .first();
 
-    tags.push(created as Tag);
+    tags.push(created as unknown as Tag);
   }
 
   return tags;

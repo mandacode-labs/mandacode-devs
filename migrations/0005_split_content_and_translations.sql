@@ -222,7 +222,7 @@ SELECT
   bio,
   tiptap_json,
   avatar_url,
-  publish_status,
+  'published' AS publish_status,
   published_at,
   created_at,
   updated_at
@@ -242,7 +242,7 @@ SELECT
   bio,
   tiptap_json,
   avatar_url,
-  publish_status,
+  'published' AS publish_status,
   published_at,
   created_at,
   updated_at
@@ -266,10 +266,10 @@ CREATE TABLE project_tags_new (
 );
 
 INSERT INTO post_tags_new (post_id, tag_id)
-SELECT post_id, tag_id FROM post_tags;
+SELECT DISTINCT post_id, tag_id FROM post_tags;
 
 INSERT INTO project_tags_new (project_id, tag_id)
-SELECT project_id, tag_id FROM project_tags;
+SELECT DISTINCT project_id, tag_id FROM project_tags;
 
 -- Swap tables ------------------------------------------------------------
 

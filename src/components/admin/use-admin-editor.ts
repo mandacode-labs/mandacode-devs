@@ -40,6 +40,7 @@ export function useAdminEditor(options: UseAdminEditorOptions) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
+  const [isSettingOriginal, setIsSettingOriginal] = useState(false);
 
   useEffect(() => {
     if (!toast) return;
@@ -63,6 +64,37 @@ export function useAdminEditor(options: UseAdminEditorOptions) {
   const showError = useCallback((message: string) => {
     setToast({ type: "error", message });
   }, []);
+
+  const setAsOriginalLocale = useCallback(async () => {
+    if (!isEditMode || !id || !locale) return;
+    setIsSettingOriginal(true);
+    try {
+      const url = `/api/admin/${entityType}s/${id}?locale=${encodeURIComponent(
+        locale,
+      )}`;
+      const response = await fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ original_locale: locale }),
+      });
+
+      if (!response.ok) {
+        const data = (await response.json()) as { error?: string };
+        throw new Error(data.error || "Failed to set as original locale");
+      }
+
+      showSuccess("Set as original locale");
+      window.location.reload();
+    } catch (error) {
+      showError(
+        error instanceof Error
+          ? error.message
+          : "Failed to set as original locale",
+      );
+    } finally {
+      setIsSettingOriginal(false);
+    }
+  }, [isEditMode, id, locale, entityType, showSuccess, showError]);
 
   const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -132,10 +164,8 @@ export function useAdminEditor(options: UseAdminEditorOptions) {
   const toggleTargetLocale = (code: string) => {
     if (code === originalLocale) return;
     if (existingLocales.includes(code)) return;
-    setTargetLocales(
-      (prev = prev.includes(code)
-        ? prev.filter((c) => c !== code)
-        : [...prev, code]),
+    setTargetLocales((prev) =>
+      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code],
     );
   };
 
@@ -150,6 +180,8 @@ export function useAdminEditor(options: UseAdminEditorOptions) {
     setExistingLocales,
     targetLocales,
     toggleTargetLocale,
+    isSettingOriginal,
+    setAsOriginalLocale,
     isSubmitting,
     isDeleting,
     showDeleteModal,

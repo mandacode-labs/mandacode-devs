@@ -47,9 +47,8 @@ export interface PostWithTranslation extends Post {
   is_fallback: boolean;
 }
 
-function rowToPostWithTranslation(
+export function rowToPostWithTranslation(
   row: Record<string, unknown>,
-  locale: string,
 ): PostWithTranslation {
   const hasTranslation = row.translation_title !== null;
   const title = String(
@@ -150,7 +149,7 @@ export async function getPosts(
     .bind(...params)
     .all();
   return ((result.results ?? []) as Record<string, unknown>[]).map((row) =>
-    rowToPostWithTranslation(row, locale),
+    rowToPostWithTranslation(row),
   );
 }
 
@@ -193,7 +192,7 @@ export async function getPostById(
     .first();
 
   if (!result) return null;
-  return rowToPostWithTranslation(result as Record<string, unknown>, locale);
+  return rowToPostWithTranslation(result as Record<string, unknown>);
 }
 
 export async function getPostTranslationById(
@@ -282,6 +281,7 @@ export async function updatePostTranslation(
   const values: unknown[] = [];
 
   for (const [key, value] of Object.entries(input)) {
+    if (value === undefined) continue;
     fields.push(`${key} = ?`);
     values.push(value);
   }

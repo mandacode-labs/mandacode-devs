@@ -65,6 +65,8 @@ export default function PostEditor({
     targetLocales,
     toggleTargetLocale,
     isSubmitting,
+    isSettingOriginal,
+    setAsOriginalLocale,
     isDeleting,
     showDeleteModal,
     setShowDeleteModal,
@@ -101,6 +103,12 @@ export default function PostEditor({
       setPublishStatus(initialData.publish_status);
     }
   }, [initialData, setLocale, setOriginalLocale]);
+
+  useEffect(() => {
+    if (!isEditMode) {
+      setOriginalLocale(locale);
+    }
+  }, [isEditMode, locale, setOriginalLocale]);
 
   const fetchTagSuggestions = useCallback(async (query: string) => {
     if (!query.trim()) {
@@ -241,23 +249,6 @@ export default function PostEditor({
               onChange={(e) => setLocale(e.target.value)}
               disabled={isEditMode}
               className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-            >
-              {Object.values(LANGUAGE_CONFIGS).map((loc) => (
-                <option key={loc.code} value={loc.code}>
-                  {loc.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="text-sm font-medium text-text-primary">
-              {t("admin.originalLocale", "Original Locale")}
-            </span>
-            <select
-              value={originalLocale}
-              onChange={(e) => setOriginalLocale(e.target.value)}
-              className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
             >
               {Object.values(LANGUAGE_CONFIGS).map((loc) => (
                 <option key={loc.code} value={loc.code}>
@@ -419,6 +410,58 @@ export default function PostEditor({
       </AdminSection>
 
       <AdminSection title={t("admin.translations", "Translations")}>
+        {isEditMode && (
+          <div className="mb-4 p-4 bg-bg-secondary rounded-lg border border-border">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+              <div>
+                <p className="text-sm font-medium text-text-primary">
+                  {t("admin.originalLocale", "Original Language")}
+                </p>
+                <p className="text-xs text-text-secondary mt-0.5">
+                  {locale === originalLocale
+                    ? t(
+                        "admin.originalLocaleHint",
+                        "This is the original language version.",
+                      )
+                    : t(
+                        "admin.translatedLocaleHint",
+                        "You are editing the {locale} translation. Original is {original}.",
+                        {
+                          locale: LANGUAGE_CONFIGS[locale].label,
+                          original: LANGUAGE_CONFIGS[originalLocale].label,
+                        },
+                      )}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  value={originalLocale}
+                  onChange={(e) => setOriginalLocale(e.target.value)}
+                  className="px-3 py-2 text-sm border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                >
+                  {Object.values(LANGUAGE_CONFIGS).map((loc) => (
+                    <option key={loc.code} value={loc.code}>
+                      {loc.label}
+                    </option>
+                  ))}
+                </select>
+                {locale !== originalLocale && (
+                  <button
+                    type="button"
+                    onClick={setAsOriginalLocale}
+                    disabled={isSettingOriginal}
+                    className="px-3 py-2 text-sm font-medium text-accent border border-accent rounded-lg hover:bg-accent/5 disabled:opacity-60 whitespace-nowrap"
+                  >
+                    {isSettingOriginal
+                      ? t("admin.saving", "Saving...")
+                      : t("admin.setAsOriginalLocale", "Set as original")}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="space-y-2">
           <p className="text-sm text-text-secondary">
             {t(

@@ -33,7 +33,6 @@ const t = useTranslations(lang);
           const {
             title,
             description,
-            duration,
             startDate,
             endDate,
             teamSize,
@@ -43,7 +42,7 @@ const t = useTranslations(lang);
           const slug = getProjectSlug(project);
           const isLeft = index % 2 === 0;
           const meta = `${teamSize}${t("teamSize.unit")} · ${role}`;
-          const period = formatProjectPeriod({ duration, startDate, endDate });
+          const period = formatProjectPeriod({ startDate, endDate });
 
           return (
             <li class="relative pl-10 md:pl-0 md:flex md:justify-center">

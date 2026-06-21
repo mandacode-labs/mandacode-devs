@@ -71,7 +71,7 @@ export interface ProjectWithTranslation extends Project {
   is_fallback: boolean;
 }
 
-function rowToProjectWithTranslation(
+export function rowToProjectWithTranslation(
   row: Record<string, unknown>,
 ): ProjectWithTranslation {
   const hasTranslation = row.translation_title !== null;
@@ -355,6 +355,7 @@ export async function updateProjectTranslation(
   const values: unknown[] = [];
 
   for (const [key, value] of Object.entries(input)) {
+    if (value === undefined) continue;
     fields.push(`${key} = ?`);
     values.push(value);
   }

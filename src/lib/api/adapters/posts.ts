@@ -80,12 +80,15 @@ export const postAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
   getLocales: postsRepo.getPostLocales,
   getLocalesWithContent: postsRepo.getPostLocalesWithContent,
   delete: async (id, locale) => {
+    if (!locale) {
+      throw new ApiError("Missing locale", 400);
+    }
     const post = await postsRepo.getPostById(id, locale);
     if (post && post.original_locale === locale) {
       throw new ApiError("Cannot delete original locale translation", 400);
     }
     await tagsRepo.deletePostTags(id);
-    await postsRepo.deletePostTranslation(id, locale as string);
+    await postsRepo.deletePostTranslation(id, locale);
   },
   deleteAllLocales: async (id) => {
     await tagsRepo.deletePostTags(id);

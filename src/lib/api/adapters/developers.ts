@@ -113,11 +113,14 @@ export const developerAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
   getLocales: developersRepo.getDeveloperLocales,
   getLocalesWithContent: developersRepo.getDeveloperLocalesWithContent,
   delete: async (id, locale) => {
+    if (!locale) {
+      throw new ApiError("Missing locale", 400);
+    }
     const developer = await developersRepo.getDeveloperById(id, locale);
     if (developer && developer.original_locale === locale) {
       throw new ApiError("Cannot delete original locale translation", 400);
     }
-    await developersRepo.deleteDeveloperTranslation(id, locale as string);
+    await developersRepo.deleteDeveloperTranslation(id, locale);
   },
   deleteAllLocales: async (id) => {
     await developersRepo.deleteAllDeveloperTranslations(id);
