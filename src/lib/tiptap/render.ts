@@ -16,9 +16,9 @@ function getDocument(): Document {
 
 // ProseMirror's default rendering for `codeBlock` with a language
 // attribute produces `<pre class="language-"><code class="language-XYZ">`.
-// The mermaid client-side script (src/integrations/mermaid.ts) looks
-// for `pre.mermaid` directly, so we rewrite the markup for that case
-// into `<pre class="mermaid">RAW_CONTENT</pre>`.
+// The mermaid client-side script (src/components/MermaidLoader.astro)
+// looks for `pre.mermaid` directly, so we rewrite the markup for that
+// case into `<pre class="mermaid">RAW_CONTENT</pre>`.
 function normalizeMermaidBlocks(html: string): string {
   return html.replace(
     /<pre class="language-"><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g,

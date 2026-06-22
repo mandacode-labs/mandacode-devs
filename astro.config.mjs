@@ -29,9 +29,7 @@ export default defineConfig({
     },
   },
   integrations: [
-    mermaid({
-      theme: "default",
-    }),
+    mermaid(),
     sitemap({
       i18n: {
         defaultLocale: "ko",

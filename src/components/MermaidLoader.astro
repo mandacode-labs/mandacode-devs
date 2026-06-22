@@ -53,7 +53,7 @@
         defaultConfig.theme;
     }
     mermaid.initialize({ ...defaultConfig, theme: currentTheme });
-    for (const diagram of Array.from(diagrams)) {
+    for (const diagram of diagrams) {
       if (diagram.hasAttribute("data-processed")) continue;
       const definition = decodeHtmlEntities(diagram.textContent || "");
       const id = "mermaid-" + Math.random().toString(36).slice(2, 11);
