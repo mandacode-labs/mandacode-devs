@@ -1,6 +1,7 @@
 ---
 import { useTranslations } from "@/lib/i18n/utils";
 import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
+import { getStaticAssetUrl } from "@/lib/config/site";
 
 interface Props {
   currentPath: string;
@@ -8,6 +9,7 @@ interface Props {
 
 const { currentPath } = Astro.props;
 const t = useTranslations(DEFAULT_LANGUAGE);
+const logoUrl = getStaticAssetUrl("mandacode.webp");
 
 const navItems = [
   { href: "/admin", label: t("admin.dashboard"), icon: "dashboard" },
@@ -28,7 +30,7 @@ function isActive(href: string): boolean {
   <div class="h-16 flex items-center px-6 border-b border-border">
     <a href="/admin" class="flex items-center gap-2.5">
       <img
-        src="https://static.mandacode.com/mandacode-devs/mandacode.webp"
+        src={logoUrl}
         alt="Mandacode"
         class="h-7 w-7"
         width="28"
@@ -152,7 +154,7 @@ function isActive(href: string): boolean {
   >
     <a href="/admin" class="flex items-center gap-2.5">
       <img
-        src="https://static.mandacode.com/mandacode-devs/mandacode.webp"
+        src={logoUrl}
         alt="Mandacode"
         class="h-7 w-7"
         width="28"

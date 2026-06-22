@@ -2,6 +2,7 @@
 import LanguageSwitcher from "@/components/shared/LanguageSwitcher.astro";
 import MenuIcon from "@/components/icons/Menu.astro";
 import { useTranslations, getRelativeLocaleUrl } from "@/lib/i18n/utils";
+import { getStaticAssetUrl } from "@/lib/config/site";
 import type { Lang } from "@/types";
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
 
 const { currentLang, class: className = "" } = Astro.props;
 const t = useTranslations(currentLang);
+const logoUrl = getStaticAssetUrl("mandacode.webp");
 
 const navItems = [
   { key: "nav.projects" as const, href: "/projects" },
@@ -43,7 +45,7 @@ function navLinkClass(href: string, mobile: boolean): string {
         class="flex items-center gap-2"
       >
         <img
-          src="https://static.mandacode.com/mandacode-devs/mandacode.webp"
+          src={logoUrl}
           alt="Mandacode"
           class="h-7 w-7"
           width="28"

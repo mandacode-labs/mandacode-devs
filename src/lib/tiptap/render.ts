@@ -11,11 +11,11 @@ function escapeHtml(text: string): string {
 }
 
 function safeHref(href: string): string {
-  return sanitizeUrl(href, "http://localhost");
+  return sanitizeUrl(href, "");
 }
 
 function safeSrc(src: string): string {
-  return sanitizeUrl(src, "http://localhost");
+  return sanitizeUrl(src, "");
 }
 
 function renderStyle(attrs?: Record<string, unknown>): string {
