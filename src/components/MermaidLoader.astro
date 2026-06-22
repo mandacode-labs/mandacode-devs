@@ -1,0 +1,152 @@
+---
+// Mermaid client loader. Renders <pre class="mermaid"> blocks into SVG.
+//
+// Astro `injectScript("page", ...)` from inside an integration does
+// build the script but does not actually include it in the page HTML
+// in this project's setup (verified: the script asset is in the build
+// output but no page references it). Loading the script via a regular
+// Astro `<script>` block instead, included from Layout.astro on every
+// page, is reliable and works in both dev and build modes.
+---
+
+<script>
+  const log = (...args: unknown[]) => console.log("[mermaid]", ...args);
+  const logError = (...args: unknown[]) => console.error("[mermaid]", ...args);
+
+  let mermaidPromise: Promise<unknown> | null = null;
+  async function loadMermaid() {
+    if (mermaidPromise) return mermaidPromise;
+    mermaidPromise = import("mermaid")
+      .then(({ default: m }) => m)
+      .catch((e: unknown) => {
+        logError("Failed to load mermaid:", e);
+        mermaidPromise = null;
+        throw e;
+      });
+    return mermaidPromise;
+  }
+
+  const defaultConfig = { startOnLoad: false, theme: "default" };
+  const themeMap: Record<string, string> = { light: "default", dark: "dark" };
+  const autoTheme = true;
+
+  function decodeHtmlEntities(text: string): string {
+    const textarea = document.createElement("textarea");
+    textarea.innerHTML = text;
+    return textarea.value;
+  }
+
+  async function initMermaid() {
+    const diagrams = document.querySelectorAll("pre.mermaid");
+    if (!diagrams.length) return;
+    const mermaid = (await loadMermaid()) as {
+      initialize: (cfg: Record<string, unknown>) => void;
+      render: (id: string, definition: string) => Promise<{ svg: string }>;
+    };
+    let currentTheme: string = defaultConfig.theme;
+    if (autoTheme) {
+      const htmlTheme = document.documentElement.getAttribute("data-theme");
+      const bodyTheme = document.body.getAttribute("data-theme");
+      currentTheme =
+        themeMap[htmlTheme ?? ""] ??
+        themeMap[bodyTheme ?? ""] ??
+        defaultConfig.theme;
+    }
+    mermaid.initialize({ ...defaultConfig, theme: currentTheme });
+    for (const diagram of Array.from(diagrams)) {
+      if (diagram.hasAttribute("data-processed")) continue;
+      const definition = decodeHtmlEntities(diagram.textContent || "");
+      const id = "mermaid-" + Math.random().toString(36).slice(2, 11);
+      try {
+        const { svg } = await mermaid.render(id, definition);
+        diagram.innerHTML = svg;
+        diagram.setAttribute("data-processed", "true");
+      } catch (error: unknown) {
+        logError("Mermaid render error:", error);
+        const err = document.createElement("div");
+        err.style.cssText =
+          "color:red;padding:1rem;border:1px solid red;border-radius:0.5rem;";
+        const strong = document.createElement("strong");
+        strong.textContent = "Error rendering diagram:";
+        const msg = document.createElement("span");
+        msg.textContent =
+          " " + (error instanceof Error ? error.message : "Unknown error");
+        err.appendChild(strong);
+        err.appendChild(msg);
+        diagram.textContent = "";
+        diagram.appendChild(err);
+        diagram.setAttribute("data-processed", "true");
+      }
+    }
+  }
+
+  function runInitMermaid() {
+    if (document.querySelectorAll("pre.mermaid").length) initMermaid();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", runInitMermaid);
+  } else {
+    runInitMermaid();
+  }
+
+  document.addEventListener("astro:page-load", runInitMermaid);
+  document.addEventListener("astro:after-swap", runInitMermaid);
+
+  if (autoTheme) {
+    new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        if (m.type === "attributes" && m.attributeName === "data-theme") {
+          document
+            .querySelectorAll("pre.mermaid[data-processed]")
+            .forEach((d) => d.removeAttribute("data-processed"));
+          initMermaid();
+        }
+      }
+    }).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+  }
+</script>
+
+<style is:global>
+  pre.mermaid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 2rem 0;
+    padding: 1rem;
+    background: transparent;
+    border: none;
+    overflow: auto;
+    min-height: 200px;
+    position: relative;
+  }
+  pre.mermaid:not([data-processed]) {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+  [data-theme="dark"] pre.mermaid:not([data-processed]) {
+    background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+    background-size: 200% 100%;
+  }
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+  pre.mermaid[data-processed] {
+    animation: none;
+    background: transparent;
+    min-height: auto;
+  }
+  pre.mermaid svg {
+    max-width: 100%;
+    height: auto;
+  }
+</style>

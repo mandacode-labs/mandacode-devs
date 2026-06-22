@@ -14,6 +14,18 @@ function getDocument(): Document {
   return cachedDocument;
 }
 
+// ProseMirror's default rendering for `codeBlock` with a language
+// attribute produces `<pre class="language-"><code class="language-XYZ">`.
+// The mermaid client-side script (src/integrations/mermaid.ts) looks
+// for `pre.mermaid` directly, so we rewrite the markup for that case
+// into `<pre class="mermaid">RAW_CONTENT</pre>`.
+function normalizeMermaidBlocks(html: string): string {
+  return html.replace(
+    /<pre class="language-"><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g,
+    (_match, content) => `<pre class="mermaid">${content}</pre>`,
+  );
+}
+
 export function renderTiptapNode(node: JSONContent): string {
   const contentNode = Node.fromJSON(schema, node);
   const document = getDocument();
@@ -24,7 +36,7 @@ export function renderTiptapNode(node: JSONContent): string {
     { document },
     wrap,
   );
-  return wrap.innerHTML;
+  return normalizeMermaidBlocks(wrap.innerHTML);
 }
 
 export function renderTiptapJson(jsonString: string): string {
