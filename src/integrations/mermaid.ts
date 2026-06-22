@@ -57,14 +57,7 @@ function rehypeMermaid(): (tree: HastRoot) => void {
   };
 }
 
-export default function mermaidIntegration(
-  options: {
-    theme?: string;
-    autoTheme?: boolean;
-    mermaidConfig?: Record<string, unknown>;
-    enableLog?: boolean;
-  } = {},
-): AstroIntegration {
+export default function mermaidIntegration(): AstroIntegration {
   return {
     name: "mermaid",
     hooks: {

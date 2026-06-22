@@ -36,3 +36,44 @@ const d1Html = d1Content ? renderTiptapJson(d1Content) : null;
     )
   }
 </div>
+
+<style is:global>
+  /* Tiptap-rendered content has the right HTML structure
+   * (e.g. <code> for inline code, <mark> for highlight) but the
+   * editor's per-mark CSS is scoped to .tiptap.ProseMirror, so it
+   * doesn't reach here. Tailwind Typography's prose gives inline
+   * code only a slight font-size tweak, which is barely visible.
+   * Add the same per-mark visual styling the editor provides so the
+   * public view matches what authors see in the editor.
+   */
+  .prose code {
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    line-height: 1.4;
+    border-radius: 0.375rem;
+    padding: 0.1em 0.3em;
+    font-weight: 500;
+  }
+  /* Inside <pre> the <code> should not have its own background —
+   * the <pre> is the styled block. */
+  .prose pre code {
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    font-size: inherit;
+    font-weight: inherit;
+    color: inherit;
+  }
+  /* Tailwind Typography's prose class adds backticks around inline
+   * <code> via ::before/::after. The editor doesn't, and the
+   * background+border styling above is already enough to mark
+   * code inline — remove the backticks. */
+  .prose code::before,
+  .prose code::after {
+    content: none;
+  }
+</style>
