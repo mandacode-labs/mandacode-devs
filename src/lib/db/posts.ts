@@ -148,6 +148,54 @@ export async function getPostById(
   return getByIdWithTranslation(MAIN_CFG, TRANS_CFG, locale, id, mapPostRow);
 }
 
+export interface PostSearchResult {
+  id: string;
+  title: string;
+  original_locale: string;
+}
+
+export async function searchPostsByTitle(
+  query: string,
+  limit = 10,
+): Promise<PostSearchResult[]> {
+  const trimmed = query.trim();
+  if (!trimmed) return [];
+  const db = getDatabase();
+  const result = await db
+    .prepare(
+      `SELECT p.id, p.original_locale, orig.title AS original_title,
+              trans.title AS translation_title
+         FROM posts p
+         LEFT JOIN post_translations orig
+           ON orig.post_id = p.id AND orig.locale = p.original_locale
+         LEFT JOIN post_translations trans
+           ON trans.post_id = p.id
+              AND trans.locale = (
+                SELECT post_translations.locale
+                  FROM post_translations
+                 WHERE post_translations.post_id = p.id
+                 GROUP BY post_translations.locale
+                 ORDER BY COUNT(*) DESC, post_translations.locale ASC
+                 LIMIT 1
+              )
+        WHERE orig.title LIKE ? OR trans.title LIKE ?
+        ORDER BY p.updated_at DESC
+        LIMIT ?`,
+    )
+    .bind(`%${trimmed}%`, `%${trimmed}%`, limit)
+    .all<{
+      id: string;
+      original_locale: string;
+      original_title: string | null;
+      translation_title: string | null;
+    }>();
+  return (result.results ?? []).map((row) => ({
+    id: row.id,
+    original_locale: row.original_locale,
+    title: row.translation_title ?? row.original_title ?? "(untitled)",
+  }));
+}
+
 export async function getPostTranslationById(
   id: string,
   locale: string,

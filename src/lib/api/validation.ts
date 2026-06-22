@@ -73,6 +73,7 @@ export const createProjectSchema = z.object({
   url: z.string().url().nullable().optional(),
   source_url: z.string().url().nullable().optional(),
   blog_url: z.string().url().nullable().optional(),
+  blog_post_id: z.string().min(1).nullable().optional(),
   cover_image_url: urlOrPathSchema.nullable().optional(),
   tags: z.array(z.string()).default([]),
   target_locales: z.array(localeSchema).default([]),
@@ -94,6 +95,7 @@ export const updateProjectSchema = z.object({
   url: z.string().url().nullable().optional(),
   source_url: z.string().url().nullable().optional(),
   blog_url: z.string().url().nullable().optional(),
+  blog_post_id: z.string().min(1).nullable().optional(),
   tags: z.array(z.string()).optional(),
   target_locales: z.array(localeSchema).optional(),
 });

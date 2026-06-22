@@ -14,6 +14,9 @@ interface Props {
 
 const { project, lang } = Astro.props;
 const t = useTranslations(lang);
+const blogHref = project.blogPostId
+  ? `/${lang}/blog/${project.blogPostId}`
+  : project.blogUrl;
 ---
 
 <div class="flex flex-wrap items-center gap-3">
@@ -34,8 +37,8 @@ const t = useTranslations(lang);
     )
   }
   {
-    project.blogUrl && (
-      <Button href={project.blogUrl} variant="secondary">
+    blogHref && (
+      <Button href={blogHref} variant="secondary">
         <BookOpenIcon size={16} />
         <span>Blog</span>
       </Button>
