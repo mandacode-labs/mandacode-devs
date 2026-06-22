@@ -1,5 +1,6 @@
 import { getDatabase } from "@/lib/db/client";
 import { hashContent } from "@/lib/hash";
+import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
 import type { Post, PostTranslation, PublishStatus } from "@/lib/db/schema";
 
 export interface CreatePostInput {
@@ -336,6 +337,18 @@ export async function getPostLocaleMeta(id: string): Promise<PostLocaleMeta[]> {
     .bind(id)
     .all();
   return (result.results ?? []) as unknown as PostLocaleMeta[];
+}
+
+export async function getPostOriginalLocale(id: string): Promise<string> {
+  const db = getDatabase();
+  const row = await db
+    .prepare("SELECT original_locale FROM posts WHERE id = ?")
+    .bind(id)
+    .first();
+  return String(
+    (row as { original_locale?: string } | null)?.original_locale ??
+      DEFAULT_LANGUAGE,
+  );
 }
 
 export async function getPostOriginalHash(id: string): Promise<string | null> {

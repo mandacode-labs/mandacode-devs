@@ -1,5 +1,6 @@
 import { getDatabase } from "@/lib/db/client";
 import { hashContent } from "@/lib/hash";
+import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
 import type {
   Project,
   ProjectTranslation,
@@ -412,6 +413,18 @@ export async function getProjectLocaleMeta(
     .bind(id)
     .all();
   return (result.results ?? []) as unknown as ProjectLocaleMeta[];
+}
+
+export async function getProjectOriginalLocale(id: string): Promise<string> {
+  const db = getDatabase();
+  const row = await db
+    .prepare("SELECT original_locale FROM projects WHERE id = ?")
+    .bind(id)
+    .first();
+  return String(
+    (row as { original_locale?: string } | null)?.original_locale ??
+      DEFAULT_LANGUAGE,
+  );
 }
 
 export async function getProjectOriginalHash(

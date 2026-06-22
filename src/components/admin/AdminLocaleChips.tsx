@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { useTranslationStatus } from "@/hooks/use-translation-status";
 import type {
   TranslationContentType,
@@ -23,6 +23,7 @@ export interface LocaleInfo {
   title: string;
   publishStatus?: PublishStatus | null;
   isOutdated?: boolean;
+  canRegenerate?: boolean;
 }
 
 interface AdminLocaleChipsProps {
@@ -30,66 +31,204 @@ interface AdminLocaleChipsProps {
   contentId: string;
   originalLocale: string;
   locales: LocaleInfo[];
+  regenerating?: boolean;
+  onRegenerate?: (
+    contentId: string,
+    contentType: TranslationContentType,
+    targetLocale: string,
+  ) => void;
 }
 
-const baseChipClass =
-  "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium uppercase tracking-wide border";
-
 const toneClass: Record<ChipTone, string> = {
-  "no-translation": "bg-bg-secondary text-text-secondary border-border",
+  "no-translation":
+    "bg-bg-secondary text-text-secondary border-border hover:bg-bg-tertiary",
   translating: "bg-red-50 text-red-700 border-red-200",
-  "translated-draft": "bg-orange-50 text-orange-700 border-orange-200",
-  "translated-published": "bg-green-50 text-green-700 border-green-200",
-  archived: "bg-blue-50 text-blue-700 border-blue-200",
-  "original-draft": "bg-orange-50 text-orange-700 border-orange-200",
-  "original-published": "bg-green-50 text-green-700 border-green-200",
-  "original-archived": "bg-blue-50 text-blue-700 border-blue-200",
+  "translated-draft":
+    "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100",
+  "translated-published":
+    "bg-green-50 text-green-700 border-green-200 hover:bg-green-100",
+  archived: "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100",
+  "original-draft":
+    "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100",
+  "original-published":
+    "bg-green-50 text-green-700 border-green-200 hover:bg-green-100",
+  "original-archived":
+    "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100",
 };
 
 const outdatedRingClass =
   "ring-2 ring-orange-400 ring-offset-1 ring-offset-bg-primary";
 
-export function getChipTone(
+const chipBaseClass =
+  "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold uppercase tracking-wide border transition-colors cursor-pointer select-none";
+
+function sortLocales(
+  originalLocale: string,
+  locales: LocaleInfo[],
+): LocaleInfo[] {
+  const priority = (l: LocaleInfo): number => {
+    if (l.locale === originalLocale) return 0;
+    if (l.publishStatus) {
+      if (l.publishStatus === "published") return 1;
+      if (l.publishStatus === "draft") return 2;
+      return 3;
+    }
+    return 4;
+  };
+  return [...locales].sort((a, b) => {
+    const pa = priority(a);
+    const pb = priority(b);
+    if (pa !== pb) return pa - pb;
+    return a.locale.localeCompare(b.locale);
+  });
+}
+
+function getChipTone(
   locale: string,
   originalLocale: string,
   publishStatus: PublishStatus | null | undefined,
   jobStatus: TranslationJobStatus | null,
   hasTranslation: boolean,
 ): ChipTone {
-  if (jobStatus === "pending" || jobStatus === "running") {
+  if (
+    jobStatus === "pending" ||
+    jobStatus === "running" ||
+    jobStatus === "failed"
+  ) {
     return "translating";
   }
-  if (jobStatus === "failed") {
-    return "translating";
-  }
-
   const isOriginal = locale === originalLocale;
   if (isOriginal) {
     if (publishStatus === "archived") return "original-archived";
     if (publishStatus === "draft") return "original-draft";
     return "original-published";
   }
-
   if (!hasTranslation) return "no-translation";
   if (publishStatus === "archived") return "archived";
   if (publishStatus === "published") return "translated-published";
   return "translated-draft";
 }
 
-function getChipTooltip(
-  locale: string,
-  originalLocale: string,
-  tone: ChipTone,
-  jobStatus: TranslationJobStatus | null,
-  isOutdated: boolean,
-  labels: Record<string, string>,
-): string {
-  const base = labels[tone] ?? tone;
-  const parts: string[] = [base];
-  if (locale === originalLocale) parts.push("원본");
-  if (jobStatus) parts.push(`job: ${jobStatus}`);
-  if (isOutdated) parts.push(labels["admin.outdatedTranslation"] ?? "outdated");
-  return parts.join(" · ");
+interface ChipProps {
+  locale: string;
+  href: string;
+  title: string;
+  tone: ChipTone;
+  isOutdated: boolean;
+  isOriginal: boolean;
+  isTranslating: boolean;
+  jobStatus: TranslationJobStatus | null;
+  canRegenerate: boolean;
+  onRegenerate: (() => void) | null;
+}
+
+function Chip({
+  locale,
+  href,
+  title,
+  tone,
+  isOutdated,
+  isOriginal,
+  isTranslating,
+  jobStatus,
+  canRegenerate,
+  onRegenerate,
+}: ChipProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const hasTranslation = tone !== "no-translation";
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menuOpen]);
+
+  const tooltipParts: string[] = [];
+  if (isOriginal) tooltipParts.push("원본");
+  if (hasTranslation) tooltipParts.push("번역됨");
+  else tooltipParts.push("번역 없음");
+  if (jobStatus) tooltipParts.push(`작업: ${jobStatus}`);
+  if (isOutdated) tooltipParts.push("원본 변경됨");
+  const tooltip = tooltipParts.join(" · ");
+
+  const className = `${chipBaseClass} ${toneClass[tone]} ${
+    isOutdated ? outdatedRingClass : ""
+  } ${!hasTranslation && !isTranslating ? "opacity-50" : ""}`;
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (canRegenerate && onRegenerate) {
+      e.preventDefault();
+      setMenuOpen((v) => !v);
+    }
+  };
+
+  const handleRegenerate = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setMenuOpen(false);
+    onRegenerate?.();
+  };
+
+  if (canRegenerate && onRegenerate && hasTranslation) {
+    return (
+      <div className="relative inline-flex" ref={menuRef}>
+        <a
+          href={href}
+          className={className}
+          title={tooltip}
+          onClick={handleClick}
+        >
+          {locale}
+        </a>
+        {menuOpen && (
+          <div className="absolute top-full left-0 mt-1 z-50 min-w-[160px] bg-bg-primary border border-border rounded-lg shadow-lg py-1">
+            <a
+              href={href}
+              className="flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-bg-secondary"
+              onClick={() => setMenuOpen(false)}
+            >
+              <span className="w-3 h-3 inline-block">
+                {isOriginal ? "✎" : "✎"}
+              </span>
+              {isOriginal ? "원본 편집" : "번역 편집"}
+            </a>
+            {!isOriginal && (
+              <button
+                type="button"
+                onClick={handleRegenerate}
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-bg-secondary text-left"
+              >
+                <span className="w-3 h-3 inline-block">↻</span>
+                재번역
+              </button>
+            )}
+            {isOutdated && !isOriginal && (
+              <div className="px-3 py-1.5 text-[10px] text-orange-600 border-t border-border mt-1 pt-1.5">
+                ⚠ 원본이 변경됨
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <a
+      href={href}
+      className={className}
+      title={tooltip}
+      onClick={canRegenerate && onRegenerate ? handleClick : undefined}
+    >
+      {locale}
+    </a>
+  );
 }
 
 export function AdminLocaleChips({
@@ -97,6 +236,8 @@ export function AdminLocaleChips({
   contentId,
   originalLocale,
   locales,
+  regenerating = false,
+  onRegenerate,
 }: AdminLocaleChipsProps) {
   const ids = useMemo(() => [contentId], [contentId]);
   const { getStatus } = useTranslationStatus({
@@ -105,13 +246,26 @@ export function AdminLocaleChips({
     interval: 5000,
   });
 
+  const sorted = useMemo(
+    () => sortLocales(originalLocale, locales),
+    [originalLocale, locales],
+  );
+
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      {locales.map(
-        ({ locale, href, active, title, publishStatus, isOutdated }) => {
+      {sorted.map(
+        ({
+          locale,
+          href,
+          title,
+          publishStatus,
+          isOutdated,
+          canRegenerate = true,
+        }) => {
           const status = getStatus(contentId, locale);
           const hasTranslation =
             publishStatus !== null && publishStatus !== undefined;
+          const isOriginal = locale === originalLocale;
           const tone = getChipTone(
             locale,
             originalLocale,
@@ -119,53 +273,26 @@ export function AdminLocaleChips({
             status,
             hasTranslation,
           );
-          const clickable = active || hasTranslation || !!status;
-          const labels: Record<string, string> = {
-            "no-translation": "번역 없음",
-            translating: "번역 중",
-            "translated-draft": "번역됨 (게시 안 됨)",
-            "translated-published": "번역됨 (게시됨)",
-            archived: "보관됨",
-            "original-draft": "원본 (게시 안 됨)",
-            "original-published": "원본 (게시됨)",
-            "original-archived": "원본 (보관됨)",
-            "admin.outdatedTranslation": "원본 변경됨",
-          };
-          const tooltip = getChipTooltip(
-            locale,
-            originalLocale,
-            tone,
-            status,
-            !!isOutdated,
-            labels,
-          );
-          const chipClass = `${baseChipClass} ${toneClass[tone]} ${
-            isOutdated ? outdatedRingClass : ""
-          } ${!clickable ? "opacity-60" : ""}`;
-
-          const chip = (
-            <span className={chipClass} title={tooltip}>
-              {locale}
-            </span>
-          );
-
-          if (!clickable) {
-            return (
-              <span key={locale} className="inline-flex items-center">
-                {chip}
-              </span>
-            );
-          }
-
+          const isTranslating =
+            status === "pending" || status === "running" || regenerating;
           return (
-            <a
+            <Chip
               key={locale}
+              locale={locale}
               href={href}
-              className="inline-flex items-center"
-              title={tooltip}
-            >
-              {chip}
-            </a>
+              title={title}
+              tone={tone}
+              isOutdated={!!isOutdated}
+              isOriginal={isOriginal}
+              isTranslating={isTranslating}
+              jobStatus={status}
+              canRegenerate={canRegenerate}
+              onRegenerate={
+                onRegenerate
+                  ? () => onRegenerate(contentId, contentType, locale)
+                  : null
+              }
+            />
           );
         },
       )}

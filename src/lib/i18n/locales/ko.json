@@ -139,5 +139,11 @@
   "admin.localeTranslatedPublished": "번역됨 (게시됨)",
   "admin.localeArchived": "보관됨",
   "admin.outdatedTranslation": "원본 변경됨",
-  "admin.outdatedTranslationHint": "원본이 번역 후 업데이트되었습니다"
+  "admin.outdatedTranslationHint": "원본이 번역 후 업데이트되었습니다",
+  "admin.statusColumn": "상태",
+  "admin.regenerateTranslation": "재번역",
+  "admin.regenerateTranslationConfirm": "이 언어의 번역을 다시 생성하시겠어요?",
+  "admin.regenerateTranslationHint": "기존 번역은 새 번역으로 덮어씌워집니다.",
+  "admin.translatePending": "번역 대기",
+  "admin.chipActions": "액션"
 }

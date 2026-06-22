@@ -139,5 +139,11 @@
   "admin.localeTranslatedPublished": "已翻译 (已发布)",
   "admin.localeArchived": "已归档",
   "admin.outdatedTranslation": "原文已更新",
-  "admin.outdatedTranslationHint": "原文在此翻译后已更新"
+  "admin.outdatedTranslationHint": "原文在此翻译后已更新",
+  "admin.statusColumn": "状态",
+  "admin.regenerateTranslation": "重新翻译",
+  "admin.regenerateTranslationConfirm": "是否重新生成此语言的翻译?",
+  "admin.regenerateTranslationHint": "现有翻译将被覆盖。",
+  "admin.translatePending": "待翻译",
+  "admin.chipActions": "操作"
 }

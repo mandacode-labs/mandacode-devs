@@ -58,6 +58,13 @@ interface AdminListProps {
   deleteModalTitle: string;
   translations: AdminTranslations;
   entityType: "posts" | "projects" | "developers";
+  statusLabel?: string;
+  regenerateEndpoint?: string;
+  regenerateLabels?: {
+    success: string;
+    failed: string;
+  };
+  onAfterRegenerate?: () => void;
   reorderable?: boolean;
   reorderLabels?: {
     start: string;
@@ -81,6 +88,13 @@ export function AdminList({
   deleteModalTitle,
   translations,
   entityType,
+  statusLabel = "상태",
+  regenerateEndpoint = "/api/admin/translations/regenerate",
+  regenerateLabels = {
+    success: "재번역 시작",
+    failed: "재번역 실패",
+  },
+  onAfterRegenerate,
   reorderable = false,
   reorderLabels = {
     start: "Reorder",
@@ -103,6 +117,7 @@ export function AdminList({
     message: string;
   } | null>(null);
   const [deleteItem, setDeleteItem] = useState<AdminListItem | null>(null);
+  const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -180,6 +195,49 @@ export function AdminList({
       }
     },
     [deleteItem, entityType],
+  );
+
+  const handleRegenerate = useCallback(
+    async (
+      contentId: string,
+      contentTypeArg: TranslationContentType,
+      targetLocale: string,
+    ) => {
+      try {
+        setRegeneratingId(contentId);
+        const params = new URLSearchParams();
+        params.set("content_type", contentTypeArg);
+        params.set("content_id", contentId);
+        params.set("target_locale", targetLocale);
+
+        const response = await fetch(
+          `${regenerateEndpoint}?${params.toString()}`,
+          { method: "POST" },
+        );
+
+        if (!response.ok) {
+          const data = (await response.json().catch(() => ({}))) as {
+            error?: string;
+          };
+          throw new Error(data.error || "Regenerate failed");
+        }
+
+        setToast({ type: "success", message: regenerateLabels.success });
+        setTimeout(() => setToast(null), 3000);
+        onAfterRegenerate?.();
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : regenerateLabels.failed;
+        setToast({
+          type: "error",
+          message: `${regenerateLabels.failed}: ${message}`,
+        });
+        setTimeout(() => setToast(null), 5000);
+      } finally {
+        setRegeneratingId(null);
+      }
+    },
+    [regenerateEndpoint, regenerateLabels, onAfterRegenerate],
   );
 
   if (items.length === 0) {
@@ -267,7 +325,7 @@ export function AdminList({
                         Title
                       </th>
                       <th className="px-4 py-3 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
-                        Languages
+                        {statusLabel}
                       </th>
                       {columns.map((column) => (
                         <th
@@ -294,6 +352,8 @@ export function AdminList({
                         index={index}
                         columns={columns}
                         contentType={contentType}
+                        regeneratingId={regeneratingId}
+                        onRegenerate={handleRegenerate}
                         translations={translations}
                       />
                     ))}
@@ -312,7 +372,7 @@ export function AdminList({
                     Title
                   </th>
                   <th className="px-4 py-3 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
-                    Languages
+                    {statusLabel}
                   </th>
                   {columns.map((column) => (
                     <th
@@ -360,6 +420,8 @@ export function AdminList({
                         contentId={item.id}
                         originalLocale={item.originalLocale}
                         locales={item.locales}
+                        regenerating={regeneratingId === item.id}
+                        onRegenerate={handleRegenerate}
                       />
                     </td>
                     {columns.map((column) => (
@@ -471,12 +533,20 @@ function SortableRow({
   columns,
   contentType,
   translations,
+  regeneratingId,
+  onRegenerate,
 }: {
   item: AdminListItem;
   index: number;
   columns: AdminListColumn[];
   contentType: TranslationContentType;
   translations: AdminTranslations;
+  regeneratingId: string | null;
+  onRegenerate: (
+    contentId: string,
+    contentType: TranslationContentType,
+    targetLocale: string,
+  ) => void;
 }) {
   const {
     attributes,
@@ -548,6 +618,8 @@ function SortableRow({
           contentId={item.id}
           originalLocale={item.originalLocale}
           locales={item.locales}
+          regenerating={regeneratingId === item.id}
+          onRegenerate={onRegenerate}
         />
       </td>
       {columns.map((column) => (
