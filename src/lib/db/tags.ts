@@ -137,19 +137,3 @@ export async function searchTags(query: string, limit = 20): Promise<string[]> {
 
   return (result.results ?? []).map((row) => (row as { name: string }).name);
 }
-
-export async function cleanupUnusedTags(): Promise<void> {
-  const db = getDatabase();
-  await db
-    .prepare(
-      `
-      DELETE FROM tags
-      WHERE id NOT IN (
-        SELECT tag_id FROM post_tags
-        UNION
-        SELECT tag_id FROM project_tags
-      )
-      `,
-    )
-    .run();
-}

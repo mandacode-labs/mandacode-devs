@@ -16,6 +16,7 @@ import {
   SUPPORTED_LANGUAGES,
   MAIN_DEVELOPER_ID,
 } from "@/lib/config/languages";
+import { formatShortDate } from "@/lib/utils/date";
 import type { AdminListItem } from "@/components/admin/AdminList";
 
 requireAuth(Astro);
@@ -24,15 +25,6 @@ const developers = await getDevelopers(DEFAULT_LANGUAGE, {
   includeUnpublished: true,
 });
 const t = useTranslations(DEFAULT_LANGUAGE);
-
-function formatDate(iso: string | null): string {
-  if (!iso) return "-";
-  return new Date(iso).toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
 
 const itemsWithLocales = await Promise.all(
   developers.map(async (developer) => {
@@ -97,7 +89,7 @@ const items: AdminListItem[] = itemsWithLocales.map(
     ],
     extras: {
       role: developer.role,
-      updated: formatDate(developer.updated_at),
+      updated: formatShortDate(developer.updated_at),
     },
   }),
 );

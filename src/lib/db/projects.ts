@@ -128,7 +128,10 @@ export function rowToProjectWithTranslation(
   };
 }
 
-function buildListQuery(options: GetProjectsOptions = {}): {
+function buildListQuery(
+  locale: string,
+  options: GetProjectsOptions = {},
+): {
   query: string;
   params: (string | number | PublishStatus)[];
 } {
@@ -168,7 +171,7 @@ function buildListQuery(options: GetProjectsOptions = {}): {
     LEFT JOIN project_translations trans
       ON p.id = trans.project_id AND trans.locale = ?
   `;
-  params.push("placeholder-locale");
+  params.push(locale);
 
   if (!options.includeUnpublished) {
     query += " WHERE orig.publish_status = ?";
@@ -191,8 +194,7 @@ export async function getProjects(
   options: GetProjectsOptions = {},
 ): Promise<ProjectWithTranslation[]> {
   const db = getDatabase();
-  const { query, params } = buildListQuery(options);
-  params[0] = locale;
+  const { query, params } = buildListQuery(locale, options);
 
   const result = await db
     .prepare(query)

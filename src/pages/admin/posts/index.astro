@@ -12,21 +12,13 @@ import {
 } from "@/lib/db/posts";
 import { useTranslations } from "@/lib/i18n/utils";
 import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@/lib/config/languages";
+import { formatShortDate } from "@/lib/utils/date";
 import type { AdminListItem } from "@/components/admin/AdminList";
 
 requireAuth(Astro);
 
 const posts = await getPosts(DEFAULT_LANGUAGE, { includeUnpublished: true });
 const t = useTranslations(DEFAULT_LANGUAGE);
-
-function formatDate(iso: string | null): string {
-  if (!iso) return "-";
-  return new Date(iso).toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
 
 const itemsWithLocales = await Promise.all(
   posts.map(async (post) => {
@@ -78,8 +70,8 @@ const items: AdminListItem[] = itemsWithLocales.map(
       })),
     ],
     extras: {
-      date: formatDate(post.published_at),
-      updated: formatDate(post.updated_at),
+      date: formatShortDate(post.published_at),
+      updated: formatShortDate(post.updated_at),
     },
   }),
 );

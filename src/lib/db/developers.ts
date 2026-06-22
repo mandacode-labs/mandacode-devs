@@ -114,7 +114,10 @@ export function rowToDeveloperWithTranslation(
   };
 }
 
-function buildListQuery(options: GetDevelopersOptions = {}): {
+function buildListQuery(
+  locale: string,
+  options: GetDevelopersOptions = {},
+): {
   query: string;
   params: string[];
 } {
@@ -152,7 +155,7 @@ function buildListQuery(options: GetDevelopersOptions = {}): {
     LEFT JOIN developer_translations trans
       ON d.id = trans.developer_id AND trans.locale = ?
   `;
-  params.push("placeholder-locale");
+  params.push(locale);
 
   if (!options.includeUnpublished) {
     query += " WHERE orig.publish_status = 'published'";
@@ -172,8 +175,7 @@ export async function getDevelopers(
   options: GetDevelopersOptions = {},
 ): Promise<DeveloperWithTranslation[]> {
   const db = getDatabase();
-  const { query, params } = buildListQuery(options);
-  params[0] = locale;
+  const { query, params } = buildListQuery(locale, options);
 
   const result = await db
     .prepare(query)

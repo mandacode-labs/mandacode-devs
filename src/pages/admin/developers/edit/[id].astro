@@ -9,6 +9,7 @@ import {
 } from "@/lib/db/developers";
 import { useTranslations } from "@/lib/i18n/utils";
 import { ui } from "@/lib/i18n";
+import { tryParseJson } from "@/lib/utils/json";
 import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
 
 requireAuth(Astro);
@@ -32,15 +33,6 @@ const [translation, existingLocales] = await Promise.all([
   getDeveloperLocales(id),
 ]);
 
-function safeParseJson<T>(value: string | null): T | null {
-  if (!value) return null;
-  try {
-    return JSON.parse(value) as T;
-  } catch {
-    return null;
-  }
-}
-
 const data = translation ?? developer;
 
 const initialData = {
@@ -57,11 +49,11 @@ const initialData = {
   github_url: developer.github_url,
   email: developer.email,
   website_url: developer.website_url,
-  tech_stack: safeParseJson<string[]>(developer.tech_stack),
-  certifications: safeParseJson<Record<string, unknown>[]>(
+  tech_stack: tryParseJson<string[]>(developer.tech_stack),
+  certifications: tryParseJson<Record<string, unknown>[]>(
     developer.certifications,
   ),
-  education: safeParseJson<Record<string, unknown>[]>(developer.education),
+  education: tryParseJson<Record<string, unknown>[]>(developer.education),
 };
 ---
 
