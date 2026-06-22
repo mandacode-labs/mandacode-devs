@@ -132,5 +132,18 @@
   "admin.fallbackPreview": "{locale}の翻訳がないため、原稿{originalLocale}の内容を表示しています。",
   "admin.view": "表示",
   "admin.certifications": "資格",
-  "admin.education": "学歴"
+  "admin.education": "学歴",
+  "admin.localeNoTranslation": "翻訳なし",
+  "admin.localeTranslating": "翻訳中",
+  "admin.localeTranslatedDraft": "翻訳済み (未公開)",
+  "admin.localeTranslatedPublished": "翻訳済み (公開済み)",
+  "admin.localeArchived": "アーカイブ",
+  "admin.outdatedTranslation": "原文変更済み",
+  "admin.outdatedTranslationHint": "翻訳後に原文が更新されました",
+  "admin.statusColumn": "ステータス",
+  "admin.regenerateTranslation": "再翻訳",
+  "admin.regenerateTranslationConfirm": "この言語の翻訳を再生成しますか?",
+  "admin.regenerateTranslationHint": "既存の翻訳は上書きされます。",
+  "admin.translatePending": "翻訳待ち",
+  "admin.chipActions": "アクション"
 }

@@ -5,6 +5,7 @@ import {
 } from "@/lib/api/validation";
 import { ApiError } from "@/lib/api/response";
 import type { AdminCrudAdapter } from "@/lib/api/admin-crud";
+import { hashContent } from "@/lib/hash";
 import type { z } from "zod";
 
 type CreateBody = z.infer<typeof createDeveloperSchema>;
@@ -91,6 +92,20 @@ export const developerAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
         locale,
         translationUpdate,
       );
+
+      const developerOriginalLocale =
+        await developersRepo.getDeveloperOriginalLocale(id);
+      if (
+        locale === developerOriginalLocale &&
+        body.tiptap_json !== undefined
+      ) {
+        const newSourceHash = await hashContent(body.tiptap_json);
+        await developersRepo.updateDeveloperTranslationsCascade(
+          id,
+          locale,
+          newSourceHash,
+        );
+      }
     } else {
       if (body.publish_status === "published") {
         translationUpdate.published_at = new Date().toISOString();

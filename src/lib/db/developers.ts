@@ -1,4 +1,6 @@
 import { getDatabase } from "@/lib/db/client";
+import { hashContent } from "@/lib/hash";
+import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
 import type {
   Developer,
   DeveloperTranslation,
@@ -28,6 +30,7 @@ export interface CreateDeveloperTranslationInput {
   avatar_url: string | null;
   publish_status: PublishStatus;
   published_at: string | null;
+  source_hash?: string | null;
 }
 
 export interface UpdateDeveloperTranslationInput {
@@ -38,6 +41,7 @@ export interface UpdateDeveloperTranslationInput {
   avatar_url?: string | null;
   publish_status?: PublishStatus;
   published_at?: string | null;
+  source_hash?: string | null;
 }
 
 export interface UpdateDeveloperInput {
@@ -276,13 +280,15 @@ export async function createDeveloperTranslation(
   input: CreateDeveloperTranslationInput,
 ): Promise<void> {
   const db = getDatabase();
+  const sourceHash =
+    input.source_hash ?? (await hashContent(input.tiptap_json));
 
   await db
     .prepare(
       `INSERT INTO developer_translations (
         id, developer_id, locale, name, role, bio, tiptap_json,
-        avatar_url, publish_status, published_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        avatar_url, publish_status, published_at, source_hash
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       input.id,
@@ -295,6 +301,7 @@ export async function createDeveloperTranslation(
       input.avatar_url,
       input.publish_status,
       input.published_at,
+      sourceHash,
     )
     .run();
 }
@@ -339,6 +346,11 @@ export async function updateDeveloperTranslation(
     values.push(value);
   }
 
+  if (input.tiptap_json !== undefined && input.source_hash === undefined) {
+    fields.push("source_hash = ?");
+    values.push(await hashContent(input.tiptap_json));
+  }
+
   if (fields.length === 0) return;
 
   fields.push("updated_at = CURRENT_TIMESTAMP");
@@ -360,6 +372,76 @@ export async function getDeveloperLocales(id: string): Promise<string[]> {
   return (result.results ?? []).map(
     (row) => (row as { locale: string }).locale,
   );
+}
+
+export async function updateDeveloperTranslationsCascade(
+  id: string,
+  originalLocale: string,
+  newSourceHash: string,
+): Promise<void> {
+  const db = getDatabase();
+  await db
+    .prepare(
+      `UPDATE developer_translations
+       SET source_hash = ?, updated_at = CURRENT_TIMESTAMP
+       WHERE developer_id = ? AND locale != ?`,
+    )
+    .bind(newSourceHash, id, originalLocale)
+    .run();
+}
+
+export interface DeveloperLocaleMeta {
+  locale: string;
+  publish_status: PublishStatus;
+  source_hash: string | null;
+  updated_at: string;
+}
+
+export async function getDeveloperLocaleMeta(
+  id: string,
+): Promise<DeveloperLocaleMeta[]> {
+  const db = getDatabase();
+  const result = await db
+    .prepare(
+      "SELECT locale, publish_status, source_hash, updated_at FROM developer_translations WHERE developer_id = ?",
+    )
+    .bind(id)
+    .all();
+  return (result.results ?? []) as unknown as DeveloperLocaleMeta[];
+}
+
+export async function getDeveloperOriginalLocale(id: string): Promise<string> {
+  const db = getDatabase();
+  const row = await db
+    .prepare("SELECT original_locale FROM developers WHERE id = ?")
+    .bind(id)
+    .first();
+  return String(
+    (row as { original_locale?: string } | null)?.original_locale ??
+      DEFAULT_LANGUAGE,
+  );
+}
+
+export async function getDeveloperOriginalHash(
+  id: string,
+): Promise<string | null> {
+  const db = getDatabase();
+  const developer = await db
+    .prepare("SELECT original_locale FROM developers WHERE id = ?")
+    .bind(id)
+    .first();
+  if (!developer) return null;
+
+  const row = await db
+    .prepare(
+      "SELECT source_hash FROM developer_translations WHERE developer_id = ? AND locale = ?",
+    )
+    .bind(id, (developer as { original_locale: string }).original_locale)
+    .first();
+  if (!row) return null;
+
+  const hash = (row as { source_hash: string | null }).source_hash;
+  return hash ?? null;
 }
 
 export async function getDeveloperLocalesWithContent(id: string): Promise<

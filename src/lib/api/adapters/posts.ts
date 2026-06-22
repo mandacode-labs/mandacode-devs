@@ -4,6 +4,7 @@ import * as tagsRepo from "@/lib/db/tags";
 import { createPostSchema, updatePostSchema } from "@/lib/api/validation";
 import { ApiError } from "@/lib/api/response";
 import type { AdminCrudAdapter } from "@/lib/api/admin-crud";
+import { hashContent } from "@/lib/hash";
 import type { z } from "zod";
 
 type CreateBody = z.infer<typeof createPostSchema>;
@@ -68,6 +69,12 @@ export const postAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
     }
 
     await postsRepo.updatePostTranslation(id, locale, updateData);
+
+    const postOriginalLocale = await postsRepo.getPostOriginalLocale(id);
+    if (locale === postOriginalLocale && body.tiptap_json !== undefined) {
+      const newSourceHash = await hashContent(body.tiptap_json);
+      await postsRepo.updatePostTranslationsCascade(id, locale, newSourceHash);
+    }
 
     if (body.original_locale !== undefined) {
       await postsRepo.updatePost(id, { original_locale: body.original_locale });

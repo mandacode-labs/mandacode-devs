@@ -132,5 +132,18 @@
   "admin.fallbackPreview": "Showing original {originalLocale} content because {locale} translation does not exist.",
   "admin.view": "View",
   "admin.certifications": "Certifications",
-  "admin.education": "Education"
+  "admin.education": "Education",
+  "admin.localeNoTranslation": "No translation",
+  "admin.localeTranslating": "Translating",
+  "admin.localeTranslatedDraft": "Translated (unpublished)",
+  "admin.localeTranslatedPublished": "Translated (published)",
+  "admin.localeArchived": "Archived",
+  "admin.outdatedTranslation": "Outdated",
+  "admin.outdatedTranslationHint": "Original has been updated since this translation",
+  "admin.statusColumn": "Status",
+  "admin.regenerateTranslation": "Re-translate",
+  "admin.regenerateTranslationConfirm": "Re-generate the translation for this language?",
+  "admin.regenerateTranslationHint": "The existing translation will be overwritten.",
+  "admin.translatePending": "Translation pending",
+  "admin.chipActions": "Actions"
 }

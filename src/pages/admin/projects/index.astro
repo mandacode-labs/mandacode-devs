@@ -4,7 +4,12 @@ import AdminSidebar from "@/components/admin/AdminSidebar.astro";
 import AdminHeader from "@/components/admin/AdminHeader.astro";
 import { AdminList } from "@/components/admin/AdminList";
 import { requireAuth } from "@/lib/auth";
-import { getProjects, getProjectLocales } from "@/lib/db/projects";
+import {
+  getProjects,
+  getProjectLocales,
+  getProjectLocaleMeta,
+  getProjectOriginalHash,
+} from "@/lib/db/projects";
 import { useTranslations } from "@/lib/i18n/utils";
 import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@/lib/config/languages";
 import type { AdminListItem } from "@/components/admin/AdminList";
@@ -34,36 +39,57 @@ function formatProjectPeriod(start: string | null, end: string | null): string {
 
 const itemsWithLocales = await Promise.all(
   projects.map(async (project) => {
-    const existingLocales = await getProjectLocales(project.id);
+    const [existingLocales, localeMeta, originalHash] = await Promise.all([
+      getProjectLocales(project.id),
+      getProjectLocaleMeta(project.id),
+      getProjectOriginalHash(project.id),
+    ]);
     const missingLocales = SUPPORTED_LANGUAGES.filter(
       (lang) => !existingLocales.includes(lang),
     );
-    return { project, existingLocales, missingLocales };
+    return {
+      project,
+      existingLocales,
+      missingLocales,
+      localeMeta,
+      originalHash,
+    };
   }),
 );
 
 const items: AdminListItem[] = itemsWithLocales.map(
-  ({ project, existingLocales, missingLocales }) => ({
+  ({ project, existingLocales, missingLocales, localeMeta, originalHash }) => ({
     id: project.id,
     title: project.title,
     href: `/admin/projects/edit/${project.id}?locale=${DEFAULT_LANGUAGE}`,
     viewHref: `/admin/projects/view/${project.id}?locale=${DEFAULT_LANGUAGE}`,
     meta: `/${project.id}`,
-    status: project.publish_status,
     originalLocale: project.original_locale,
     existingLocales,
     locales: [
-      ...existingLocales.map((locale) => ({
-        locale,
-        href: `/admin/projects/edit/${project.id}?locale=${locale}`,
-        active: true,
-        title: `Edit ${locale}`,
-      })),
+      ...existingLocales.map((locale) => {
+        const meta = localeMeta.find((m) => m.locale === locale);
+        const isOutdated =
+          originalHash !== null &&
+          meta !== undefined &&
+          meta.source_hash !== null &&
+          meta.source_hash !== originalHash;
+        return {
+          locale,
+          href: `/admin/projects/edit/${project.id}?locale=${locale}`,
+          active: true,
+          title: `Edit ${locale}`,
+          publishStatus: meta?.publish_status ?? null,
+          isOutdated,
+        };
+      }),
       ...missingLocales.map((locale) => ({
         locale,
         href: `/admin/projects/edit/${project.id}?locale=${locale}`,
         active: false,
         title: `Create ${locale}`,
+        publishStatus: null,
+        isOutdated: false,
       })),
     ],
     extras: {
@@ -125,6 +151,7 @@ const translations: Record<string, string> = {};
           items={items}
           contentType="project"
           entityType="projects"
+          statusLabel={t("admin.statusColumn")}
           reorderable={true}
           reorderLabels={{
             start: t("admin.reorder"),
@@ -138,7 +165,6 @@ const translations: Record<string, string> = {};
           }}
           reorderEndpoint="/api/admin/projects/reorder"
           columns={[
-            { key: "status", label: t("admin.status") },
             { key: "order", label: t("admin.order"), width: "w-24" },
             { key: "period", label: t("admin.duration") },
             { key: "updated", label: t("admin.updated") },
