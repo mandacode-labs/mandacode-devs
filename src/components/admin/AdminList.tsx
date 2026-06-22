@@ -17,7 +17,6 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { AdminLocaleChips } from "./AdminLocaleChips";
-import { StatusBadge } from "./StatusBadge";
 import DeleteModal from "./DeleteModal";
 import type { TranslationContentType } from "@/lib/db/schema";
 import type { AdminTranslations } from "./use-admin-translations";
@@ -34,6 +33,8 @@ export interface AdminListLocaleInfo {
   href: string;
   active: boolean;
   title: string;
+  publishStatus?: "draft" | "published" | "archived" | null;
+  isOutdated?: boolean;
 }
 
 export interface AdminListItem {
@@ -42,7 +43,6 @@ export interface AdminListItem {
   href: string;
   viewHref?: string;
   meta?: string;
-  status?: "draft" | "published" | "archived";
   originalLocale: string;
   existingLocales: string[];
   locales: AdminListLocaleInfo[];
@@ -359,7 +359,6 @@ export function AdminList({
                         contentType={contentType}
                         contentId={item.id}
                         originalLocale={item.originalLocale}
-                        existingLocales={item.existingLocales}
                         locales={item.locales}
                       />
                     </td>
@@ -374,13 +373,9 @@ export function AdminList({
                               : "text-left"
                         }`}
                       >
-                        {column.key === "status" && item.status ? (
-                          <StatusBadge status={item.status} />
-                        ) : (
-                          <span className="text-text-secondary">
-                            {item.extras?.[column.key] ?? "\u00A0"}
-                          </span>
-                        )}
+                        <span className="text-text-secondary">
+                          {item.extras?.[column.key] ?? "\u00A0"}
+                        </span>
                       </td>
                     ))}
                     <td className="px-4 py-4 text-right">
@@ -552,7 +547,6 @@ function SortableRow({
           contentType={contentType}
           contentId={item.id}
           originalLocale={item.originalLocale}
-          existingLocales={item.existingLocales}
           locales={item.locales}
         />
       </td>
@@ -567,13 +561,9 @@ function SortableRow({
                 : "text-left"
           }`}
         >
-          {column.key === "status" && item.status ? (
-            <StatusBadge status={item.status} />
-          ) : (
-            <span className="text-text-secondary">
-              {item.extras?.[column.key] ?? "\u00A0"}
-            </span>
-          )}
+          <span className="text-text-secondary">
+            {item.extras?.[column.key] ?? "\u00A0"}
+          </span>
         </td>
       ))}
       <td className="px-4 py-4 text-right">

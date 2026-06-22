@@ -4,7 +4,12 @@ import AdminSidebar from "@/components/admin/AdminSidebar.astro";
 import AdminHeader from "@/components/admin/AdminHeader.astro";
 import { AdminList } from "@/components/admin/AdminList";
 import { requireAuth } from "@/lib/auth";
-import { getPosts, getPostLocales } from "@/lib/db/posts";
+import {
+  getPosts,
+  getPostLocales,
+  getPostLocaleMeta,
+  getPostOriginalHash,
+} from "@/lib/db/posts";
 import { useTranslations } from "@/lib/i18n/utils";
 import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@/lib/config/languages";
 import type { AdminListItem } from "@/components/admin/AdminList";
@@ -25,36 +30,51 @@ function formatDate(iso: string | null): string {
 
 const itemsWithLocales = await Promise.all(
   posts.map(async (post) => {
-    const existingLocales = await getPostLocales(post.id);
+    const [existingLocales, localeMeta, originalHash] = await Promise.all([
+      getPostLocales(post.id),
+      getPostLocaleMeta(post.id),
+      getPostOriginalHash(post.id),
+    ]);
     const missingLocales = SUPPORTED_LANGUAGES.filter(
       (lang) => !existingLocales.includes(lang),
     );
-    return { post, existingLocales, missingLocales };
+    return { post, existingLocales, missingLocales, localeMeta, originalHash };
   }),
 );
 
 const items: AdminListItem[] = itemsWithLocales.map(
-  ({ post, existingLocales, missingLocales }) => ({
+  ({ post, existingLocales, missingLocales, localeMeta, originalHash }) => ({
     id: post.id,
     title: post.title,
     href: `/admin/posts/edit/${post.id}?locale=${DEFAULT_LANGUAGE}`,
     viewHref: `/admin/posts/view/${post.id}?locale=${DEFAULT_LANGUAGE}`,
     meta: `/${post.id}`,
-    status: post.publish_status,
     originalLocale: post.original_locale,
     existingLocales,
     locales: [
-      ...existingLocales.map((locale) => ({
-        locale,
-        href: `/admin/posts/edit/${post.id}?locale=${locale}`,
-        active: true,
-        title: `Edit ${locale}`,
-      })),
+      ...existingLocales.map((locale) => {
+        const meta = localeMeta.find((m) => m.locale === locale);
+        const isOutdated =
+          originalHash !== null &&
+          meta !== undefined &&
+          meta.source_hash !== null &&
+          meta.source_hash !== originalHash;
+        return {
+          locale,
+          href: `/admin/posts/edit/${post.id}?locale=${locale}`,
+          active: true,
+          title: `Edit ${locale}`,
+          publishStatus: meta?.publish_status ?? null,
+          isOutdated,
+        };
+      }),
       ...missingLocales.map((locale) => ({
         locale,
         href: `/admin/posts/edit/${post.id}?locale=${locale}`,
         active: false,
         title: `Create ${locale}`,
+        publishStatus: null,
+        isOutdated: false,
       })),
     ],
     extras: {
@@ -116,7 +136,6 @@ const translations: Record<string, string> = {};
           contentType="post"
           entityType="posts"
           columns={[
-            { key: "status", label: t("admin.status") },
             { key: "date", label: t("admin.publishDate") },
             { key: "updated", label: t("admin.updated") },
           ]}

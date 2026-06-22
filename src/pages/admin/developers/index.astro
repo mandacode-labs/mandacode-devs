@@ -4,7 +4,12 @@ import AdminSidebar from "@/components/admin/AdminSidebar.astro";
 import AdminHeader from "@/components/admin/AdminHeader.astro";
 import { AdminList } from "@/components/admin/AdminList";
 import { requireAuth } from "@/lib/auth";
-import { getDevelopers, getDeveloperLocales } from "@/lib/db/developers";
+import {
+  getDevelopers,
+  getDeveloperLocales,
+  getDeveloperLocaleMeta,
+  getDeveloperOriginalHash,
+} from "@/lib/db/developers";
 import { useTranslations } from "@/lib/i18n/utils";
 import {
   DEFAULT_LANGUAGE,
@@ -31,16 +36,32 @@ function formatDate(iso: string | null): string {
 
 const itemsWithLocales = await Promise.all(
   developers.map(async (developer) => {
-    const existingLocales = await getDeveloperLocales(developer.id);
+    const [existingLocales, localeMeta, originalHash] = await Promise.all([
+      getDeveloperLocales(developer.id),
+      getDeveloperLocaleMeta(developer.id),
+      getDeveloperOriginalHash(developer.id),
+    ]);
     const missingLocales = SUPPORTED_LANGUAGES.filter(
       (lang) => !existingLocales.includes(lang),
     );
-    return { developer, existingLocales, missingLocales };
+    return {
+      developer,
+      existingLocales,
+      missingLocales,
+      localeMeta,
+      originalHash,
+    };
   }),
 );
 
 const items: AdminListItem[] = itemsWithLocales.map(
-  ({ developer, existingLocales, missingLocales }) => ({
+  ({
+    developer,
+    existingLocales,
+    missingLocales,
+    localeMeta,
+    originalHash,
+  }) => ({
     id: developer.id,
     title: developer.name,
     href: `/admin/developers/edit/${developer.id}?locale=${DEFAULT_LANGUAGE}`,
@@ -49,17 +70,29 @@ const items: AdminListItem[] = itemsWithLocales.map(
     originalLocale: developer.original_locale,
     existingLocales,
     locales: [
-      ...existingLocales.map((locale) => ({
-        locale,
-        href: `/admin/developers/edit/${developer.id}?locale=${locale}`,
-        active: true,
-        title: `Edit ${locale}`,
-      })),
+      ...existingLocales.map((locale) => {
+        const meta = localeMeta.find((m) => m.locale === locale);
+        const isOutdated =
+          originalHash !== null &&
+          meta !== undefined &&
+          meta.source_hash !== null &&
+          meta.source_hash !== originalHash;
+        return {
+          locale,
+          href: `/admin/developers/edit/${developer.id}?locale=${locale}`,
+          active: true,
+          title: `Edit ${locale}`,
+          publishStatus: meta?.publish_status ?? null,
+          isOutdated,
+        };
+      }),
       ...missingLocales.map((locale) => ({
         locale,
         href: `/admin/developers/edit/${developer.id}?locale=${locale}`,
         active: false,
         title: `Create ${locale}`,
+        publishStatus: null,
+        isOutdated: false,
       })),
     ],
     extras: {

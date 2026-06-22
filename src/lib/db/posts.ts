@@ -1,4 +1,5 @@
 import { getDatabase } from "@/lib/db/client";
+import { hashContent } from "@/lib/hash";
 import type { Post, PostTranslation, PublishStatus } from "@/lib/db/schema";
 
 export interface CreatePostInput {
@@ -17,6 +18,7 @@ export interface CreatePostTranslationInput {
   cover_image_url: string | null;
   publish_status: PublishStatus;
   published_at: string | null;
+  source_hash?: string | null;
 }
 
 export interface UpdatePostTranslationInput {
@@ -26,6 +28,7 @@ export interface UpdatePostTranslationInput {
   cover_image_url?: string | null;
   publish_status?: PublishStatus;
   published_at?: string | null;
+  source_hash?: string | null;
 }
 
 export interface UpdatePostInput {
@@ -224,13 +227,15 @@ export async function createPostTranslation(
   input: CreatePostTranslationInput,
 ): Promise<void> {
   const db = getDatabase();
+  const sourceHash =
+    input.source_hash ?? (await hashContent(input.tiptap_json));
 
   await db
     .prepare(
       `INSERT INTO post_translations (
         id, post_id, locale, title, description, tiptap_json,
-        cover_image_url, publish_status, published_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        cover_image_url, publish_status, published_at, source_hash
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       input.id,
@@ -242,6 +247,7 @@ export async function createPostTranslation(
       input.cover_image_url,
       input.publish_status,
       input.published_at,
+      sourceHash,
     )
     .run();
 }
@@ -286,6 +292,11 @@ export async function updatePostTranslation(
     values.push(value);
   }
 
+  if (input.tiptap_json !== undefined && input.source_hash === undefined) {
+    fields.push("source_hash = ?");
+    values.push(await hashContent(input.tiptap_json));
+  }
+
   if (fields.length === 0) return;
 
   fields.push("updated_at = CURRENT_TIMESTAMP");
@@ -307,6 +318,43 @@ export async function getPostLocales(id: string): Promise<string[]> {
   return (result.results ?? []).map(
     (row) => (row as { locale: string }).locale,
   );
+}
+
+export interface PostLocaleMeta {
+  locale: string;
+  publish_status: PublishStatus;
+  source_hash: string | null;
+  updated_at: string;
+}
+
+export async function getPostLocaleMeta(id: string): Promise<PostLocaleMeta[]> {
+  const db = getDatabase();
+  const result = await db
+    .prepare(
+      "SELECT locale, publish_status, source_hash, updated_at FROM post_translations WHERE post_id = ?",
+    )
+    .bind(id)
+    .all();
+  return (result.results ?? []) as unknown as PostLocaleMeta[];
+}
+
+export async function getPostOriginalHash(id: string): Promise<string | null> {
+  const db = getDatabase();
+  const post = await db
+    .prepare("SELECT original_locale FROM posts WHERE id = ?")
+    .bind(id)
+    .first();
+  if (!post) return null;
+
+  const row = await db
+    .prepare(
+      "SELECT tiptap_json FROM post_translations WHERE post_id = ? AND locale = ?",
+    )
+    .bind(id, (post as { original_locale: string }).original_locale)
+    .first();
+  if (!row) return null;
+
+  return hashContent((row as { tiptap_json: string }).tiptap_json);
 }
 
 export async function getPostLocalesWithContent(id: string): Promise<

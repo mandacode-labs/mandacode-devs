@@ -132,5 +132,12 @@
   "admin.fallbackPreview": "由于没有{locale}翻译，显示原始{originalLocale}内容。",
   "admin.view": "查看",
   "admin.certifications": "证书",
-  "admin.education": "学历"
+  "admin.education": "学历",
+  "admin.localeNoTranslation": "无翻译",
+  "admin.localeTranslating": "翻译中",
+  "admin.localeTranslatedDraft": "已翻译 (未发布)",
+  "admin.localeTranslatedPublished": "已翻译 (已发布)",
+  "admin.localeArchived": "已归档",
+  "admin.outdatedTranslation": "原文已更新",
+  "admin.outdatedTranslationHint": "原文在此翻译后已更新"
 }

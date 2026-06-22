@@ -132,5 +132,12 @@
   "admin.fallbackPreview": "{locale} 번역이 없어 원본 {originalLocale} 내용을 표시합니다.",
   "admin.view": "보기",
   "admin.certifications": "자격증",
-  "admin.education": "학력"
+  "admin.education": "학력",
+  "admin.localeNoTranslation": "번역 없음",
+  "admin.localeTranslating": "번역 중",
+  "admin.localeTranslatedDraft": "번역됨 (게시 안 됨)",
+  "admin.localeTranslatedPublished": "번역됨 (게시됨)",
+  "admin.localeArchived": "보관됨",
+  "admin.outdatedTranslation": "원본 변경됨",
+  "admin.outdatedTranslationHint": "원본이 번역 후 업데이트되었습니다"
 }
