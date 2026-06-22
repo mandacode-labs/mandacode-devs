@@ -9,6 +9,7 @@ export type UIKey =
   | "admin.backToProjects"
   | "admin.basicInformation"
   | "admin.bio"
+  | "admin.blogPost"
   | "admin.blogUrl"
   | "admin.cancel"
   | "admin.certifications"

@@ -36,6 +36,7 @@ export const projectAdapter: AdminCrudAdapter<
       url: body.url ?? null,
       source_url: body.source_url ?? null,
       blog_url: body.blog_url ?? null,
+      blog_post_id: body.blog_post_id ?? null,
       original_locale: originalLocale,
     });
 
@@ -102,6 +103,8 @@ export const projectAdapter: AdminCrudAdapter<
     if (body.url !== undefined) mainUpdate.url = body.url;
     if (body.source_url !== undefined) mainUpdate.source_url = body.source_url;
     if (body.blog_url !== undefined) mainUpdate.blog_url = body.blog_url;
+    if (body.blog_post_id !== undefined)
+      mainUpdate.blog_post_id = body.blog_post_id;
 
     if (Object.keys(mainUpdate).length > 0) {
       await projectsRepo.updateProject(id, mainUpdate);

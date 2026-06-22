@@ -4,6 +4,7 @@ import ImageUploadButton from "@/components/editor/ImageUploadButton";
 import { AdminSection } from "@/components/admin/AdminSection";
 import { TranslationsSection } from "@/components/admin/TranslationsSection";
 import { StickyEditorActions } from "@/components/admin/StickyEditorActions";
+import BlogPostSelector from "@/components/admin/BlogPostSelector";
 import { LANGUAGE_CONFIGS } from "@/lib/config/languages";
 import { useAdminEditor } from "@/components/admin/use-admin-editor";
 import { useClickOutside } from "@/hooks/use-click-outside";
@@ -38,6 +39,7 @@ export interface ProjectEditorInitialData {
   url: string | null;
   source_url: string | null;
   blog_url: string | null;
+  blog_post_id: string | null;
   cover_image_url: string | null;
   tags: string[];
 }
@@ -72,6 +74,9 @@ export default function ProjectEditor({
   const [url, setUrl] = useState(initialData?.url ?? "");
   const [sourceUrl, setSourceUrl] = useState(initialData?.source_url ?? "");
   const [blogUrl, setBlogUrl] = useState(initialData?.blog_url ?? "");
+  const [blogPostId, setBlogPostId] = useState<string | null>(
+    initialData?.blog_post_id ?? null,
+  );
   const [coverImageUrl, setCoverImageUrl] = useState(
     initialData?.cover_image_url ?? "",
   );
@@ -125,6 +130,7 @@ export default function ProjectEditor({
       url: url || null,
       source_url: sourceUrl || null,
       blog_url: blogUrl || null,
+      blog_post_id: blogPostId,
       cover_image_url: coverImageUrl || null,
       tags,
       target_locales: targetLocales,
@@ -147,6 +153,7 @@ export default function ProjectEditor({
       setUrl(initialData.url ?? "");
       setSourceUrl(initialData.source_url ?? "");
       setBlogUrl(initialData.blog_url ?? "");
+      setBlogPostId(initialData.blog_post_id ?? null);
       setCoverImageUrl(initialData.cover_image_url ?? "");
       setTags(initialData.tags ?? []);
       setPublishStatus(initialData.publish_status);
@@ -414,7 +421,7 @@ export default function ProjectEditor({
       </AdminSection>
 
       <AdminSection title={t("admin.links", "Links")}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="block">
             <span className="text-sm font-medium text-text-primary">
               {t("admin.url", "URL")}
@@ -438,7 +445,9 @@ export default function ProjectEditor({
               className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
             />
           </label>
+        </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
           <label className="block">
             <span className="text-sm font-medium text-text-primary">
               {t("admin.blogUrl", "Blog URL")}
@@ -450,6 +459,13 @@ export default function ProjectEditor({
               className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
             />
           </label>
+
+          <BlogPostSelector
+            value={blogPostId}
+            onChange={setBlogPostId}
+            label={t("admin.blogPost", "Linked Blog Post")}
+            locale={locale}
+          />
         </div>
       </AdminSection>
 

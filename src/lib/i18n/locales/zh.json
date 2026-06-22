@@ -81,6 +81,7 @@
   "admin.url": "URL",
   "admin.sourceUrl": "源 URL",
   "admin.blogUrl": "博客 URL",
+  "admin.blogPost": "关联博客文章",
   "admin.name": "姓名",
   "admin.bio": "简介",
   "admin.avatarUrl": "头像 URL",

@@ -42,6 +42,7 @@ const MAIN_CFG: MainTableConfig = {
     "url",
     "source_url",
     "blog_url",
+    "blog_post_id",
     "original_locale",
     "created_at",
     "updated_at",
@@ -74,6 +75,7 @@ export interface CreateProjectInput {
   url: string | null;
   source_url: string | null;
   blog_url: string | null;
+  blog_post_id: string | null;
   original_locale: string;
 }
 
@@ -111,6 +113,7 @@ export interface UpdateProjectInput {
   url?: string | null;
   source_url?: string | null;
   blog_url?: string | null;
+  blog_post_id?: string | null;
   original_locale?: string;
 }
 
@@ -140,6 +143,7 @@ function mapProjectRow(row: Record<string, unknown>): ProjectWithTranslation {
     url: (row.url as string | null) ?? null,
     source_url: (row.source_url as string | null) ?? null,
     blog_url: (row.blog_url as string | null) ?? null,
+    blog_post_id: (row.blog_post_id as string | null) ?? null,
     original_locale: String(row.original_locale),
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
@@ -208,8 +212,8 @@ export async function createProject(input: CreateProjectInput): Promise<void> {
     .prepare(
       `INSERT INTO projects (
         id, author_id, project_status, start_date, end_date, team_size,
-        project_order, url, source_url, blog_url, original_locale
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        project_order, url, source_url, blog_url, blog_post_id, original_locale
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       input.id,
@@ -222,6 +226,7 @@ export async function createProject(input: CreateProjectInput): Promise<void> {
       input.url,
       input.source_url,
       input.blog_url,
+      input.blog_post_id,
       input.original_locale,
     )
     .run();
