@@ -36,18 +36,19 @@ interface UpdateBody {
 export interface AdminCrudAdapter<
   TCreate extends CreateBody,
   TUpdate extends UpdateBody,
+  TExisting = unknown,
 > {
   entityType: AdminEntityType;
   entityName: string;
   createSchema: z.ZodType<TCreate>;
   updateSchema: z.ZodType<TUpdate>;
-  getById(id: string, locale: string): Promise<unknown | null>;
+  getById(id: string, locale: string): Promise<TExisting | null>;
   create(body: TCreate, user: AuthUser): Promise<void>;
   update(
     id: string,
     locale: string,
     body: TUpdate,
-    existing: unknown | null,
+    existing: TExisting | null,
     user: AuthUser,
   ): Promise<void>;
   getLocales(id: string): Promise<string[]>;
@@ -68,8 +69,9 @@ function safeWaitUntil(context: APIContext, promise: Promise<unknown>): void {
 async function cleanupEntityAssets<
   TCreate extends CreateBody,
   TUpdate extends UpdateBody,
+  TExisting,
 >(
-  adapter: AdminCrudAdapter<TCreate, TUpdate>,
+  adapter: AdminCrudAdapter<TCreate, TUpdate, TExisting>,
   id: string,
   locale: string,
   tiptapJson: string | undefined,
@@ -118,7 +120,8 @@ function getIdLocale(context: APIContext): { id: string; locale: string } {
 export function createAdminGetHandler<
   TCreate extends CreateBody,
   TUpdate extends UpdateBody,
->(adapter: AdminCrudAdapter<TCreate, TUpdate>): APIRoute {
+  TExisting,
+>(adapter: AdminCrudAdapter<TCreate, TUpdate, TExisting>): APIRoute {
   return async (context) => {
     try {
       requireAuth(context);
@@ -139,7 +142,8 @@ export function createAdminGetHandler<
 export function createAdminPostHandler<
   TCreate extends CreateBody,
   TUpdate extends UpdateBody,
->(adapter: AdminCrudAdapter<TCreate, TUpdate>): APIRoute {
+  TExisting,
+>(adapter: AdminCrudAdapter<TCreate, TUpdate, TExisting>): APIRoute {
   return async (context) => {
     try {
       const user = requireAuth(context);
@@ -183,7 +187,8 @@ export function createAdminPostHandler<
 export function createAdminPutHandler<
   TCreate extends CreateBody,
   TUpdate extends UpdateBody,
->(adapter: AdminCrudAdapter<TCreate, TUpdate>): APIRoute {
+  TExisting,
+>(adapter: AdminCrudAdapter<TCreate, TUpdate, TExisting>): APIRoute {
   return async (context) => {
     try {
       const user = requireAuth(context);
@@ -233,7 +238,8 @@ export function createAdminPutHandler<
 export function createAdminDeleteHandler<
   TCreate extends CreateBody,
   TUpdate extends UpdateBody,
->(adapter: AdminCrudAdapter<TCreate, TUpdate>): APIRoute {
+  TExisting,
+>(adapter: AdminCrudAdapter<TCreate, TUpdate, TExisting>): APIRoute {
   return async (context) => {
     try {
       requireAuth(context);

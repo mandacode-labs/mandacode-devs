@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type SyntheticEvent } from "react";
 import { generateEntityId } from "@/lib/id";
 import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
+import { apiFetch } from "@/lib/api/client";
 
 export interface Toast {
   type: "success" | "error";
@@ -73,16 +74,11 @@ export function useAdminEditor(options: UseAdminEditorOptions) {
       const url = `/api/admin/${entityType}s/${id}?locale=${encodeURIComponent(
         locale,
       )}`;
-      const response = await fetch(url, {
+      await apiFetch<{ success: true }>(url, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ original_locale: locale }),
       });
-
-      if (!response.ok) {
-        const data = (await response.json()) as { error?: string };
-        throw new Error(data.error || "Failed to set as original locale");
-      }
 
       showSuccess("Set as original locale");
       window.location.reload();
@@ -114,16 +110,11 @@ export function useAdminEditor(options: UseAdminEditorOptions) {
             ...getSubmitBody(),
           };
 
-      const response = await fetch(url, {
+      await apiFetch<{ success: true }>(url, {
         method: isEditMode ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-
-      if (!response.ok) {
-        const data = (await response.json()) as { error?: string };
-        throw new Error(data.error || "Failed to save");
-      }
 
       showSuccess("Saved successfully");
       window.location.href = listPath;
@@ -144,15 +135,10 @@ export function useAdminEditor(options: UseAdminEditorOptions) {
       if (!allLocales) params.set("locale", locale);
       else params.set("all", "true");
 
-      const response = await fetch(
+      await apiFetch<{ success: true }>(
         `/api/admin/${entityType}s/${id}?${params.toString()}`,
         { method: "DELETE" },
       );
-
-      if (!response.ok) {
-        const data = (await response.json()) as { error?: string };
-        throw new Error(data.error || "Failed to delete");
-      }
 
       window.location.href = listPath;
     } catch (error) {

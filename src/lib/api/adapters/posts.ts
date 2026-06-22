@@ -5,17 +5,17 @@ import { createPostSchema, updatePostSchema } from "@/lib/api/validation";
 import { ApiError } from "@/lib/api/response";
 import type { AdminCrudAdapter } from "@/lib/api/admin-crud";
 import { hashContent } from "@/lib/hash";
+import type { PostTranslation } from "@/lib/db/schema";
 import type { z } from "zod";
 
 type CreateBody = z.infer<typeof createPostSchema>;
 type UpdateBody = z.infer<typeof updatePostSchema>;
 
-interface ExistingPostTranslation {
-  publish_status: string;
-  published_at: string | null;
-}
-
-export const postAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
+export const postAdapter: AdminCrudAdapter<
+  CreateBody,
+  UpdateBody,
+  PostTranslation
+> = {
   entityType: "post",
   entityName: "Post",
   createSchema: createPostSchema,
@@ -51,7 +51,6 @@ export const postAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
       throw new ApiError("Post translation not found", 404);
     }
 
-    const existingPost = existing as ExistingPostTranslation;
     const updateData: postsRepo.UpdatePostTranslationInput = {
       title: body.title,
       description: body.description,
@@ -62,8 +61,8 @@ export const postAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
 
     if (
       body.publish_status === "published" &&
-      existingPost.publish_status !== "published" &&
-      !existingPost.published_at
+      existing.publish_status !== "published" &&
+      !existing.published_at
     ) {
       updateData.published_at = new Date().toISOString();
     }

@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useMemo } from "react";
+import { forwardRef, useCallback, useMemo, type CSSProperties } from "react";
 
 // --- Hooks ---
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor";
@@ -61,12 +61,11 @@ export const TextColorButton = forwardRef<
       [handleSetTextColor, onClick],
     );
 
-    const buttonStyle = useMemo(
-      () =>
-        ({
-          ...style,
-          "--text-color": color,
-        }) as React.CSSProperties,
+    const buttonStyle = useMemo<CSSProperties>(
+      () => ({
+        ...style,
+        "--text-color": color,
+      }),
       [color, style],
     );
 
@@ -94,11 +93,9 @@ export const TextColorButton = forwardRef<
         {children ?? (
           <span
             className="tiptap-button-text-color"
-            style={
-              {
-                "--text-color": color,
-              } as React.CSSProperties
-            }
+            style={{
+              "--text-color": color,
+            }}
           />
         )}
       </Button>

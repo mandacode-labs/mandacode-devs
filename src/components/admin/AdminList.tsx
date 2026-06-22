@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { apiFetch } from "@/lib/api/client";
 import {
   DndContext,
   closestCenter,
@@ -16,38 +17,17 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { AdminLocaleChips } from "./AdminLocaleChips";
 import DeleteModal from "./DeleteModal";
 import type { TranslationContentType } from "@/lib/db/schema";
 import type { AdminTranslations } from "./use-admin-translations";
+import {
+  AdminListRow,
+  type AdminListColumn,
+  type AdminListItem,
+} from "./AdminListRow";
 
-export interface AdminListColumn {
-  key: string;
-  label: string;
-  align?: "left" | "right" | "center";
-  width?: string;
-}
-
-export interface AdminListLocaleInfo {
-  locale: string;
-  href: string;
-  active: boolean;
-  title: string;
-  publishStatus?: "draft" | "published" | "archived" | null;
-  isOutdated?: boolean;
-}
-
-export interface AdminListItem {
-  id: string;
-  title: string;
-  href: string;
-  viewHref?: string;
-  meta?: string;
-  originalLocale: string;
-  existingLocales: string[];
-  locales: AdminListLocaleInfo[];
-  extras?: Record<string, string | number | null>;
-}
+export type { AdminListColumn, AdminListItem };
+export type AdminListLocaleInfo = AdminListItem["locales"][number];
 
 interface AdminListProps {
   items: AdminListItem[];
@@ -144,7 +124,7 @@ export function AdminList({
     if (!reorderEndpoint) return;
     setIsSaving(true);
     try {
-      const response = await fetch(reorderEndpoint, {
+      await apiFetch<{ success: true }>(reorderEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -154,7 +134,6 @@ export function AdminList({
           })),
         }),
       });
-      if (!response.ok) throw new Error("Failed to save order");
       setHasChanges(false);
       setToast({ type: "success", message: reorderLabels.saved });
       setTimeout(() => window.location.reload(), 800);
@@ -179,15 +158,10 @@ export function AdminList({
         params.set("confirmation", "delete");
         if (allLocales) params.set("all", "true");
 
-        const response = await fetch(
+        await apiFetch<{ success: true }>(
           `/api/admin/${entityType}/${deleteItem.id}?${params.toString()}`,
           { method: "DELETE" },
         );
-
-        if (!response.ok) {
-          const data = (await response.json()) as { error?: string };
-          throw new Error(data.error || "Failed to delete");
-        }
 
         window.location.reload();
       } catch (error) {
@@ -210,17 +184,10 @@ export function AdminList({
         params.set("content_id", contentId);
         params.set("target_locale", targetLocale);
 
-        const response = await fetch(
+        await apiFetch<{ success: true }>(
           `${regenerateEndpoint}?${params.toString()}`,
           { method: "POST" },
         );
-
-        if (!response.ok) {
-          const data = (await response.json().catch(() => ({}))) as {
-            error?: string;
-          };
-          throw new Error(data.error || "Regenerate failed");
-        }
 
         setToast({ type: "success", message: regenerateLabels.success });
         setTimeout(() => setToast(null), 3000);
@@ -352,9 +319,10 @@ export function AdminList({
                         index={index}
                         columns={columns}
                         contentType={contentType}
+                        translations={translations}
                         regeneratingId={regeneratingId}
                         onRegenerate={handleRegenerate}
-                        translations={translations}
+                        onDelete={(item) => setDeleteItem(item)}
                       />
                     ))}
                   </tbody>
@@ -393,108 +361,17 @@ export function AdminList({
               </thead>
               <tbody className="divide-y divide-border">
                 {items.map((item, index) => (
-                  <tr
+                  <AdminListRow
                     key={item.id}
-                    className="group hover:bg-bg-secondary/40 transition-colors"
-                  >
-                    <td className="px-4 py-4">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-bg-tertiary text-text-muted text-xs font-medium">
-                        {index + 1}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <a href={item.href} className="block group/link">
-                        <span className="font-medium text-text-primary group-hover/link:text-accent transition-colors">
-                          {item.title}
-                        </span>
-                        {item.meta && (
-                          <span className="block text-xs text-text-muted font-mono mt-0.5">
-                            {item.meta}
-                          </span>
-                        )}
-                      </a>
-                    </td>
-                    <td className="px-4 py-4">
-                      <AdminLocaleChips
-                        contentType={contentType}
-                        contentId={item.id}
-                        originalLocale={item.originalLocale}
-                        locales={item.locales}
-                        regenerating={regeneratingId === item.id}
-                        onRegenerate={handleRegenerate}
-                      />
-                    </td>
-                    {columns.map((column) => (
-                      <td
-                        key={column.key}
-                        className={`px-4 py-4 ${
-                          column.align === "right"
-                            ? "text-right"
-                            : column.align === "center"
-                              ? "text-center"
-                              : "text-left"
-                        }`}
-                      >
-                        <span className="text-text-secondary">
-                          {item.extras?.[column.key] ?? "\u00A0"}
-                        </span>
-                      </td>
-                    ))}
-                    <td className="px-4 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {item.viewHref && (
-                          <a
-                            href={item.viewHref}
-                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-text-secondary hover:text-accent hover:bg-accent-subtle transition-colors"
-                            title={translations["admin.view"] ?? "View"}
-                          >
-                            <svg
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              className="w-4 h-4"
-                            >
-                              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                              <circle cx="12" cy="12" r="3" />
-                            </svg>
-                          </a>
-                        )}
-                        <a
-                          href={item.href}
-                          className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-text-secondary hover:text-accent hover:bg-accent-subtle transition-colors"
-                          title="Edit"
-                        >
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            className="w-4 h-4"
-                          >
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                          </svg>
-                        </a>
-                        <button
-                          type="button"
-                          onClick={() => setDeleteItem(item)}
-                          className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-text-secondary hover:text-red-600 hover:bg-red-50 transition-colors"
-                          title="Delete"
-                        >
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            className="w-4 h-4"
-                          >
-                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                    item={item}
+                    index={index}
+                    columns={columns}
+                    contentType={contentType}
+                    translations={translations}
+                    regeneratingId={regeneratingId}
+                    onRegenerate={handleRegenerate}
+                    onDelete={(item) => setDeleteItem(item)}
+                  />
                 ))}
               </tbody>
             </table>
@@ -535,6 +412,7 @@ function SortableRow({
   translations,
   regeneratingId,
   onRegenerate,
+  onDelete,
 }: {
   item: AdminListItem;
   index: number;
@@ -547,6 +425,7 @@ function SortableRow({
     contentType: TranslationContentType,
     targetLocale: string,
   ) => void;
+  onDelete: (item: AdminListItem) => void;
 }) {
   const {
     attributes,
@@ -564,136 +443,42 @@ function SortableRow({
   };
 
   return (
-    <tr
-      ref={setNodeRef}
-      style={style}
-      className={`group bg-bg-primary hover:bg-bg-secondary/40 transition-colors ${
-        isDragging ? "opacity-80" : ""
-      }`}
-    >
-      <td className="px-4 py-4">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            {...attributes}
-            {...listeners}
-            className="p-1.5 text-text-muted hover:text-text-primary cursor-grab active:cursor-grabbing rounded-md hover:bg-bg-tertiary"
-            aria-label="Drag to reorder"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="w-4 h-4"
-            >
-              <circle cx="9" cy="6" r="1.5" />
-              <circle cx="9" cy="12" r="1.5" />
-              <circle cx="9" cy="18" r="1.5" />
-              <circle cx="15" cy="6" r="1.5" />
-              <circle cx="15" cy="12" r="1.5" />
-              <circle cx="15" cy="18" r="1.5" />
-            </svg>
-          </button>
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-bg-tertiary text-text-muted text-xs font-medium">
-            {index + 1}
-          </div>
-        </div>
-      </td>
-      <td className="px-4 py-4">
-        <a href={item.href} className="block group/link">
-          <span className="font-medium text-text-primary group-hover/link:text-accent transition-colors">
-            {item.title}
-          </span>
-          {item.meta && (
-            <span className="block text-xs text-text-muted font-mono mt-0.5">
-              {item.meta}
-            </span>
-          )}
-        </a>
-      </td>
-      <td className="px-4 py-4">
-        <AdminLocaleChips
-          contentType={contentType}
-          contentId={item.id}
-          originalLocale={item.originalLocale}
-          locales={item.locales}
-          regenerating={regeneratingId === item.id}
-          onRegenerate={onRegenerate}
-        />
-      </td>
-      {columns.map((column) => (
-        <td
-          key={column.key}
-          className={`px-4 py-4 ${
-            column.align === "right"
-              ? "text-right"
-              : column.align === "center"
-                ? "text-center"
-                : "text-left"
-          }`}
+    <AdminListRow
+      item={item}
+      index={index}
+      columns={columns}
+      contentType={contentType}
+      translations={translations}
+      regeneratingId={regeneratingId}
+      onRegenerate={onRegenerate}
+      onDelete={onDelete}
+      rowRef={setNodeRef}
+      rowStyle={style}
+      isDragging={isDragging}
+      dragHandle={
+        <button
+          type="button"
+          {...(attributes as React.ButtonHTMLAttributes<HTMLButtonElement>)}
+          {...(listeners as React.ButtonHTMLAttributes<HTMLButtonElement>)}
+          className="p-1.5 text-text-muted hover:text-text-primary cursor-grab active:cursor-grabbing rounded-md hover:bg-bg-tertiary"
+          aria-label="Drag to reorder"
         >
-          <span className="text-text-secondary">
-            {item.extras?.[column.key] ?? "\u00A0"}
-          </span>
-        </td>
-      ))}
-      <td className="px-4 py-4 text-right">
-        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          {item.viewHref && (
-            <a
-              href={item.viewHref}
-              className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-text-secondary hover:text-accent hover:bg-accent-subtle transition-colors"
-              title={translations["admin.view"] ?? "View"}
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className="w-4 h-4"
-              >
-                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-            </a>
-          )}
-          <a
-            href={item.href}
-            className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-text-secondary hover:text-accent hover:bg-accent-subtle transition-colors"
-            title="Edit"
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className="w-4 h-4"
           >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="w-4 h-4"
-            >
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
-          </a>
-          <button
-            type="button"
-            className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-text-secondary hover:text-red-600 hover:bg-red-50 transition-colors"
-            title="Delete"
-            aria-label="Delete"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="w-4 h-4"
-            >
-              <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
-          </button>
-        </div>
-      </td>
-    </tr>
+            <circle cx="9" cy="6" r="1.5" />
+            <circle cx="9" cy="12" r="1.5" />
+            <circle cx="9" cy="18" r="1.5" />
+            <circle cx="15" cy="6" r="1.5" />
+            <circle cx="15" cy="12" r="1.5" />
+            <circle cx="15" cy="18" r="1.5" />
+          </svg>
+        </button>
+      }
+    />
   );
 }
-
-export { AdminLocaleChips };

@@ -1,12 +1,67 @@
 import { getDatabase } from "@/lib/db/client";
-import { hashContent } from "@/lib/hash";
-import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
+import { hashContent } from "@/lib/db/translation-repo";
+import {
+  deleteAllEntityTranslations,
+  deleteEntity,
+  deleteEntityTranslation,
+  getByIdWithTranslation,
+  getEntityLocaleMeta,
+  getEntityLocales,
+  getEntityLocalesWithContent,
+  getEntityOriginalHash,
+  getEntityOriginalLocale,
+  getListWithTranslation,
+  updateEntityTranslation,
+  updateEntityTranslationsCascade,
+  type ListOptions,
+  type LocaleMeta,
+  type MainTableConfig,
+  type TransTableConfig,
+} from "@/lib/db/translation-repo";
 import type {
   Project,
   ProjectTranslation,
   ProjectStatus,
   PublishStatus,
 } from "@/lib/db/schema";
+
+export type { LocaleMeta as ProjectLocaleMeta };
+
+const MAIN_CFG: MainTableConfig = {
+  table: "projects",
+  alias: "p",
+  idColumn: "id",
+  baseColumns: [
+    "id",
+    "author_id",
+    "project_status",
+    "start_date",
+    "end_date",
+    "team_size",
+    "project_order",
+    "url",
+    "source_url",
+    "blog_url",
+    "original_locale",
+    "created_at",
+    "updated_at",
+  ],
+};
+
+const TRANS_CFG: TransTableConfig = {
+  table: "project_translations",
+  alias: "orig",
+  idColumn: "project_id",
+  transColumns: [
+    "title",
+    "description",
+    "tiptap_json",
+    "role",
+    "cover_image_url",
+    "publish_status",
+    "published_at",
+  ],
+};
 
 export interface CreateProjectInput {
   id: string;
@@ -59,10 +114,7 @@ export interface UpdateProjectInput {
   original_locale?: string;
 }
 
-export interface GetProjectsOptions {
-  publishStatus?: PublishStatus;
-  includeUnpublished?: boolean;
-}
+export interface GetProjectsOptions extends ListOptions {}
 
 export interface ProjectWithTranslation extends Project {
   title: string;
@@ -75,34 +127,8 @@ export interface ProjectWithTranslation extends Project {
   is_fallback: boolean;
 }
 
-export function rowToProjectWithTranslation(
-  row: Record<string, unknown>,
-): ProjectWithTranslation {
+function mapProjectRow(row: Record<string, unknown>): ProjectWithTranslation {
   const hasTranslation = row.translation_title !== null;
-  const title = String(
-    hasTranslation ? row.translation_title : row.original_title,
-  );
-  const description = hasTranslation
-    ? (row.translation_description as string | null)
-    : (row.original_description as string | null);
-  const tiptap_json = String(
-    hasTranslation ? row.translation_tiptap_json : row.original_tiptap_json,
-  );
-  const role = String(
-    hasTranslation ? row.translation_role : row.original_role,
-  );
-  const cover_image_url = hasTranslation
-    ? (row.translation_cover_image_url as string | null)
-    : (row.original_cover_image_url as string | null);
-  const publish_status = String(
-    hasTranslation
-      ? row.translation_publish_status
-      : row.original_publish_status,
-  ) as PublishStatus;
-  const published_at = hasTranslation
-    ? (row.translation_published_at as string | null)
-    : (row.original_published_at as string | null);
-
   return {
     id: String(row.id),
     author_id: String(row.author_id),
@@ -117,91 +143,41 @@ export function rowToProjectWithTranslation(
     original_locale: String(row.original_locale),
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
-    title,
-    description,
-    tiptap_json,
-    role,
-    cover_image_url,
-    publish_status,
-    published_at,
+    title: String(hasTranslation ? row.translation_title : row.original_title),
+    description: hasTranslation
+      ? (row.translation_description as string | null)
+      : (row.original_description as string | null),
+    tiptap_json: String(
+      hasTranslation ? row.translation_tiptap_json : row.original_tiptap_json,
+    ),
+    role: String(hasTranslation ? row.translation_role : row.original_role),
+    cover_image_url: hasTranslation
+      ? (row.translation_cover_image_url as string | null)
+      : (row.original_cover_image_url as string | null),
+    publish_status: String(
+      hasTranslation
+        ? row.translation_publish_status
+        : row.original_publish_status,
+    ) as PublishStatus,
+    published_at: hasTranslation
+      ? (row.translation_published_at as string | null)
+      : (row.original_published_at as string | null),
     is_fallback: !hasTranslation,
   };
 }
 
-function buildListQuery(
-  locale: string,
-  options: GetProjectsOptions = {},
-): {
-  query: string;
-  params: (string | number | PublishStatus)[];
-} {
-  const params: (string | number | PublishStatus)[] = [];
-  let query = `
-    SELECT
-      p.id,
-      p.author_id,
-      p.project_status,
-      p.start_date,
-      p.end_date,
-      p.team_size,
-      p.project_order,
-      p.url,
-      p.source_url,
-      p.blog_url,
-      p.original_locale,
-      p.created_at,
-      p.updated_at,
-      orig.title AS original_title,
-      orig.description AS original_description,
-      orig.tiptap_json AS original_tiptap_json,
-      orig.role AS original_role,
-      orig.cover_image_url AS original_cover_image_url,
-      orig.publish_status AS original_publish_status,
-      orig.published_at AS original_published_at,
-      trans.title AS translation_title,
-      trans.description AS translation_description,
-      trans.tiptap_json AS translation_tiptap_json,
-      trans.role AS translation_role,
-      trans.cover_image_url AS translation_cover_image_url,
-      trans.publish_status AS translation_publish_status,
-      trans.published_at AS translation_published_at
-    FROM projects p
-    LEFT JOIN project_translations orig
-      ON p.id = orig.project_id AND orig.locale = p.original_locale
-    LEFT JOIN project_translations trans
-      ON p.id = trans.project_id AND trans.locale = ?
-  `;
-  params.push(locale);
-
-  if (!options.includeUnpublished) {
-    query += " WHERE orig.publish_status = ?";
-    params.push("published");
-  }
-
-  if (options.publishStatus) {
-    query += options.includeUnpublished ? " WHERE " : " AND ";
-    query += "trans.publish_status = ?";
-    params.push(options.publishStatus);
-  }
-
-  query += " ORDER BY COALESCE(orig.published_at, orig.created_at) DESC";
-
-  return { query, params };
-}
+export const rowToProjectWithTranslation = mapProjectRow;
 
 export async function getProjects(
   locale: string,
   options: GetProjectsOptions = {},
 ): Promise<ProjectWithTranslation[]> {
-  const db = getDatabase();
-  const { query, params } = buildListQuery(locale, options);
-
-  const result = await db
-    .prepare(query)
-    .bind(...params)
-    .all();
-  return ((result.results ?? []) as Record<string, unknown>[]).map(
-    rowToProjectWithTranslation,
+  return getListWithTranslation(
+    MAIN_CFG,
+    TRANS_CFG,
+    locale,
+    options,
+    mapProjectRow,
   );
 }
 
@@ -209,52 +185,7 @@ export async function getProjectById(
   id: string,
   locale: string,
 ): Promise<ProjectWithTranslation | null> {
-  const db = getDatabase();
-
-  const result = await db
-    .prepare(
-      `
-      SELECT
-        p.id,
-        p.author_id,
-        p.project_status,
-        p.start_date,
-        p.end_date,
-        p.team_size,
-        p.project_order,
-        p.url,
-        p.source_url,
-        p.blog_url,
-        p.original_locale,
-        p.created_at,
-        p.updated_at,
-        orig.title AS original_title,
-        orig.description AS original_description,
-        orig.tiptap_json AS original_tiptap_json,
-        orig.role AS original_role,
-        orig.cover_image_url AS original_cover_image_url,
-        orig.publish_status AS original_publish_status,
-        orig.published_at AS original_published_at,
-        trans.title AS translation_title,
-        trans.description AS translation_description,
-        trans.tiptap_json AS translation_tiptap_json,
-        trans.role AS translation_role,
-        trans.cover_image_url AS translation_cover_image_url,
-        trans.publish_status AS translation_publish_status,
-        trans.published_at AS translation_published_at
-      FROM projects p
-      LEFT JOIN project_translations orig
-        ON p.id = orig.project_id AND orig.locale = p.original_locale
-      LEFT JOIN project_translations trans
-        ON p.id = trans.project_id AND trans.locale = ?
-      WHERE p.id = ?
-      `,
-    )
-    .bind(locale, id)
-    .first();
-
-  if (!result) return null;
-  return rowToProjectWithTranslation(result as Record<string, unknown>);
+  return getByIdWithTranslation(MAIN_CFG, TRANS_CFG, locale, id, mapProjectRow);
 }
 
 export async function getProjectTranslationById(
@@ -262,20 +193,17 @@ export async function getProjectTranslationById(
   locale: string,
 ): Promise<ProjectTranslation | null> {
   const db = getDatabase();
-
   const result = await db
     .prepare(
       "SELECT * FROM project_translations WHERE project_id = ? AND locale = ?",
     )
     .bind(id, locale)
     .first();
-
   return (result as ProjectTranslation | null) ?? null;
 }
 
 export async function createProject(input: CreateProjectInput): Promise<void> {
   const db = getDatabase();
-
   await db
     .prepare(
       `INSERT INTO projects (
@@ -353,139 +281,61 @@ export async function updateProject(
     .run();
 }
 
-export async function updateProjectTranslation(
+export function updateProjectTranslation(
   projectId: string,
   locale: string,
   input: UpdateProjectTranslationInput,
 ): Promise<void> {
-  const db = getDatabase();
-
-  const fields: string[] = [];
-  const values: unknown[] = [];
-
-  for (const [key, value] of Object.entries(input)) {
-    if (value === undefined) continue;
-    fields.push(`${key} = ?`);
-    values.push(value);
-  }
-
-  if (input.tiptap_json !== undefined && input.source_hash === undefined) {
-    fields.push("source_hash = ?");
-    values.push(await hashContent(input.tiptap_json));
-  }
-
-  if (fields.length === 0) return;
-
-  fields.push("updated_at = CURRENT_TIMESTAMP");
-
-  await db
-    .prepare(
-      `UPDATE project_translations SET ${fields.join(", ")} WHERE project_id = ? AND locale = ?`,
-    )
-    .bind(...values, projectId, locale)
-    .run();
-}
-
-export async function getProjectLocales(id: string): Promise<string[]> {
-  const db = getDatabase();
-  const result = await db
-    .prepare("SELECT locale FROM project_translations WHERE project_id = ?")
-    .bind(id)
-    .all();
-  return (result.results ?? []).map(
-    (row) => (row as { locale: string }).locale,
+  return updateEntityTranslation(
+    "project_translations",
+    "project_id",
+    projectId,
+    locale,
+    input as Record<string, unknown>,
   );
 }
 
-export async function updateProjectTranslationsCascade(
+export const getProjectLocales = (id: string) =>
+  getEntityLocales("project_translations", "project_id", id);
+
+export const updateProjectTranslationsCascade = (
   id: string,
   originalLocale: string,
   newSourceHash: string,
-): Promise<void> {
-  const db = getDatabase();
-  await db
-    .prepare(
-      `UPDATE project_translations
-       SET source_hash = ?, updated_at = CURRENT_TIMESTAMP
-       WHERE project_id = ? AND locale != ?`,
-    )
-    .bind(newSourceHash, id, originalLocale)
-    .run();
-}
-
-export interface ProjectLocaleMeta {
-  locale: string;
-  publish_status: PublishStatus;
-  source_hash: string | null;
-  updated_at: string;
-}
-
-export async function getProjectLocaleMeta(
-  id: string,
-): Promise<ProjectLocaleMeta[]> {
-  const db = getDatabase();
-  const result = await db
-    .prepare(
-      "SELECT locale, publish_status, source_hash, updated_at FROM project_translations WHERE project_id = ?",
-    )
-    .bind(id)
-    .all();
-  return (result.results ?? []) as unknown as ProjectLocaleMeta[];
-}
-
-export async function getProjectOriginalLocale(id: string): Promise<string> {
-  const db = getDatabase();
-  const row = await db
-    .prepare("SELECT original_locale FROM projects WHERE id = ?")
-    .bind(id)
-    .first();
-  return String(
-    (row as { original_locale?: string } | null)?.original_locale ??
-      DEFAULT_LANGUAGE,
+) =>
+  updateEntityTranslationsCascade(
+    "project_translations",
+    "project_id",
+    id,
+    originalLocale,
+    newSourceHash,
   );
-}
 
-export async function getProjectOriginalHash(
-  id: string,
-): Promise<string | null> {
-  const db = getDatabase();
-  const project = await db
-    .prepare("SELECT original_locale FROM projects WHERE id = ?")
-    .bind(id)
-    .first();
-  if (!project) return null;
+export const getProjectLocaleMeta = (id: string) =>
+  getEntityLocaleMeta("project_translations", "project_id", id);
 
-  const row = await db
-    .prepare(
-      "SELECT source_hash FROM project_translations WHERE project_id = ? AND locale = ?",
-    )
-    .bind(id, (project as { original_locale: string }).original_locale)
-    .first();
-  if (!row) return null;
+export const getProjectOriginalLocale = (id: string) =>
+  getEntityOriginalLocale("projects", id);
 
-  const hash = (row as { source_hash: string | null }).source_hash;
-  return hash ?? null;
-}
+export const getProjectOriginalHash = (id: string) =>
+  getEntityOriginalHash("projects", "project_translations", "project_id", id);
 
-export async function getProjectLocalesWithContent(id: string): Promise<
+export function getProjectLocalesWithContent(id: string): Promise<
   Array<{
     locale: string;
     tiptap_json: string;
     cover_image_url: string | null;
   }>
 > {
-  const db = getDatabase();
-  const result = await db
-    .prepare(
-      "SELECT locale, tiptap_json, cover_image_url FROM project_translations WHERE project_id = ?",
-    )
-    .bind(id)
-    .all();
-  return (result.results ?? []) as Array<{
-    locale: string;
-    tiptap_json: string;
-    cover_image_url: string | null;
-  }>;
+  return getEntityLocalesWithContent("project_translations", "project_id", id, [
+    "cover_image_url",
+  ]) as Promise<
+    Array<{
+      locale: string;
+      tiptap_json: string;
+      cover_image_url: string | null;
+    }>
+  >;
 }
 
 export async function updateProjectOrderForAllLocales(
@@ -501,28 +351,10 @@ export async function updateProjectOrderForAllLocales(
     .run();
 }
 
-export async function deleteProject(id: string): Promise<void> {
-  const db = getDatabase();
-  await db.prepare("DELETE FROM projects WHERE id = ?").bind(id).run();
-}
+export const deleteProject = (id: string) => deleteEntity("projects", id);
 
-export async function deleteProjectTranslation(
-  id: string,
-  locale: string,
-): Promise<void> {
-  const db = getDatabase();
-  await db
-    .prepare(
-      "DELETE FROM project_translations WHERE project_id = ? AND locale = ?",
-    )
-    .bind(id, locale)
-    .run();
-}
+export const deleteProjectTranslation = (id: string, locale: string) =>
+  deleteEntityTranslation("project_translations", "project_id", id, locale);
 
-export async function deleteAllProjectTranslations(id: string): Promise<void> {
-  const db = getDatabase();
-  await db
-    .prepare("DELETE FROM project_translations WHERE project_id = ?")
-    .bind(id)
-    .run();
-}
+export const deleteAllProjectTranslations = (id: string) =>
+  deleteAllEntityTranslations("project_translations", "project_id", id);

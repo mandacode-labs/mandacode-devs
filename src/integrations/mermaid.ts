@@ -1,8 +1,8 @@
 import type { AstroIntegration } from "astro";
 import { unified } from "@astrojs/markdown-remark";
 import { visit } from "unist-util-visit";
-import type { Root } from "mdast";
-import type { Element, Root as HastRoot } from "hast";
+import type { Root, Html as MdastHtml } from "mdast";
+import type { Root as HastRoot, ElementContent } from "hast";
 
 function escapeHtml(text: string): string {
   return text.replace(
@@ -22,10 +22,11 @@ function remarkMermaid(): (tree: Root) => void {
   return (tree: Root) => {
     visit(tree, "code", (node, index, parent) => {
       if (node.lang === "mermaid" && parent && typeof index === "number") {
-        parent.children[index] = {
+        const replacement: MdastHtml = {
           type: "html",
           value: `<pre class="mermaid">${escapeHtml(node.value)}</pre>`,
-        } as any;
+        };
+        parent.children[index] = replacement;
       }
     });
   };
@@ -34,24 +35,26 @@ function remarkMermaid(): (tree: Root) => void {
 function rehypeMermaid(): (tree: HastRoot) => void {
   return (tree: HastRoot) => {
     visit(tree, "element", (node) => {
+      const firstChild = node.children?.[0];
       if (
         node.tagName === "pre" &&
         node.children?.length === 1 &&
-        (node.children[0] as Element)?.tagName === "code"
+        firstChild?.type === "element" &&
+        firstChild.tagName === "code"
       ) {
-        const codeNode = node.children[0] as Element;
+        const codeNode = firstChild;
         const className = codeNode.properties?.className;
         if (
           Array.isArray(className) &&
           className.includes("language-mermaid")
         ) {
           const diagramContent = (codeNode.children ?? [])
-            .map((child: any) => (child.type === "text" ? child.value : ""))
+            .map((child: ElementContent) =>
+              child.type === "text" ? child.value : "",
+            )
             .join("");
           node.properties = { ...node.properties, className: ["mermaid"] };
-          node.children = [
-            { type: "text", value: escapeHtml(diagramContent) },
-          ] as any;
+          node.children = [{ type: "text", value: escapeHtml(diagramContent) }];
         }
       }
     });
