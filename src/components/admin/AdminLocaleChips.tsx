@@ -1,4 +1,5 @@
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useState, useRef, useMemo } from "react";
+import { useClickOutside } from "@/hooks/use-click-outside";
 import { useTranslationStatus } from "@/hooks/use-translation-status";
 import type {
   TranslationContentType,
@@ -6,15 +7,10 @@ import type {
   PublishStatus,
 } from "@/lib/db/schema";
 
-export type ChipTone =
-  | "no-translation"
-  | "translating"
-  | "translated-draft"
-  | "translated-published"
-  | "archived"
-  | "original-draft"
-  | "original-published"
-  | "original-archived";
+export type ChipState =
+  | { kind: "no-translation" }
+  | { kind: "translating" }
+  | { kind: "ready"; publishStatus: PublishStatus };
 
 export interface LocaleInfo {
   locale: string;
@@ -39,28 +35,44 @@ interface AdminLocaleChipsProps {
   ) => void;
 }
 
-const toneClass: Record<ChipTone, string> = {
-  "no-translation":
-    "bg-bg-secondary text-text-secondary border-border hover:bg-bg-tertiary",
-  translating: "bg-red-50 text-red-700 border-red-200",
-  "translated-draft":
-    "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100",
-  "translated-published":
-    "bg-green-50 text-green-700 border-green-200 hover:bg-green-100",
-  archived: "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100",
-  "original-draft":
-    "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100",
-  "original-published":
-    "bg-green-50 text-green-700 border-green-200 hover:bg-green-100",
-  "original-archived":
-    "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100",
-};
-
 const outdatedRingClass =
   "ring-2 ring-orange-400 ring-offset-1 ring-offset-bg-primary";
 
 const chipBaseClass =
   "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold uppercase tracking-wide border transition-colors cursor-pointer select-none";
+
+function getChipClass(state: ChipState): string {
+  switch (state.kind) {
+    case "no-translation":
+      return "bg-bg-secondary text-text-secondary border-border hover:bg-bg-tertiary";
+    case "translating":
+      return "bg-red-50 text-red-700 border-red-200";
+    case "ready":
+      if (state.publishStatus === "published")
+        return "bg-green-50 text-green-700 border-green-200 hover:bg-green-100";
+      if (state.publishStatus === "archived")
+        return "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100";
+      return "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100";
+  }
+}
+
+function getChipState(
+  jobStatus: TranslationJobStatus | null,
+  isOriginal: boolean,
+  hasTranslation: boolean,
+  publishStatus: PublishStatus | null | undefined,
+): ChipState {
+  if (
+    jobStatus === "pending" ||
+    jobStatus === "running" ||
+    jobStatus === "failed"
+  ) {
+    return { kind: "translating" };
+  }
+  if (!isOriginal && !hasTranslation) return { kind: "no-translation" };
+  if (isOriginal && !publishStatus) return { kind: "no-translation" };
+  return { kind: "ready", publishStatus: publishStatus ?? "draft" };
+}
 
 function sortLocales(
   originalLocale: string,
@@ -83,37 +95,59 @@ function sortLocales(
   });
 }
 
-function getChipTone(
-  locale: string,
-  originalLocale: string,
-  publishStatus: PublishStatus | null | undefined,
-  jobStatus: TranslationJobStatus | null,
-  hasTranslation: boolean,
-): ChipTone {
-  if (
-    jobStatus === "pending" ||
-    jobStatus === "running" ||
-    jobStatus === "failed"
-  ) {
-    return "translating";
-  }
-  const isOriginal = locale === originalLocale;
-  if (isOriginal) {
-    if (publishStatus === "archived") return "original-archived";
-    if (publishStatus === "draft") return "original-draft";
-    return "original-published";
-  }
-  if (!hasTranslation) return "no-translation";
-  if (publishStatus === "archived") return "archived";
-  if (publishStatus === "published") return "translated-published";
-  return "translated-draft";
+interface RegenerateMenuProps {
+  href: string;
+  isOriginal: boolean;
+  isOutdated: boolean;
+  onRegenerate: () => void;
+  onClose: () => void;
+}
+
+function RegenerateMenu({
+  href,
+  isOriginal,
+  isOutdated,
+  onRegenerate,
+  onClose,
+}: RegenerateMenuProps) {
+  return (
+    <div className="absolute top-full left-0 mt-1 z-50 min-w-[160px] bg-bg-primary border border-border rounded-lg shadow-lg py-1">
+      <a
+        href={href}
+        className="flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-bg-secondary"
+        onClick={onClose}
+      >
+        <span className="w-3 h-3 inline-block">✎</span>
+        {isOriginal ? "원본 편집" : "번역 편집"}
+      </a>
+      {!isOriginal && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onRegenerate();
+          }}
+          className="w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-bg-secondary text-left"
+        >
+          <span className="w-3 h-3 inline-block">↻</span>
+          재번역
+        </button>
+      )}
+      {isOutdated && !isOriginal && (
+        <div className="px-3 py-1.5 text-[10px] text-orange-600 border-t border-border mt-1 pt-1.5">
+          ⚠ 원본이 변경됨
+        </div>
+      )}
+    </div>
+  );
 }
 
 interface ChipProps {
   locale: string;
   href: string;
   title: string;
-  tone: ChipTone;
+  state: ChipState;
   isOutdated: boolean;
   isOriginal: boolean;
   isTranslating: boolean;
@@ -126,7 +160,7 @@ function Chip({
   locale,
   href,
   title,
-  tone,
+  state,
   isOutdated,
   isOriginal,
   isTranslating,
@@ -136,18 +170,9 @@ function Chip({
 }: ChipProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const hasTranslation = tone !== "no-translation";
+  const hasTranslation = state.kind !== "no-translation";
 
-  useEffect(() => {
-    if (!menuOpen) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [menuOpen]);
+  useClickOutside(menuRef, () => setMenuOpen(false), menuOpen);
 
   const tooltipParts: string[] = [];
   if (isOriginal) tooltipParts.push("원본");
@@ -157,25 +182,20 @@ function Chip({
   if (isOutdated) tooltipParts.push("원본 변경됨");
   const tooltip = tooltipParts.join(" · ");
 
-  const className = `${chipBaseClass} ${toneClass[tone]} ${
+  const className = `${chipBaseClass} ${getChipClass(state)} ${
     isOutdated ? outdatedRingClass : ""
   } ${!hasTranslation && !isTranslating ? "opacity-50" : ""}`;
 
+  const showMenu = canRegenerate && onRegenerate && hasTranslation;
+
   const handleClick = (e: React.MouseEvent) => {
-    if (canRegenerate && onRegenerate) {
+    if (showMenu) {
       e.preventDefault();
       setMenuOpen((v) => !v);
     }
   };
 
-  const handleRegenerate = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setMenuOpen(false);
-    onRegenerate?.();
-  };
-
-  if (canRegenerate && onRegenerate && hasTranslation) {
+  if (showMenu) {
     return (
       <div className="relative inline-flex" ref={menuRef}>
         <a
@@ -187,45 +207,23 @@ function Chip({
           {locale}
         </a>
         {menuOpen && (
-          <div className="absolute top-full left-0 mt-1 z-50 min-w-[160px] bg-bg-primary border border-border rounded-lg shadow-lg py-1">
-            <a
-              href={href}
-              className="flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-bg-secondary"
-              onClick={() => setMenuOpen(false)}
-            >
-              <span className="w-3 h-3 inline-block">
-                {isOriginal ? "✎" : "✎"}
-              </span>
-              {isOriginal ? "원본 편집" : "번역 편집"}
-            </a>
-            {!isOriginal && (
-              <button
-                type="button"
-                onClick={handleRegenerate}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-bg-secondary text-left"
-              >
-                <span className="w-3 h-3 inline-block">↻</span>
-                재번역
-              </button>
-            )}
-            {isOutdated && !isOriginal && (
-              <div className="px-3 py-1.5 text-[10px] text-orange-600 border-t border-border mt-1 pt-1.5">
-                ⚠ 원본이 변경됨
-              </div>
-            )}
-          </div>
+          <RegenerateMenu
+            href={href}
+            isOriginal={isOriginal}
+            isOutdated={isOutdated}
+            onRegenerate={() => {
+              setMenuOpen(false);
+              onRegenerate?.();
+            }}
+            onClose={() => setMenuOpen(false)}
+          />
         )}
       </div>
     );
   }
 
   return (
-    <a
-      href={href}
-      className={className}
-      title={tooltip}
-      onClick={canRegenerate && onRegenerate ? handleClick : undefined}
-    >
+    <a href={href} className={className} title={tooltip} onClick={handleClick}>
       {locale}
     </a>
   );
@@ -266,12 +264,11 @@ export function AdminLocaleChips({
           const hasTranslation =
             publishStatus !== null && publishStatus !== undefined;
           const isOriginal = locale === originalLocale;
-          const tone = getChipTone(
-            locale,
-            originalLocale,
-            publishStatus,
+          const state = getChipState(
             status,
+            isOriginal,
             hasTranslation,
+            publishStatus,
           );
           const isTranslating =
             status === "pending" || status === "running" || regenerating;
@@ -281,7 +278,7 @@ export function AdminLocaleChips({
               locale={locale}
               href={href}
               title={title}
-              tone={tone}
+              state={state}
               isOutdated={!!isOutdated}
               isOriginal={isOriginal}
               isTranslating={isTranslating}

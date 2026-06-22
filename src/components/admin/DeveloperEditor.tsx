@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import TiptapEditor from "@/components/editor/TiptapEditor";
 import ImageUploadButton from "@/components/editor/ImageUploadButton";
-import DeleteModal from "@/components/admin/DeleteModal";
 import { AdminSection } from "@/components/admin/AdminSection";
+import { TranslationsSection } from "@/components/admin/TranslationsSection";
+import { StickyEditorActions } from "@/components/admin/StickyEditorActions";
 import { LANGUAGE_CONFIGS } from "@/lib/config/languages";
 import { useAdminEditor } from "@/components/admin/use-admin-editor";
 import {
@@ -330,180 +331,56 @@ export default function DeveloperEditor({
         </div>
       </AdminSection>
 
-      <AdminSection title={t("admin.translations", "Translations")}>
-        {isEditMode && (
-          <div className="mb-4 p-4 bg-bg-secondary rounded-lg border border-border">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
-              <div>
-                <p className="text-sm font-medium text-text-primary">
-                  {t("admin.originalLocale", "Original Language")}
-                </p>
-                <p className="text-xs text-text-secondary mt-0.5">
-                  {locale === originalLocale
-                    ? t(
-                        "admin.originalLocaleHint",
-                        "This is the original language version.",
-                      )
-                    : t(
-                        "admin.translatedLocaleHint",
-                        "You are editing the {locale} translation. Original is {original}.",
-                        {
-                          locale: LANGUAGE_CONFIGS[locale].label,
-                          original: LANGUAGE_CONFIGS[originalLocale].label,
-                        },
-                      )}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <select
-                  value={originalLocale}
-                  onChange={(e) => setOriginalLocale(e.target.value)}
-                  className="px-3 py-2 text-sm border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-                >
-                  {Object.values(LANGUAGE_CONFIGS).map((loc) => (
-                    <option key={loc.code} value={loc.code}>
-                      {loc.label}
-                    </option>
-                  ))}
-                </select>
-                {locale !== originalLocale && (
-                  <button
-                    type="button"
-                    onClick={setAsOriginalLocale}
-                    disabled={isSettingOriginal}
-                    className="px-3 py-2 text-sm font-medium text-accent border border-accent rounded-lg hover:bg-accent/5 disabled:opacity-60 whitespace-nowrap"
-                  >
-                    {isSettingOriginal
-                      ? t("admin.saving", "Saving...")
-                      : t("admin.setAsOriginalLocale", "Set as original")}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
+      <TranslationsSection
+        isEditMode={isEditMode}
+        locale={locale}
+        originalLocale={originalLocale}
+        existingLocales={existingLocales}
+        targetLocales={targetLocales}
+        isSettingOriginal={isSettingOriginal}
+        onSetOriginalLocale={setAsOriginalLocale}
+        onSetOriginalLocaleValue={setOriginalLocale}
+        onToggleTargetLocale={toggleTargetLocale}
+        title={t("admin.translations", "Translations")}
+        originalLocaleLabel={t("admin.originalLocale", "Original Language")}
+        originalHint={t(
+          "admin.originalLocaleHint",
+          "This is the original language version.",
         )}
-
-        <div className="space-y-2">
-          <p className="text-sm text-text-secondary">
-            {t(
-              "admin.translateDescription",
-              "Auto-translate to additional languages on save:",
-            )}
-          </p>
-          <div className="flex flex-wrap gap-4">
-            {Object.values(LANGUAGE_CONFIGS).map((loc) => {
-              const isOriginal = loc.code === originalLocale;
-              const isExisting = existingLocales.includes(loc.code);
-              const isChecked =
-                isOriginal || isExisting || targetLocales.includes(loc.code);
-
-              return (
-                <label
-                  key={loc.code}
-                  className={`flex items-center gap-2 ${
-                    isOriginal || isExisting ? "opacity-60" : ""
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={() => toggleTargetLocale(loc.code)}
-                    disabled={isOriginal || isExisting}
-                    className="w-4 h-4 rounded border-border text-accent focus:ring-accent disabled:opacity-60"
-                  />
-                  <span className="text-sm text-text-primary">
-                    {loc.label}
-                    {isOriginal && (
-                      <span className="ml-1 text-xs text-blue-600 font-medium">
-                        {t("admin.original", "Original")}
-                      </span>
-                    )}
-                    {isExisting && !isOriginal && (
-                      <span className="ml-1 text-xs text-green-600 font-medium">
-                        {t("admin.translated", "Translated")}
-                      </span>
-                    )}
-                  </span>
-                </label>
-              );
-            })}
-          </div>
-        </div>
-      </AdminSection>
-
-      <div className="sticky bottom-0 -mx-6 -mb-6 px-6 py-4 bg-bg-secondary border-t border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover disabled:opacity-50 transition-colors"
-          >
-            {isSubmitting && (
-              <svg
-                className="animate-spin h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                />
-              </svg>
-            )}
-            {isSubmitting
-              ? t("admin.saving", "Saving...")
-              : isEditMode
-                ? t("admin.updateProfile", "Update Profile")
-                : t("admin.saveProfile", "Save Profile")}
-          </button>
-          <a
-            href="/admin/developers"
-            className="px-5 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-bg-tertiary rounded-lg transition-colors"
-          >
-            {t("admin.cancel", "Cancel")}
-          </a>
-        </div>
-
-        {isEditMode && (
-          <button
-            type="button"
-            onClick={() => setShowDeleteModal(true)}
-            disabled={isDeleting}
-            className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="w-4 h-4"
-            >
-              <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
-            {t("admin.delete", "Delete")}
-          </button>
+        translatedHint={t(
+          "admin.translatedLocaleHint",
+          "You are editing the {locale} translation. Original is {original}.",
         )}
-      </div>
+        setAsOriginalLabel={t("admin.setAsOriginalLocale", "Set as original")}
+        savingLabel={t("admin.saving", "Saving...")}
+        translateDescription={t(
+          "admin.translateDescription",
+          "Auto-translate to additional languages on save:",
+        )}
+        originalChipLabel={t("admin.original", "Original")}
+        translatedChipLabel={t("admin.translated", "Translated")}
+      />
 
-      {showDeleteModal && (
-        <DeleteModal
-          title={t("admin.deleteProfile", "Delete developer profile?")}
-          itemName={name || id}
-          locale={locale}
-          translations={translations}
-          onConfirm={handleDelete}
-          onCancel={() => setShowDeleteModal(false)}
-        />
-      )}
+      <StickyEditorActions
+        isEditMode={isEditMode}
+        isSubmitting={isSubmitting}
+        isDeleting={isDeleting}
+        showDeleteModal={showDeleteModal}
+        cancelHref="/admin/developers"
+        itemName={name || id}
+        locale={locale}
+        translations={translations}
+        onSubmit={() => {}}
+        onShowDelete={() => setShowDeleteModal(true)}
+        onHideDelete={() => setShowDeleteModal(false)}
+        onConfirmDelete={handleDelete}
+        deleteModalTitle={t("admin.deleteProfile", "Delete developer profile?")}
+        deleteButtonLabel={t("admin.delete", "Delete")}
+        submitLabel={t("admin.updateProfile", "Update Profile")}
+        saveLabel={t("admin.saveProfile", "Save Profile")}
+        savingLabel={t("admin.saving", "Saving...")}
+        cancelLabel={t("admin.cancel", "Cancel")}
+      />
     </form>
   );
 }

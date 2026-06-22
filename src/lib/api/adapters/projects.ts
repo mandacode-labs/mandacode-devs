@@ -4,17 +4,17 @@ import { createProjectSchema, updateProjectSchema } from "@/lib/api/validation";
 import { ApiError } from "@/lib/api/response";
 import type { AdminCrudAdapter } from "@/lib/api/admin-crud";
 import { hashContent } from "@/lib/hash";
+import type { ProjectTranslation } from "@/lib/db/schema";
 import type { z } from "zod";
 
 type CreateBody = z.infer<typeof createProjectSchema>;
 type UpdateBody = z.infer<typeof updateProjectSchema>;
 
-interface ExistingProjectTranslation {
-  publish_status: string;
-  published_at: string | null;
-}
-
-export const projectAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
+export const projectAdapter: AdminCrudAdapter<
+  CreateBody,
+  UpdateBody,
+  ProjectTranslation
+> = {
   entityType: "project",
   entityName: "Project",
   createSchema: createProjectSchema,
@@ -59,7 +59,6 @@ export const projectAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
       throw new ApiError("Project translation not found", 404);
     }
 
-    const existingProject = existing as ExistingProjectTranslation;
     const translationUpdate: projectsRepo.UpdateProjectTranslationInput = {
       title: body.title,
       description: body.description,
@@ -71,8 +70,8 @@ export const projectAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
 
     if (
       body.publish_status === "published" &&
-      existingProject.publish_status !== "published" &&
-      !existingProject.published_at
+      existing.publish_status !== "published" &&
+      !existing.published_at
     ) {
       translationUpdate.published_at = new Date().toISOString();
     }

@@ -6,17 +6,17 @@ import {
 import { ApiError } from "@/lib/api/response";
 import type { AdminCrudAdapter } from "@/lib/api/admin-crud";
 import { hashContent } from "@/lib/hash";
+import type { DeveloperTranslation } from "@/lib/db/schema";
 import type { z } from "zod";
 
 type CreateBody = z.infer<typeof createDeveloperSchema>;
 type UpdateBody = z.infer<typeof updateDeveloperSchema>;
 
-interface ExistingDeveloperTranslation {
-  publish_status: string;
-  published_at: string | null;
-}
-
-export const developerAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
+export const developerAdapter: AdminCrudAdapter<
+  CreateBody,
+  UpdateBody,
+  DeveloperTranslation
+> = {
   entityType: "developer",
   entityName: "Developer",
   createSchema: createDeveloperSchema,
@@ -79,11 +79,10 @@ export const developerAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
     };
 
     if (existing) {
-      const existingDeveloper = existing as ExistingDeveloperTranslation;
       if (
         body.publish_status === "published" &&
-        existingDeveloper.publish_status !== "published" &&
-        !existingDeveloper.published_at
+        existing.publish_status !== "published" &&
+        !existing.published_at
       ) {
         translationUpdate.published_at = new Date().toISOString();
       }

@@ -1,11 +1,64 @@
 import { getDatabase } from "@/lib/db/client";
-import { hashContent } from "@/lib/hash";
-import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
+import { hashContent } from "@/lib/db/translation-repo";
+import {
+  deleteAllEntityTranslations,
+  deleteEntity,
+  deleteEntityTranslation,
+  getByIdWithTranslation,
+  getEntityLocaleMeta,
+  getEntityLocales,
+  getEntityLocalesWithContent,
+  getEntityOriginalHash,
+  getEntityOriginalLocale,
+  getListWithTranslation,
+  updateEntityTranslation,
+  updateEntityTranslationsCascade,
+  type LocaleMeta,
+  type MainTableConfig,
+  type TransTableConfig,
+} from "@/lib/db/translation-repo";
 import type {
   Developer,
   DeveloperTranslation,
   PublishStatus,
 } from "@/lib/db/schema";
+
+export type { LocaleMeta as DeveloperLocaleMeta };
+
+const MAIN_CFG: MainTableConfig = {
+  table: "developers",
+  alias: "d",
+  idColumn: "id",
+  baseColumns: [
+    "id",
+    "author_id",
+    "github_url",
+    "email",
+    "website_url",
+    "tech_stack",
+    "certifications",
+    "education",
+    "original_locale",
+    "created_at",
+    "updated_at",
+  ],
+  orderBy: "orig.name ASC",
+};
+
+const TRANS_CFG: TransTableConfig = {
+  table: "developer_translations",
+  alias: "orig",
+  idColumn: "developer_id",
+  transColumns: [
+    "name",
+    "role",
+    "bio",
+    "tiptap_json",
+    "avatar_url",
+    "publish_status",
+    "published_at",
+  ],
+};
 
 export interface CreateDeveloperInput {
   id: string;
@@ -65,32 +118,10 @@ export interface DeveloperWithTranslation extends Developer {
   is_fallback: boolean;
 }
 
-export function rowToDeveloperWithTranslation(
+function mapDeveloperRow(
   row: Record<string, unknown>,
 ): DeveloperWithTranslation {
   const hasTranslation = row.translation_name !== null;
-  const name = String(
-    hasTranslation ? row.translation_name : row.original_name,
-  );
-  const role = String(
-    hasTranslation ? row.translation_role : row.original_role,
-  );
-  const bio = String(hasTranslation ? row.translation_bio : row.original_bio);
-  const tiptap_json = String(
-    hasTranslation ? row.translation_tiptap_json : row.original_tiptap_json,
-  );
-  const avatar_url = hasTranslation
-    ? (row.translation_avatar_url as string | null)
-    : (row.original_avatar_url as string | null);
-  const publish_status = String(
-    hasTranslation
-      ? row.translation_publish_status
-      : row.original_publish_status,
-  ) as PublishStatus;
-  const published_at = hasTranslation
-    ? (row.translation_published_at as string | null)
-    : (row.original_published_at as string | null);
-
   return {
     id: String(row.id),
     author_id: String(row.author_id),
@@ -103,68 +134,28 @@ export function rowToDeveloperWithTranslation(
     original_locale: String(row.original_locale),
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
-    name,
-    role,
-    bio,
-    tiptap_json,
-    avatar_url,
-    publish_status,
-    published_at,
+    name: String(hasTranslation ? row.translation_name : row.original_name),
+    role: String(hasTranslation ? row.translation_role : row.original_role),
+    bio: String(hasTranslation ? row.translation_bio : row.original_bio),
+    tiptap_json: String(
+      hasTranslation ? row.translation_tiptap_json : row.original_tiptap_json,
+    ),
+    avatar_url: hasTranslation
+      ? (row.translation_avatar_url as string | null)
+      : (row.original_avatar_url as string | null),
+    publish_status: String(
+      hasTranslation
+        ? row.translation_publish_status
+        : row.original_publish_status,
+    ) as PublishStatus,
+    published_at: hasTranslation
+      ? (row.translation_published_at as string | null)
+      : (row.original_published_at as string | null),
     is_fallback: !hasTranslation,
   };
 }
 
-function buildListQuery(
-  locale: string,
-  options: GetDevelopersOptions = {},
-): {
-  query: string;
-  params: string[];
-} {
-  const params: string[] = [];
-  let query = `
-    SELECT
-      d.id,
-      d.author_id,
-      d.github_url,
-      d.email,
-      d.website_url,
-      d.tech_stack,
-      d.certifications,
-      d.education,
-      d.original_locale,
-      d.created_at,
-      d.updated_at,
-      orig.name AS original_name,
-      orig.role AS original_role,
-      orig.bio AS original_bio,
-      orig.tiptap_json AS original_tiptap_json,
-      orig.avatar_url AS original_avatar_url,
-      orig.publish_status AS original_publish_status,
-      orig.published_at AS original_published_at,
-      trans.name AS translation_name,
-      trans.role AS translation_role,
-      trans.bio AS translation_bio,
-      trans.tiptap_json AS translation_tiptap_json,
-      trans.avatar_url AS translation_avatar_url,
-      trans.publish_status AS translation_publish_status,
-      trans.published_at AS translation_published_at
-    FROM developers d
-    LEFT JOIN developer_translations orig
-      ON d.id = orig.developer_id AND orig.locale = d.original_locale
-    LEFT JOIN developer_translations trans
-      ON d.id = trans.developer_id AND trans.locale = ?
-  `;
-  params.push(locale);
-
-  if (!options.includeUnpublished) {
-    query += " WHERE orig.publish_status = 'published'";
-  }
-
-  query += " ORDER BY orig.name ASC";
-
-  return { query, params };
-}
+export const rowToDeveloperWithTranslation = mapDeveloperRow;
 
 export interface GetDevelopersOptions {
   includeUnpublished?: boolean;
@@ -174,15 +165,12 @@ export async function getDevelopers(
   locale: string,
   options: GetDevelopersOptions = {},
 ): Promise<DeveloperWithTranslation[]> {
-  const db = getDatabase();
-  const { query, params } = buildListQuery(locale, options);
-
-  const result = await db
-    .prepare(query)
-    .bind(...params)
-    .all();
-  return ((result.results ?? []) as Record<string, unknown>[]).map(
-    rowToDeveloperWithTranslation,
+  return getListWithTranslation(
+    MAIN_CFG,
+    TRANS_CFG,
+    locale,
+    options,
+    mapDeveloperRow,
   );
 }
 
@@ -190,50 +178,13 @@ export async function getDeveloperById(
   id: string,
   locale: string,
 ): Promise<DeveloperWithTranslation | null> {
-  const db = getDatabase();
-
-  const result = await db
-    .prepare(
-      `
-      SELECT
-        d.id,
-        d.author_id,
-        d.github_url,
-        d.email,
-        d.website_url,
-        d.tech_stack,
-        d.certifications,
-        d.education,
-        d.original_locale,
-        d.created_at,
-        d.updated_at,
-        orig.name AS original_name,
-        orig.role AS original_role,
-        orig.bio AS original_bio,
-        orig.tiptap_json AS original_tiptap_json,
-        orig.avatar_url AS original_avatar_url,
-        orig.publish_status AS original_publish_status,
-        orig.published_at AS original_published_at,
-        trans.name AS translation_name,
-        trans.role AS translation_role,
-        trans.bio AS translation_bio,
-        trans.tiptap_json AS translation_tiptap_json,
-        trans.avatar_url AS translation_avatar_url,
-        trans.publish_status AS translation_publish_status,
-        trans.published_at AS translation_published_at
-      FROM developers d
-      LEFT JOIN developer_translations orig
-        ON d.id = orig.developer_id AND orig.locale = d.original_locale
-      LEFT JOIN developer_translations trans
-        ON d.id = trans.developer_id AND trans.locale = ?
-      WHERE d.id = ?
-      `,
-    )
-    .bind(locale, id)
-    .first();
-
-  if (!result) return null;
-  return rowToDeveloperWithTranslation(result as Record<string, unknown>);
+  return getByIdWithTranslation(
+    MAIN_CFG,
+    TRANS_CFG,
+    locale,
+    id,
+    mapDeveloperRow,
+  );
 }
 
 export async function getDeveloperTranslationById(
@@ -241,14 +192,12 @@ export async function getDeveloperTranslationById(
   locale: string,
 ): Promise<DeveloperTranslation | null> {
   const db = getDatabase();
-
   const result = await db
     .prepare(
       "SELECT * FROM developer_translations WHERE developer_id = ? AND locale = ?",
     )
     .bind(id, locale)
     .first();
-
   return (result as DeveloperTranslation | null) ?? null;
 }
 
@@ -256,7 +205,6 @@ export async function createDeveloper(
   input: CreateDeveloperInput,
 ): Promise<void> {
   const db = getDatabase();
-
   await db
     .prepare(
       `INSERT INTO developers (
@@ -332,165 +280,75 @@ export async function updateDeveloper(
     .run();
 }
 
-export async function updateDeveloperTranslation(
+export function updateDeveloperTranslation(
   developerId: string,
   locale: string,
   input: UpdateDeveloperTranslationInput,
 ): Promise<void> {
-  const db = getDatabase();
-
-  const fields: string[] = [];
-  const values: unknown[] = [];
-
-  for (const [key, value] of Object.entries(input)) {
-    if (value === undefined) continue;
-    fields.push(`${key} = ?`);
-    values.push(value);
-  }
-
-  if (input.tiptap_json !== undefined && input.source_hash === undefined) {
-    fields.push("source_hash = ?");
-    values.push(await hashContent(input.tiptap_json));
-  }
-
-  if (fields.length === 0) return;
-
-  fields.push("updated_at = CURRENT_TIMESTAMP");
-
-  await db
-    .prepare(
-      `UPDATE developer_translations SET ${fields.join(", ")} WHERE developer_id = ? AND locale = ?`,
-    )
-    .bind(...values, developerId, locale)
-    .run();
-}
-
-export async function getDeveloperLocales(id: string): Promise<string[]> {
-  const db = getDatabase();
-  const result = await db
-    .prepare("SELECT locale FROM developer_translations WHERE developer_id = ?")
-    .bind(id)
-    .all();
-  return (result.results ?? []).map(
-    (row) => (row as { locale: string }).locale,
+  return updateEntityTranslation(
+    "developer_translations",
+    "developer_id",
+    developerId,
+    locale,
+    input as Record<string, unknown>,
   );
 }
 
-export async function updateDeveloperTranslationsCascade(
+export const getDeveloperLocales = (id: string) =>
+  getEntityLocales("developer_translations", "developer_id", id);
+
+export const updateDeveloperTranslationsCascade = (
   id: string,
   originalLocale: string,
   newSourceHash: string,
-): Promise<void> {
-  const db = getDatabase();
-  await db
-    .prepare(
-      `UPDATE developer_translations
-       SET source_hash = ?, updated_at = CURRENT_TIMESTAMP
-       WHERE developer_id = ? AND locale != ?`,
-    )
-    .bind(newSourceHash, id, originalLocale)
-    .run();
-}
-
-export interface DeveloperLocaleMeta {
-  locale: string;
-  publish_status: PublishStatus;
-  source_hash: string | null;
-  updated_at: string;
-}
-
-export async function getDeveloperLocaleMeta(
-  id: string,
-): Promise<DeveloperLocaleMeta[]> {
-  const db = getDatabase();
-  const result = await db
-    .prepare(
-      "SELECT locale, publish_status, source_hash, updated_at FROM developer_translations WHERE developer_id = ?",
-    )
-    .bind(id)
-    .all();
-  return (result.results ?? []) as unknown as DeveloperLocaleMeta[];
-}
-
-export async function getDeveloperOriginalLocale(id: string): Promise<string> {
-  const db = getDatabase();
-  const row = await db
-    .prepare("SELECT original_locale FROM developers WHERE id = ?")
-    .bind(id)
-    .first();
-  return String(
-    (row as { original_locale?: string } | null)?.original_locale ??
-      DEFAULT_LANGUAGE,
+) =>
+  updateEntityTranslationsCascade(
+    "developer_translations",
+    "developer_id",
+    id,
+    originalLocale,
+    newSourceHash,
   );
-}
 
-export async function getDeveloperOriginalHash(
-  id: string,
-): Promise<string | null> {
-  const db = getDatabase();
-  const developer = await db
-    .prepare("SELECT original_locale FROM developers WHERE id = ?")
-    .bind(id)
-    .first();
-  if (!developer) return null;
+export const getDeveloperLocaleMeta = (id: string) =>
+  getEntityLocaleMeta("developer_translations", "developer_id", id);
 
-  const row = await db
-    .prepare(
-      "SELECT source_hash FROM developer_translations WHERE developer_id = ? AND locale = ?",
-    )
-    .bind(id, (developer as { original_locale: string }).original_locale)
-    .first();
-  if (!row) return null;
+export const getDeveloperOriginalLocale = (id: string) =>
+  getEntityOriginalLocale("developers", id);
 
-  const hash = (row as { source_hash: string | null }).source_hash;
-  return hash ?? null;
-}
+export const getDeveloperOriginalHash = (id: string) =>
+  getEntityOriginalHash(
+    "developers",
+    "developer_translations",
+    "developer_id",
+    id,
+  );
 
-export async function getDeveloperLocalesWithContent(id: string): Promise<
+export function getDeveloperLocalesWithContent(id: string): Promise<
   Array<{
     locale: string;
     tiptap_json: string;
     avatar_url: string | null;
   }>
 > {
-  const db = getDatabase();
-  const result = await db
-    .prepare(
-      "SELECT locale, tiptap_json, avatar_url FROM developer_translations WHERE developer_id = ?",
-    )
-    .bind(id)
-    .all();
-  return (result.results ?? []) as Array<{
-    locale: string;
-    tiptap_json: string;
-    avatar_url: string | null;
-  }>;
+  return getEntityLocalesWithContent(
+    "developer_translations",
+    "developer_id",
+    id,
+    ["avatar_url"],
+  ) as Promise<
+    Array<{
+      locale: string;
+      tiptap_json: string;
+      avatar_url: string | null;
+    }>
+  >;
 }
 
-export async function deleteDeveloper(id: string): Promise<void> {
-  const db = getDatabase();
-  await db.prepare("DELETE FROM developers WHERE id = ?").bind(id).run();
-}
+export const deleteDeveloper = (id: string) => deleteEntity("developers", id);
 
-export async function deleteDeveloperTranslation(
-  id: string,
-  locale: string,
-): Promise<void> {
-  const db = getDatabase();
-  await db
-    .prepare(
-      "DELETE FROM developer_translations WHERE developer_id = ? AND locale = ?",
-    )
-    .bind(id, locale)
-    .run();
-}
+export const deleteDeveloperTranslation = (id: string, locale: string) =>
+  deleteEntityTranslation("developer_translations", "developer_id", id, locale);
 
-export async function deleteAllDeveloperTranslations(
-  id: string,
-): Promise<void> {
-  const db = getDatabase();
-  await db
-    .prepare("DELETE FROM developer_translations WHERE developer_id = ?")
-    .bind(id)
-    .run();
-}
+export const deleteAllDeveloperTranslations = (id: string) =>
+  deleteAllEntityTranslations("developer_translations", "developer_id", id);
