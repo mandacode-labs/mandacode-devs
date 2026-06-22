@@ -2,7 +2,6 @@ import { translateFields } from "@/lib/openai/translation";
 import * as postsRepo from "@/lib/db/posts";
 import * as projectsRepo from "@/lib/db/projects";
 import * as developersRepo from "@/lib/db/developers";
-import * as tagsRepo from "@/lib/db/tags";
 import { updateTranslationJobStatus } from "@/lib/db/translation-jobs";
 import type { Language } from "@/lib/config/languages";
 import type { TranslationContentType } from "@/lib/db/schema";
@@ -37,33 +36,18 @@ async function translatePost(job: TranslationJobInput): Promise<void> {
   );
 
   const now = new Date().toISOString();
-  const existing = await postsRepo.getPostTranslationById(
-    job.id,
-    job.targetLocale,
-  );
 
-  if (existing) {
-    await postsRepo.updatePostTranslation(job.id, job.targetLocale, {
-      title: translated.title,
-      description: translated.description,
-      tiptap_json: translated.tiptapJson,
-    });
-  } else {
-    await postsRepo.createPostTranslation({
-      id: `${source.post_id}_${job.targetLocale}`,
-      post_id: source.post_id,
-      locale: job.targetLocale,
-      title: translated.title,
-      description: translated.description,
-      tiptap_json: translated.tiptapJson,
-      cover_image_url: source.cover_image_url,
-      publish_status: source.publish_status,
-      published_at: source.published_at ? now : null,
-    });
-  }
-
-  const sourceTags = await tagsRepo.getPostTags(job.id);
-  await tagsRepo.setPostTags(job.id, sourceTags);
+  await postsRepo.createPostTranslation({
+    id: `${source.post_id}_${job.targetLocale}`,
+    post_id: source.post_id,
+    locale: job.targetLocale,
+    title: translated.title,
+    description: translated.description,
+    tiptap_json: translated.tiptapJson,
+    cover_image_url: source.cover_image_url,
+    publish_status: source.publish_status,
+    published_at: source.published_at ? now : null,
+  });
 }
 
 async function translateProject(job: TranslationJobInput): Promise<void> {
@@ -86,35 +70,19 @@ async function translateProject(job: TranslationJobInput): Promise<void> {
   );
 
   const now = new Date().toISOString();
-  const existing = await projectsRepo.getProjectTranslationById(
-    job.id,
-    job.targetLocale,
-  );
 
-  if (existing) {
-    await projectsRepo.updateProjectTranslation(job.id, job.targetLocale, {
-      title: translated.title,
-      description: translated.description,
-      tiptap_json: translated.tiptapJson,
-      role: translated.role ?? source.role,
-    });
-  } else {
-    await projectsRepo.createProjectTranslation({
-      id: `${source.project_id}_${job.targetLocale}`,
-      project_id: source.project_id,
-      locale: job.targetLocale,
-      title: translated.title,
-      description: translated.description,
-      tiptap_json: translated.tiptapJson,
-      role: translated.role ?? source.role,
-      cover_image_url: source.cover_image_url,
-      publish_status: source.publish_status,
-      published_at: source.published_at ? now : null,
-    });
-  }
-
-  const sourceTags = await tagsRepo.getProjectTags(job.id);
-  await tagsRepo.setProjectTags(job.id, sourceTags);
+  await projectsRepo.createProjectTranslation({
+    id: `${source.project_id}_${job.targetLocale}`,
+    project_id: source.project_id,
+    locale: job.targetLocale,
+    title: translated.title,
+    description: translated.description,
+    tiptap_json: translated.tiptapJson,
+    role: translated.role ?? source.role,
+    cover_image_url: source.cover_image_url,
+    publish_status: source.publish_status,
+    published_at: source.published_at ? now : null,
+  });
 }
 
 async function translateDeveloper(job: TranslationJobInput): Promise<void> {
@@ -139,32 +107,19 @@ async function translateDeveloper(job: TranslationJobInput): Promise<void> {
   );
 
   const now = new Date().toISOString();
-  const existing = await developersRepo.getDeveloperTranslationById(
-    job.id,
-    job.targetLocale,
-  );
 
-  if (existing) {
-    await developersRepo.updateDeveloperTranslation(job.id, job.targetLocale, {
-      name: translated.title,
-      role: translated.role ?? source.role,
-      bio: translated.description ?? source.bio,
-      tiptap_json: translated.tiptapJson,
-    });
-  } else {
-    await developersRepo.createDeveloperTranslation({
-      id: `${source.developer_id}_${job.targetLocale}`,
-      developer_id: source.developer_id,
-      locale: job.targetLocale,
-      name: translated.title,
-      role: translated.role ?? source.role,
-      bio: translated.description ?? source.bio,
-      tiptap_json: translated.tiptapJson,
-      avatar_url: source.avatar_url,
-      publish_status: source.publish_status,
-      published_at: source.published_at ? now : null,
-    });
-  }
+  await developersRepo.createDeveloperTranslation({
+    id: `${source.developer_id}_${job.targetLocale}`,
+    developer_id: source.developer_id,
+    locale: job.targetLocale,
+    name: translated.title,
+    role: translated.role ?? source.role,
+    bio: translated.description ?? source.bio,
+    tiptap_json: translated.tiptapJson,
+    avatar_url: source.avatar_url,
+    publish_status: source.publish_status,
+    published_at: source.published_at ? now : null,
+  });
 }
 
 async function executeTranslation(job: TranslationJobInput): Promise<void> {

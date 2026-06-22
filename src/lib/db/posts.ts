@@ -92,7 +92,10 @@ export function rowToPostWithTranslation(
   };
 }
 
-function buildListQuery(options: GetPostsOptions = {}): {
+function buildListQuery(
+  locale: string,
+  options: GetPostsOptions = {},
+): {
   query: string;
   params: (string | PublishStatus)[];
 } {
@@ -122,7 +125,7 @@ function buildListQuery(options: GetPostsOptions = {}): {
     LEFT JOIN post_translations trans
       ON p.id = trans.post_id AND trans.locale = ?
   `;
-  params.push("placeholder-locale");
+  params.push(locale);
 
   if (!options.includeUnpublished) {
     query += " WHERE orig.publish_status = ?";
@@ -145,8 +148,7 @@ export async function getPosts(
   options: GetPostsOptions = {},
 ): Promise<PostWithTranslation[]> {
   const db = getDatabase();
-  const { query, params } = buildListQuery(options);
-  params[0] = locale;
+  const { query, params } = buildListQuery(locale, options);
 
   const result = await db
     .prepare(query)

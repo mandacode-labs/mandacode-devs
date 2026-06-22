@@ -3,6 +3,7 @@ import * as postsRepo from "@/lib/db/posts";
 import * as projectsRepo from "@/lib/db/projects";
 import * as developersRepo from "@/lib/db/developers";
 import * as tagsRepo from "@/lib/db/tags";
+import { tryParseJson } from "@/lib/utils/json";
 import type { PostWithTranslation } from "@/lib/db/posts";
 import type { ProjectWithTranslation } from "@/lib/db/projects";
 import type { DeveloperWithTranslation } from "@/lib/db/developers";
@@ -87,15 +88,6 @@ function mapD1Project(
   };
 }
 
-function safeJsonParse<T>(value: string | null): T | null {
-  if (!value) return null;
-  try {
-    return JSON.parse(value) as T;
-  } catch {
-    return null;
-  }
-}
-
 function mapD1Developer(
   developer: DeveloperWithTranslation,
   lang: Language,
@@ -111,13 +103,13 @@ function mapD1Developer(
     github: developer.github_url,
     email: developer.email,
     website: developer.website_url,
-    techStack: safeJsonParse<string[]>(developer.tech_stack) ?? [],
+    techStack: tryParseJson<string[]>(developer.tech_stack) ?? [],
     certifications:
-      safeJsonParse<UnifiedDeveloper["certifications"]>(
+      tryParseJson<UnifiedDeveloper["certifications"]>(
         developer.certifications,
       ) ?? [],
     education:
-      safeJsonParse<UnifiedDeveloper["education"]>(developer.education) ?? [],
+      tryParseJson<UnifiedDeveloper["education"]>(developer.education) ?? [],
     publishStatus: developer.publish_status,
     isFallback: developer.is_fallback,
     d1Content: developer.tiptap_json,

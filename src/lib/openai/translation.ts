@@ -6,6 +6,7 @@ import {
   insertTexts,
   type TextNode,
 } from "@/lib/tiptap/translation";
+import { parseJsonOrThrow } from "@/lib/utils/json";
 import type { Language } from "@/lib/config/languages";
 
 export interface TranslatableFields {
@@ -38,13 +39,8 @@ function getOpenAIClient(): OpenAI {
   return new OpenAI({ apiKey: OPENAI_API_KEY });
 }
 
-function safeJsonParse<T>(value: string): T {
-  try {
-    return JSON.parse(value) as T;
-  } catch {
-    throw new ApiError("Invalid JSON content", 400);
-  }
-}
+const safeJsonParse = <T>(value: string): T =>
+  parseJsonOrThrow<T>(value, "Invalid JSON content");
 
 function buildTranslationPayload(fields: TranslatableFields): {
   title: string;

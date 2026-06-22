@@ -1,15 +1,15 @@
 import type { UIKey } from "@/lib/i18n";
+import { interpolate } from "@/lib/utils/interpolate";
 
 export type AdminTranslations = Partial<Record<UIKey, string>>;
 
 export function useAdminTranslations(translations: AdminTranslations) {
-  return (key: UIKey, fallback: string, vars?: Record<string, string>) => {
-    let text = translations[key] ?? fallback;
-    if (vars) {
-      for (const [k, v] of Object.entries(vars)) {
-        text = text.replaceAll(`{${k}}`, v);
-      }
-    }
-    return text;
+  return (
+    key: UIKey,
+    fallback: string,
+    vars?: Record<string, string | number>,
+  ) => {
+    const text = translations[key] ?? fallback;
+    return interpolate(text, vars);
   };
 }

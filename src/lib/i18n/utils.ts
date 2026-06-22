@@ -1,5 +1,6 @@
 import { ui, type UIKey, DEFAULT_LANGUAGE } from "./index";
 import { getLocaleFromPath, getRelativeLocaleUrl } from "../config/languages";
+import { interpolate } from "@/lib/utils/interpolate";
 import type { Lang } from "@/types";
 
 export type { Lang };
@@ -11,14 +12,7 @@ export function useTranslations(lang: Lang) {
     vars?: Record<string, string | number>,
   ): string {
     const translations = ui[lang] || ui[DEFAULT_LANGUAGE];
-    let text = translations?.[key] || ui[DEFAULT_LANGUAGE]?.[key] || key;
-
-    if (vars) {
-      Object.entries(vars).forEach(([k, v]) => {
-        text = String(text).replace(`{${k}}`, String(v));
-      });
-    }
-
-    return text;
+    const text = translations?.[key] || ui[DEFAULT_LANGUAGE]?.[key] || key;
+    return interpolate(text, vars);
   };
 }

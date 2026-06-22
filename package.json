@@ -15,7 +15,7 @@
     "astro": "astro",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "wrangler types && astro check",
+    "check": "wrangler types && ./node_modules/.bin/astro check",
     "test": "vitest run",
     "test:watch": "vitest",
     "deploy": "npm run build && wrangler deploy"
@@ -87,7 +87,9 @@
     "tsx": "^4.22.4",
     "typescript": "^6.0.3",
     "vitest": "^4.1.8",
-    "wrangler": "^4.103.0",
+    "wrangler": "^4.103.0"
+  },
+  "dependencies": {
     "zod": "^4.4.3"
   },
   "overrides": {
