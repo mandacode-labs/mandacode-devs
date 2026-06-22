@@ -1,5 +1,6 @@
 ---
 import "@/styles/global.css";
+import MermaidLoader from "@/components/MermaidLoader.astro";
 
 interface Props {
   title?: string;
@@ -68,5 +69,6 @@ const pageTitle = title ? `${title} | ${siteTitle}` : siteTitle;
   </head>
   <body class="min-h-screen admin-surface text-text-primary antialiased">
     <slot />
+    <MermaidLoader />
   </body>
 </html>
