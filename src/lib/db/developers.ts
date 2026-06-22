@@ -374,6 +374,22 @@ export async function getDeveloperLocales(id: string): Promise<string[]> {
   );
 }
 
+export async function updateDeveloperTranslationsCascade(
+  id: string,
+  originalLocale: string,
+  newSourceHash: string,
+): Promise<void> {
+  const db = getDatabase();
+  await db
+    .prepare(
+      `UPDATE developer_translations
+       SET source_hash = ?, updated_at = CURRENT_TIMESTAMP
+       WHERE developer_id = ? AND locale != ?`,
+    )
+    .bind(newSourceHash, id, originalLocale)
+    .run();
+}
+
 export interface DeveloperLocaleMeta {
   locale: string;
   publish_status: PublishStatus;
@@ -418,13 +434,14 @@ export async function getDeveloperOriginalHash(
 
   const row = await db
     .prepare(
-      "SELECT tiptap_json FROM developer_translations WHERE developer_id = ? AND locale = ?",
+      "SELECT source_hash FROM developer_translations WHERE developer_id = ? AND locale = ?",
     )
     .bind(id, (developer as { original_locale: string }).original_locale)
     .first();
   if (!row) return null;
 
-  return hashContent((row as { tiptap_json: string }).tiptap_json);
+  const hash = (row as { source_hash: string | null }).source_hash;
+  return hash ?? null;
 }
 
 export async function getDeveloperLocalesWithContent(id: string): Promise<

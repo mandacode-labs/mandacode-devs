@@ -395,6 +395,22 @@ export async function getProjectLocales(id: string): Promise<string[]> {
   );
 }
 
+export async function updateProjectTranslationsCascade(
+  id: string,
+  originalLocale: string,
+  newSourceHash: string,
+): Promise<void> {
+  const db = getDatabase();
+  await db
+    .prepare(
+      `UPDATE project_translations
+       SET source_hash = ?, updated_at = CURRENT_TIMESTAMP
+       WHERE project_id = ? AND locale != ?`,
+    )
+    .bind(newSourceHash, id, originalLocale)
+    .run();
+}
+
 export interface ProjectLocaleMeta {
   locale: string;
   publish_status: PublishStatus;
@@ -439,13 +455,14 @@ export async function getProjectOriginalHash(
 
   const row = await db
     .prepare(
-      "SELECT tiptap_json FROM project_translations WHERE project_id = ? AND locale = ?",
+      "SELECT source_hash FROM project_translations WHERE project_id = ? AND locale = ?",
     )
     .bind(id, (project as { original_locale: string }).original_locale)
     .first();
   if (!row) return null;
 
-  return hashContent((row as { tiptap_json: string }).tiptap_json);
+  const hash = (row as { source_hash: string | null }).source_hash;
+  return hash ?? null;
 }
 
 export async function getProjectLocalesWithContent(id: string): Promise<

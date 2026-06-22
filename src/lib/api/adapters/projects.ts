@@ -3,6 +3,7 @@ import * as tagsRepo from "@/lib/db/tags";
 import { createProjectSchema, updateProjectSchema } from "@/lib/api/validation";
 import { ApiError } from "@/lib/api/response";
 import type { AdminCrudAdapter } from "@/lib/api/admin-crud";
+import { hashContent } from "@/lib/hash";
 import type { z } from "zod";
 
 type CreateBody = z.infer<typeof createProjectSchema>;
@@ -77,6 +78,17 @@ export const projectAdapter: AdminCrudAdapter<CreateBody, UpdateBody> = {
     }
 
     await projectsRepo.updateProjectTranslation(id, locale, translationUpdate);
+
+    const projectOriginalLocale =
+      await projectsRepo.getProjectOriginalLocale(id);
+    if (locale === projectOriginalLocale && body.tiptap_json !== undefined) {
+      const newSourceHash = await hashContent(body.tiptap_json);
+      await projectsRepo.updateProjectTranslationsCascade(
+        id,
+        locale,
+        newSourceHash,
+      );
+    }
 
     const mainUpdate: projectsRepo.UpdateProjectInput = {};
     if (body.original_locale !== undefined)
