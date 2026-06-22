@@ -1,6 +1,7 @@
 ---
 import NavigationCard from "@/components/home/NavigationCard.astro";
 import { useTranslations } from "@/lib/i18n/utils";
+import { getStaticAssetUrl } from "@/lib/config/site";
 import type { Lang } from "@/types";
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 
 const { lang } = Astro.props;
 const t = useTranslations(lang);
+const logoUrl = getStaticAssetUrl("mandacode.webp");
 
 const cards = [
   {
@@ -36,7 +38,7 @@ const cards = [
   <header class="text-center mb-16">
     <div class="flex justify-center mb-6">
       <img
-        src="https://static.mandacode.com/mandacode-devs/mandacode.webp"
+        src={logoUrl}
         alt="Mandacode"
         width="200"
         height="200"

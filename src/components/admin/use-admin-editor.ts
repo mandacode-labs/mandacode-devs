@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type SyntheticEvent } from "react";
 import { generateEntityId } from "@/lib/id";
+import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
 
 export interface Toast {
   type: "success" | "error";
@@ -19,7 +20,7 @@ export interface UseAdminEditorOptions {
 export function useAdminEditor(options: UseAdminEditorOptions) {
   const {
     initialId,
-    initialLocale = "ko",
+    initialLocale = DEFAULT_LANGUAGE,
     initialOriginalLocale,
     existingLocales: initialExistingLocales = [],
     entityType,

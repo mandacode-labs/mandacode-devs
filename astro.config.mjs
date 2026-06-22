@@ -24,6 +24,9 @@ export default defineConfig({
         "@": path.resolve("./src"),
       },
     },
+    ssr: {
+      noExternal: ["zod"],
+    },
   },
   integrations: [
     mermaid({

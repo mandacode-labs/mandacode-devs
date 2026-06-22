@@ -3,7 +3,7 @@
   "account_id": "b4f7b43b5801cbee79cad19216cf623b",
   "main": "@astrojs/cloudflare/entrypoints/server",
   "compatibility_date": "2026-05-29",
-  "compatibility_flags": ["global_fetch_strictly_public"],
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "vars": {
     "R2_PUBLIC_URL": "https://static.mandacode.com",
   },

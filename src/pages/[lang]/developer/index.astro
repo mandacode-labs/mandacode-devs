@@ -8,12 +8,17 @@ import ProjectTimeline from "@/components/developer/ProjectTimeline.astro";
 import ContentRenderer from "@/components/shared/ContentRenderer.astro";
 import { getDeveloper, getProjects } from "@/lib/content/service";
 import { sortProjectsByDate } from "@/lib/content/projects";
-import { isValidLanguage, MAIN_DEVELOPER_ID } from "@/lib/config/languages";
+import {
+  isValidLanguage,
+  MAIN_DEVELOPER_ID,
+  getLocaleFromRequest,
+} from "@/lib/config/languages";
 
 const { lang } = Astro.params;
 
 if (!lang || !isValidLanguage(lang)) {
-  return Astro.redirect("/ko/developer");
+  const locale = getLocaleFromRequest(Astro.request, Astro.url.pathname);
+  return Astro.redirect(`/${locale}/developer`);
 }
 
 const developer = await getDeveloper(MAIN_DEVELOPER_ID, lang);

@@ -2,12 +2,13 @@
 import Layout from "@/components/layouts/Layout.astro";
 import ArrowRight from "@/components/icons/ArrowRight.astro";
 import { useTranslations } from "@/lib/i18n/utils";
-import { isValidLanguage } from "@/lib/config/languages";
+import { isValidLanguage, getLocaleFromRequest } from "@/lib/config/languages";
 
 const { lang } = Astro.params;
 
 if (!lang || !isValidLanguage(lang)) {
-  return Astro.redirect("/ko");
+  const locale = getLocaleFromRequest(Astro.request, Astro.url.pathname);
+  return Astro.redirect(`/${locale}`);
 }
 
 const t = useTranslations(lang);

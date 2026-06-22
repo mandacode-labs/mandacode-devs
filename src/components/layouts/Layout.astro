@@ -4,6 +4,7 @@ import Header from "@/components/layouts/Header.astro";
 import Footer from "@/components/layouts/Footer.astro";
 import "@/styles/global.css";
 import { getLocaleFromPath } from "@/lib/i18n/utils";
+import { getStaticAssetHost } from "@/lib/config/site";
 
 interface Props {
   title?: string;
@@ -13,6 +14,7 @@ interface Props {
 
 const { title, description, ogImage } = Astro.props;
 const currentLang = getLocaleFromPath(Astro.url.pathname);
+const staticAssetHost = getStaticAssetHost();
 const siteTitle = "Mandacode Developer";
 const pageTitle = title ? `${title} | ${siteTitle}` : siteTitle;
 ---
@@ -23,7 +25,7 @@ const pageTitle = title ? `${title} | ${siteTitle}` : siteTitle;
     <SEO title={pageTitle} description={description} ogImage={ogImage} />
 
     <!-- External domain preconnect -->
-    <link rel="preconnect" href="https://static.mandacode.com" crossorigin />
+    <link rel="preconnect" href={staticAssetHost} crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 

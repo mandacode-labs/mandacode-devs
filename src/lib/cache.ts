@@ -1,3 +1,5 @@
+import { getSiteUrl } from "@/lib/config/site";
+
 function getCache(): Cache {
   return (caches as unknown as { default: Cache }).default;
 }
@@ -24,7 +26,7 @@ export async function cacheResponse(
 
 export async function invalidateCache(path: string): Promise<void> {
   const cache = getCache();
-  const url = new URL(path, "https://dev.mandacode.com");
+  const url = new URL(path, getSiteUrl());
 
   try {
     await cache.delete(new Request(url));
