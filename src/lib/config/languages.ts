@@ -67,8 +67,13 @@ export function getLocaleFromRequest(
   request: Request,
   pathname: string,
 ): Language {
-  const pathLocale = getLocaleFromPath(pathname);
-  if (pathLocale !== DEFAULT_LANGUAGE) return pathLocale;
+  const match = pathname.match(
+    new RegExp(`^/(${SUPPORTED_LANGUAGES.join("|")})(?:/|$)`),
+  );
+  const urlLang = match?.[1];
+  if (urlLang && isValidLanguage(urlLang)) {
+    return urlLang as Language;
+  }
 
   const cookie = request.headers.get("cookie") || "";
   const langMatch = cookie.match(/lang=([a-z]{2})/);

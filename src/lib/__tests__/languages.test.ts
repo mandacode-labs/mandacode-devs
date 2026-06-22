@@ -7,6 +7,7 @@ import {
   getLanguageConfig,
   getLocaleFromPath,
   getRelativeLocaleUrl,
+  getLocaleFromRequest,
 } from "../config/languages";
 
 describe("SUPPORTED_LANGUAGES", () => {
@@ -105,5 +106,89 @@ describe("getRelativeLocaleUrl", () => {
 
   it("handles empty path as root", () => {
     expect(getRelativeLocaleUrl("ja", "/")).toBe("/ja/");
+  });
+});
+
+describe("getLocaleFromRequest", () => {
+  function requestWith(headers: Record<string, string> = {}): Request {
+    return new Request("https://example.com/", { headers });
+  }
+
+  describe("URL language takes priority over cookie/Accept-Language", () => {
+    it("returns the URL lang even when a different cookie is set", () => {
+      // Regression: previously `/ko/projects` + `lang=en` cookie returned "en",
+      // causing the page to redirect to `/en/projects` and confusing users.
+      expect(
+        getLocaleFromRequest(
+          requestWith({ cookie: "lang=en" }),
+          "/ko/projects",
+        ),
+      ).toBe("ko");
+    });
+
+    it("returns the URL lang even when a different Accept-Language is set", () => {
+      expect(
+        getLocaleFromRequest(
+          requestWith({ "accept-language": "en-US,en;q=0.9" }),
+          "/ja/blog",
+        ),
+      ).toBe("ja");
+    });
+
+    it("returns the URL lang when it matches the default (ko) and cookie differs", () => {
+      // The exact production bug: `/ko/projects` with `lang=en` cookie
+      // must not redirect to `/en/projects`.
+      const result = getLocaleFromRequest(
+        requestWith({ cookie: "lang=en" }),
+        "/ko/blog/post-1",
+      );
+      expect(result).toBe("ko");
+    });
+  });
+
+  describe("URL has no language prefix", () => {
+    it("falls back to cookie when present", () => {
+      expect(
+        getLocaleFromRequest(requestWith({ cookie: "lang=ja" }), "/projects"),
+      ).toBe("ja");
+    });
+
+    it("falls back to Accept-Language when no cookie", () => {
+      expect(
+        getLocaleFromRequest(
+          requestWith({ "accept-language": "ja-JP,ja;q=0.9" }),
+          "/projects",
+        ),
+      ).toBe("ja");
+    });
+
+    it("falls back to DEFAULT_LANGUAGE when no cookie and no Accept-Language", () => {
+      expect(getLocaleFromRequest(requestWith(), "/projects")).toBe(
+        DEFAULT_LANGUAGE,
+      );
+    });
+
+    it("ignores invalid cookie values", () => {
+      expect(
+        getLocaleFromRequest(requestWith({ cookie: "lang=fr" }), "/projects"),
+      ).toBe(DEFAULT_LANGUAGE);
+    });
+  });
+
+  describe("URL has invalid language prefix", () => {
+    it("ignores invalid URL lang and uses cookie", () => {
+      expect(
+        getLocaleFromRequest(
+          requestWith({ cookie: "lang=en" }),
+          "/xx/projects",
+        ),
+      ).toBe("en");
+    });
+
+    it("falls back to DEFAULT_LANGUAGE when no cookie for invalid URL lang", () => {
+      expect(getLocaleFromRequest(requestWith(), "/xx/")).toBe(
+        DEFAULT_LANGUAGE,
+      );
+    });
   });
 });
