@@ -1,24 +1,8 @@
 import { useEffect, useRef, useCallback } from "react";
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react";
 
-import { StarterKit } from "@tiptap/starter-kit";
-import { Image } from "@tiptap/extension-image";
-import { TaskItem, TaskList } from "@tiptap/extension-list";
-import { TextAlign } from "@tiptap/extension-text-align";
-import { Typography } from "@tiptap/extension-typography";
-import { Highlight } from "@tiptap/extension-highlight";
-import { Color } from "@tiptap/extension-color";
-import { TextStyle } from "@tiptap/extension-text-style";
-import { Subscript } from "@tiptap/extension-subscript";
-import { Superscript } from "@tiptap/extension-superscript";
 import { Selection } from "@tiptap/extensions";
-import { Table } from "@tiptap/extension-table";
-import { TableRow } from "@tiptap/extension-table-row";
-import { TableCell } from "@tiptap/extension-table-cell";
-import { TableHeader } from "@tiptap/extension-table-header";
-import { createLowlight, common } from "lowlight";
-
-const lowlight = createLowlight(common);
+import { lowlight, tiptapExtensions } from "@/lib/tiptap/extensions";
 
 import { MermaidCodeBlock } from "@/components/tiptap-node/mermaid-node/mermaid-node-extension";
 import "@/components/tiptap-node/mermaid-node/mermaid-node.scss";
@@ -192,14 +176,7 @@ export default function TiptapEditor({
       },
     },
     extensions: [
-      StarterKit.configure({
-        horizontalRule: false,
-        codeBlock: false,
-        link: {
-          openOnClick: false,
-          enableClickSelection: true,
-        },
-      }),
+      ...tiptapExtensions,
       MermaidCodeBlock.configure({
         lowlight,
         defaultLanguage: "plaintext",
@@ -208,23 +185,7 @@ export default function TiptapEditor({
         },
       }),
       HorizontalRule,
-      TextAlign.configure({ types: ["heading", "paragraph"] }),
-      TaskList,
-      TaskItem.configure({ nested: true }),
-      Highlight.configure({ multicolor: true }),
-      Image,
-      Typography,
-      Superscript,
-      Subscript,
       Selection,
-      TextStyle,
-      Color.configure({ types: ["textStyle"] }),
-      Table.configure({
-        resizable: true,
-      }),
-      TableRow,
-      TableCell,
-      TableHeader,
       ImageUploadNode.configure({
         accept: "image/*",
         maxSize: MAX_FILE_SIZE,
