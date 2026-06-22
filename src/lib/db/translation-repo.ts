@@ -64,12 +64,17 @@ export function buildListQuery(
   `;
 
   const conditions: string[] = [];
+  // Visibility is determined by the post's original translation, not
+  // the requested locale's translation. A post shows up in the list
+  // as long as its original is in the matching publish state, even
+  // when the requested locale has no translation (the original's
+  // content is then surfaced as a fallback by the row mapper).
   if (!options.includeUnpublished) {
     conditions.push(`${transCfg.alias}.publish_status = ?`);
     params.push("published");
   }
   if (options.publishStatus) {
-    conditions.push("trans.publish_status = ?");
+    conditions.push(`${transCfg.alias}.publish_status = ?`);
     params.push(options.publishStatus);
   }
   if (conditions.length > 0) {

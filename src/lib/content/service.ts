@@ -1,4 +1,4 @@
-import { getCollection, getEntry, type CollectionEntry } from "astro:content";
+import { getCollection, type CollectionEntry } from "astro:content";
 import * as postsRepo from "@/lib/db/posts";
 import * as projectsRepo from "@/lib/db/projects";
 import * as developersRepo from "@/lib/db/developers";
@@ -13,8 +13,12 @@ import type {
   UnifiedProject,
   UnifiedDeveloper,
 } from "@/lib/content/types";
-import type { Language } from "@/lib/config/languages";
-import { getSlugFromEntryId } from "@/lib/content/utils";
+import { DEFAULT_LANGUAGE, type Language } from "@/lib/config/languages";
+import {
+  dedupeCollectionBySlug,
+  getSlugFromEntryId,
+  pickByLang,
+} from "@/lib/content/utils";
 
 function mapD1Post(
   post: PostWithTranslation,
@@ -150,10 +154,14 @@ export async function getPosts(lang: Language): Promise<UnifiedPost[]> {
         }),
       ),
     ),
-    getCollection("blog", (post) => {
-      const entryLang = post.id.split("/")[0];
-      return entryLang === lang && !post.data.draft;
-    }).then((posts) => posts.map((post) => mapCollectionPost(post, lang))),
+    getCollection("blog", (post) => !post.data.draft).then((posts) => {
+      const deduped = dedupeCollectionBySlug<"blog">(
+        posts,
+        lang,
+        DEFAULT_LANGUAGE,
+      );
+      return deduped.map((entry) => mapCollectionPost(entry, lang));
+    }),
   ]);
 
   return mergeById(d1Posts, collectionPosts)
@@ -165,6 +173,11 @@ export async function getPost(
   slug: string,
   lang: Language,
 ): Promise<UnifiedPost | null> {
+  // The DB join already falls back to the post's original translation
+  // when the requested lang has none (see buildByIdQuery in
+  // src/lib/db/translation-repo.ts), so a single getPostById call
+  // covers both cases. The collection entry is looked up with the same
+  // fallback chain: requested lang -> default lang -> any available.
   const [d1Post, collectionPost] = await Promise.all([
     postsRepo
       .getPostById(slug, lang)
@@ -174,24 +187,16 @@ export async function getPost(
           : null,
       ),
     (async () => {
-      const post = await getEntry("blog", `${lang}/${slug}`);
+      const all = await getCollection("blog");
+      const matches = all.filter(
+        (entry) => getSlugFromEntryId(entry.id) === slug,
+      );
+      const post = pickByLang(matches, lang, DEFAULT_LANGUAGE);
       return post && !post.data.draft ? mapCollectionPost(post, lang) : null;
     })(),
   ]);
 
-  const merged = mergeContent(d1Post, collectionPost);
-  if (merged) return merged;
-
-  const fallbackPost = await postsRepo.getPostById(slug, lang);
-  if (fallbackPost && fallbackPost.publish_status === "published") {
-    return mapD1Post(
-      fallbackPost,
-      lang,
-      await tagsRepo.getPostTags(fallbackPost.id),
-    );
-  }
-
-  return null;
+  return mergeContent(d1Post, collectionPost);
 }
 
 export async function getProjects(lang: Language): Promise<UnifiedProject[]> {
@@ -215,6 +220,9 @@ export async function getProject(
   slug: string,
   lang: Language,
 ): Promise<UnifiedProject | null> {
+  // The DB join already falls back to the original when the requested
+  // lang has no translation, so a single getProjectById call covers
+  // both. No explicit fallback is needed.
   const d1Project = await projectsRepo
     .getProjectById(slug, lang)
     .then(async (project) =>
@@ -223,18 +231,7 @@ export async function getProject(
         : null,
     );
 
-  if (d1Project) return d1Project;
-
-  const fallbackProject = await projectsRepo.getProjectById(slug, lang);
-  if (fallbackProject && fallbackProject.publish_status === "published") {
-    return mapD1Project(
-      fallbackProject,
-      lang,
-      await tagsRepo.getProjectTags(fallbackProject.id),
-    );
-  }
-
-  return null;
+  return d1Project;
 }
 
 function mergeById<T extends { id: string; markdownContent?: string }>(
@@ -328,12 +325,14 @@ export async function getDevelopers(
       .then((developers) =>
         developers.map((developer) => mapD1Developer(developer, lang)),
       ),
-    getCollection("developers", (developer) => {
-      const entryLang = developer.id.split("/")[0];
-      return entryLang === lang;
-    }).then((developers) =>
-      developers.map((developer) => mapCollectionDeveloper(developer, lang)),
-    ),
+    getCollection("developers").then((developers) => {
+      const deduped = dedupeCollectionBySlug<"developers">(
+        developers,
+        lang,
+        DEFAULT_LANGUAGE,
+      );
+      return deduped.map((entry) => mapCollectionDeveloper(entry, lang));
+    }),
   ]);
 
   return mergeById(d1Developers, collectionDevelopers).sort((a, b) =>
@@ -345,6 +344,10 @@ export async function getDeveloper(
   slug: string,
   lang: Language,
 ): Promise<UnifiedDeveloper | null> {
+  // The DB join already falls back to the original when the requested
+  // lang has no translation, so a single getDeveloperById call covers
+  // both. Collection entries are looked up with the same fallback chain:
+  // requested lang -> default lang -> any available.
   const [d1Developer, collectionDeveloper] = await Promise.all([
     developersRepo
       .getDeveloperById(slug, lang)
@@ -352,18 +355,14 @@ export async function getDeveloper(
         developer ? mapD1Developer(developer, lang) : null,
       ),
     (async () => {
-      const developer = await getEntry("developers", `${lang}/${slug}`);
+      const all = await getCollection("developers");
+      const matches = all.filter(
+        (entry) => getSlugFromEntryId(entry.id) === slug,
+      );
+      const developer = pickByLang(matches, lang, DEFAULT_LANGUAGE);
       return developer ? mapCollectionDeveloper(developer, lang) : null;
     })(),
   ]);
 
-  const merged = mergeContent(d1Developer, collectionDeveloper);
-  if (merged) return merged;
-
-  const fallbackDeveloper = await developersRepo.getDeveloperById(slug, lang);
-  if (fallbackDeveloper) {
-    return mapD1Developer(fallbackDeveloper, lang);
-  }
-
-  return null;
+  return mergeContent(d1Developer, collectionDeveloper);
 }
