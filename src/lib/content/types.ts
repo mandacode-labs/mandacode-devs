@@ -47,16 +47,19 @@ export interface UnifiedDeveloper extends BaseUnifiedContent {
   website: string | null;
   techStack: string[];
   certifications: Array<{
+    id: string;
     name: string;
     issuer: string;
     date: string;
-    url?: string;
-    badge?: string;
+    url?: string | null;
+    badge?: string | null;
   }>;
   education: Array<{
-    period: string;
+    id: string;
+    startDate: string | null;
+    endDate: string | null;
     institution: string;
-    department: string;
-    status: string;
+    department: string | null;
+    status: string | null;
   }>;
 }

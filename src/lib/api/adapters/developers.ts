@@ -34,10 +34,6 @@ export const developerAdapter: AdminCrudAdapter<
       email: body.email ?? null,
       website_url: body.website_url ?? null,
       tech_stack: body.tech_stack ? JSON.stringify(body.tech_stack) : null,
-      certifications: body.certifications
-        ? JSON.stringify(body.certifications)
-        : null,
-      education: body.education ? JSON.stringify(body.education) : null,
       original_locale: originalLocale,
     });
 
@@ -61,10 +57,6 @@ export const developerAdapter: AdminCrudAdapter<
       email: body.email,
       website_url: body.website_url,
       tech_stack: body.tech_stack ? JSON.stringify(body.tech_stack) : undefined,
-      certifications: body.certifications
-        ? JSON.stringify(body.certifications)
-        : undefined,
-      education: body.education ? JSON.stringify(body.education) : undefined,
       original_locale: body.original_locale,
     };
 
