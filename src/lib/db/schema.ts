@@ -90,7 +90,6 @@ export interface Developer {
   github_url: string | null;
   email: string | null;
   website_url: string | null;
-  tech_stack: string | null;
   certifications: string | null;
   education: string | null;
   original_locale: string;

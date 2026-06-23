@@ -137,3 +137,52 @@ export async function searchTags(query: string, limit = 20): Promise<string[]> {
 
   return (result.results ?? []).map((row) => (row as { name: string }).name);
 }
+
+export async function setDeveloperTags(
+  developerId: string,
+  tagNames: string[],
+): Promise<void> {
+  const db = getDatabase();
+
+  await db
+    .prepare("DELETE FROM developer_tags WHERE developer_id = ?")
+    .bind(developerId)
+    .run();
+
+  const tags = await findOrCreateTags(tagNames);
+  if (tags.length === 0) return;
+
+  const placeholders = tags.map(() => "(?, ?)").join(", ");
+  const values = tags.flatMap((tag) => [developerId, tag.id]);
+
+  await db
+    .prepare(
+      `INSERT INTO developer_tags (developer_id, tag_id) VALUES ${placeholders}`,
+    )
+    .bind(...values)
+    .run();
+}
+
+export async function getDeveloperTags(developerId: string): Promise<string[]> {
+  const db = getDatabase();
+  const result = await db
+    .prepare(
+      `SELECT t.name
+       FROM developer_tags dt
+       JOIN tags t ON dt.tag_id = t.id
+       WHERE dt.developer_id = ?
+       ORDER BY t.name`,
+    )
+    .bind(developerId)
+    .all();
+
+  return (result.results ?? []).map((row) => (row as { name: string }).name);
+}
+
+export async function deleteDeveloperTags(developerId: string): Promise<void> {
+  const db = getDatabase();
+  await db
+    .prepare("DELETE FROM developer_tags WHERE developer_id = ?")
+    .bind(developerId)
+    .run();
+}

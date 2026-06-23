@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { X } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -23,6 +24,8 @@ import { TranslationsSection } from "@/components/admin/TranslationsSection";
 import { StickyEditorActions } from "@/components/admin/StickyEditorActions";
 import { LANGUAGE_CONFIGS } from "@/lib/config/languages";
 import { useAdminEditor } from "@/components/admin/use-admin-editor";
+import { useClickOutside } from "@/hooks/use-click-outside";
+import { useTagSuggestions } from "@/hooks/use-tag-suggestions";
 import { apiFetch } from "@/lib/api/client";
 import type { UIKey } from "@/lib/i18n";
 import {
@@ -46,7 +49,7 @@ export interface DeveloperEditorInitialData {
   github_url: string | null;
   email: string | null;
   website_url: string | null;
-  tech_stack: string[] | null;
+  techStack: string[];
 }
 
 interface DeveloperEditorProps {
@@ -90,9 +93,14 @@ export default function DeveloperEditor({
   const [githubUrl, setGithubUrl] = useState(initialData?.github_url ?? "");
   const [email, setEmail] = useState(initialData?.email ?? "");
   const [websiteUrl, setWebsiteUrl] = useState(initialData?.website_url ?? "");
-  const [techStack, setTechStack] = useState(
-    initialData?.tech_stack?.join(", ") ?? "",
+  const [techStack, setTechStack] = useState<string[]>(
+    initialData?.techStack ?? [],
   );
+  const [tagInput, setTagInput] = useState("");
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const tagInputRef = useRef<HTMLInputElement>(null);
+  const tagWrapperRef = useRef<HTMLDivElement>(null);
   const [certifications, setCertifications] = useState<CertificationItem[]>([]);
   const [education, setEducation] = useState<EducationItem[]>([]);
   const [nestedLoading, setNestedLoading] = useState(true);
@@ -133,7 +141,7 @@ export default function DeveloperEditor({
       github_url: githubUrl || null,
       email: email || null,
       website_url: websiteUrl || null,
-      tech_stack: techStack ? techStack.split(",").map((s) => s.trim()) : null,
+      tech_stack: techStack,
       target_locales: targetLocales,
     }),
   });
@@ -153,7 +161,7 @@ export default function DeveloperEditor({
     setGithubUrl(initialData.github_url ?? "");
     setEmail(initialData.email ?? "");
     setWebsiteUrl(initialData.website_url ?? "");
-    setTechStack(initialData.tech_stack?.join(", ") ?? "");
+    setTechStack(initialData.techStack ?? []);
   }, [initialData, setLocale, setOriginalLocale]);
 
   useEffect(() => {
@@ -161,6 +169,73 @@ export default function DeveloperEditor({
       setOriginalLocale(locale);
     }
   }, [isEditMode, locale, setOriginalLocale]);
+
+  const [tagSuggestions, setTagSuggestions] = useTagSuggestions(tagInput);
+  useClickOutside(tagWrapperRef, () => setShowSuggestions(false));
+
+  function addTag(value?: string) {
+    const normalized = (value ?? tagInput).trim();
+    if (!normalized || techStack.includes(normalized)) return;
+    setTechStack([...techStack, normalized]);
+    setTagInput("");
+    setTagSuggestions([]);
+    setActiveSuggestionIndex(-1);
+    setShowSuggestions(false);
+    tagInputRef.current?.focus();
+  }
+
+  function removeTag(tag: string) {
+    setTechStack(techStack.filter((t) => t !== tag));
+  }
+
+  function handleTagKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (
+        showSuggestions &&
+        activeSuggestionIndex >= 0 &&
+        activeSuggestionIndex < tagSuggestions.length
+      ) {
+        addTag(tagSuggestions[activeSuggestionIndex]);
+      } else {
+        addTag();
+      }
+      return;
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setShowSuggestions(true);
+      setActiveSuggestionIndex((prev) =>
+        prev < tagSuggestions.length - 1 ? prev + 1 : prev,
+      );
+      return;
+    }
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveSuggestionIndex((prev) => (prev > 0 ? prev - 1 : -1));
+      return;
+    }
+    if (e.key === "Escape") {
+      setShowSuggestions(false);
+      setActiveSuggestionIndex(-1);
+    }
+  }
+
+  function handleTagInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setTagInput(e.target.value);
+    setShowSuggestions(true);
+    setActiveSuggestionIndex(-1);
+  }
+
+  function handleTagInputFocus() {
+    if (tagInput.trim()) {
+      setShowSuggestions(true);
+    }
+  }
+
+  const filteredSuggestions = tagSuggestions.filter(
+    (suggestion) => !techStack.includes(suggestion),
+  );
 
   // Fetch cert/edu lists from new endpoints on mount / locale change.
   useEffect(() => {
@@ -366,16 +441,66 @@ export default function DeveloperEditor({
           <span className="text-sm font-medium text-text-primary">
             {t("admin.techStack", "Tech Stack")}
           </span>
-          <input
-            type="text"
-            value={techStack}
-            onChange={(e) => setTechStack(e.target.value)}
-            placeholder={t(
-              "admin.techStackPlaceholder",
-              "React, TypeScript, Node.js",
+          <div ref={tagWrapperRef} className="relative mt-1.5">
+            <div className="flex flex-wrap gap-2 px-3 py-2 border border-border rounded-lg bg-bg-primary focus-within:ring-2 focus-within:ring-accent focus-within:border-transparent">
+              {techStack.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 text-sm bg-accent/10 text-accent rounded-md"
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => removeTag(tag)}
+                    className="hover:text-accent/70"
+                    aria-label={`Remove ${tag}`}
+                  >
+                    <X size={14} />
+                  </button>
+                </span>
+              ))}
+              <input
+                ref={tagInputRef}
+                type="text"
+                value={tagInput}
+                onChange={handleTagInputChange}
+                onFocus={handleTagInputFocus}
+                onKeyDown={handleTagKeyDown}
+                placeholder={
+                  techStack.length === 0
+                    ? t(
+                        "admin.techStackPlaceholder",
+                        "React, TypeScript, Node.js",
+                      )
+                    : ""
+                }
+                className="flex-1 min-w-[120px] bg-transparent focus:outline-none"
+              />
+            </div>
+            {showSuggestions && filteredSuggestions.length > 0 && (
+              <ul className="absolute z-10 left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-bg-primary border border-border rounded-lg shadow-lg">
+                {filteredSuggestions.map((suggestion, idx) => (
+                  <li key={suggestion}>
+                    <button
+                      type="button"
+                      onClick={() => addTag(suggestion)}
+                      onMouseEnter={() => setActiveSuggestionIndex(idx)}
+                      className={`w-full text-left px-3 py-1.5 text-sm ${
+                        idx === activeSuggestionIndex
+                          ? "bg-accent/10 text-accent"
+                          : "hover:bg-bg-secondary"
+                      }`}
+                    >
+                      {suggestion}
+                    </button>
+                  </li>
+                ))}
+              </ul>
             )}
-            className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-          />
+          </div>
+          <p className="text-xs text-text-tertiary mt-1">
+            {t("admin.tagsHint", "Press Enter to add a tag")}
+          </p>
         </label>
       </AdminSection>
 

@@ -1,4 +1,5 @@
 import * as developersRepo from "@/lib/db/developers";
+import * as tagsRepo from "@/lib/db/tags";
 import {
   createDeveloperSchema,
   updateDeveloperSchema,
@@ -33,9 +34,10 @@ export const developerAdapter: AdminCrudAdapter<
       github_url: body.github_url ?? null,
       email: body.email ?? null,
       website_url: body.website_url ?? null,
-      tech_stack: body.tech_stack ? JSON.stringify(body.tech_stack) : null,
       original_locale: originalLocale,
     });
+
+    await tagsRepo.setDeveloperTags(body.id, body.tech_stack ?? []);
 
     await developersRepo.createDeveloperTranslation({
       id: `${body.id}_${originalLocale}`,
@@ -56,7 +58,6 @@ export const developerAdapter: AdminCrudAdapter<
       github_url: body.github_url,
       email: body.email,
       website_url: body.website_url,
-      tech_stack: body.tech_stack ? JSON.stringify(body.tech_stack) : undefined,
       original_locale: body.original_locale,
     };
 
@@ -130,6 +131,10 @@ export const developerAdapter: AdminCrudAdapter<
         published_at: translationUpdate.published_at ?? null,
         source_hash: sourceHash,
       });
+    }
+
+    if (body.tech_stack !== undefined && body.tech_stack !== null) {
+      await tagsRepo.setDeveloperTags(id, body.tech_stack);
     }
   },
   getLocales: developersRepo.getDeveloperLocales,

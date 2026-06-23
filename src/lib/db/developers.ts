@@ -35,7 +35,6 @@ const MAIN_CFG: MainTableConfig = {
     "github_url",
     "email",
     "website_url",
-    "tech_stack",
     "original_locale",
     "created_at",
     "updated_at",
@@ -63,7 +62,6 @@ export interface CreateDeveloperInput {
   github_url: string | null;
   email: string | null;
   website_url: string | null;
-  tech_stack: string | null;
   original_locale: string;
 }
 
@@ -96,7 +94,6 @@ export interface UpdateDeveloperInput {
   github_url?: string | null;
   email?: string | null;
   website_url?: string | null;
-  tech_stack?: string | null;
   original_locale?: string;
 }
 
@@ -121,7 +118,6 @@ function mapDeveloperRow(
     github_url: (row.github_url as string | null) ?? null,
     email: (row.email as string | null) ?? null,
     website_url: (row.website_url as string | null) ?? null,
-    tech_stack: (row.tech_stack as string | null) ?? null,
     certifications: (row.certifications as string | null) ?? null,
     education: (row.education as string | null) ?? null,
     original_locale: String(row.original_locale),
@@ -201,8 +197,8 @@ export async function createDeveloper(
   await db
     .prepare(
       `INSERT INTO developers (
-        id, author_id, github_url, email, website_url, tech_stack, original_locale
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        id, author_id, github_url, email, website_url, original_locale
+      ) VALUES (?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       input.id,
@@ -210,7 +206,6 @@ export async function createDeveloper(
       input.github_url,
       input.email,
       input.website_url,
-      input.tech_stack,
       input.original_locale,
     )
     .run();
@@ -235,7 +230,6 @@ export async function ensureDeveloperExists(
     github_url: null,
     email: null,
     website_url: null,
-    tech_stack: null,
     original_locale: locale,
   });
 
@@ -291,6 +285,7 @@ export async function updateDeveloper(
   const values: unknown[] = [];
 
   for (const [key, value] of Object.entries(input)) {
+    if (value === undefined) continue;
     fields.push(`${key} = ?`);
     values.push(value);
   }
