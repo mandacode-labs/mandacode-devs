@@ -3,16 +3,17 @@ import AdminFormLayout from "@/components/admin/AdminFormLayout.astro";
 import DeveloperEditor from "@/components/admin/DeveloperEditor";
 import { requireAuth } from "@/lib/auth";
 import {
+  ensureDeveloperExists,
   getDeveloperById,
-  getDeveloperTranslationById,
   getDeveloperLocales,
+  getDeveloperTranslationById,
 } from "@/lib/db/developers";
 import { useTranslations } from "@/lib/i18n/utils";
 import { ui } from "@/lib/i18n";
 import { tryParseJson } from "@/lib/utils/json";
-import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
+import { DEFAULT_LANGUAGE, MAIN_DEVELOPER_ID } from "@/lib/config/languages";
 
-requireAuth(Astro);
+const user = requireAuth(Astro);
 
 const { id } = Astro.params;
 const locale = Astro.url.searchParams.get("locale") || DEFAULT_LANGUAGE;
@@ -22,7 +23,14 @@ if (!id) {
   return Astro.redirect("/admin/developers");
 }
 
-const developer = await getDeveloperById(id, locale);
+// Defense in depth: if the editor URL is opened for the main developer
+// and the row is missing (e.g., direct URL paste before "new" was clicked),
+// bootstrap it. The "new" page is the canonical entry point.
+let developer = await getDeveloperById(id, locale);
+if (!developer && id === MAIN_DEVELOPER_ID) {
+  await ensureDeveloperExists(id, locale, user.email);
+  developer = await getDeveloperById(id, locale);
+}
 
 if (!developer) {
   return Astro.redirect("/admin/developers");

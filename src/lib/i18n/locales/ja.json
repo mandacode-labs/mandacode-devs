@@ -154,5 +154,6 @@
   "admin.institution": "学校",
   "admin.issuer": "発行機関",
   "admin.noCertifications": "資格が登録されていません。",
-  "admin.noEducation": "学歴が登録されていません。"
+  "admin.noEducation": "学歴が登録されていません。",
+  "admin.newProfile": "新しいプロフィール"
 }

@@ -1,0 +1,59 @@
+---
+import AdminFormLayout from "@/components/admin/AdminFormLayout.astro";
+import DeveloperEditor from "@/components/admin/DeveloperEditor";
+import { requireAuth } from "@/lib/auth";
+import { ensureDeveloperExists, getDeveloperById } from "@/lib/db/developers";
+import { useTranslations } from "@/lib/i18n/utils";
+import { ui } from "@/lib/i18n";
+import { tryParseJson } from "@/lib/utils/json";
+import { DEFAULT_LANGUAGE, MAIN_DEVELOPER_ID } from "@/lib/config/languages";
+
+requireAuth(Astro);
+
+const locale = Astro.url.searchParams.get("locale") || DEFAULT_LANGUAGE;
+const t = useTranslations(DEFAULT_LANGUAGE);
+
+// The developer model is currently single-tenant: MAIN_DEVELOPER_ID is the
+// only developer. "New profile" bootstraps that row if it doesn't exist,
+// then redirects to the edit page (the same path Project 글 takes).
+const user = requireAuth(Astro);
+await ensureDeveloperExists(MAIN_DEVELOPER_ID, locale, user.email);
+
+const developer = await getDeveloperById(MAIN_DEVELOPER_ID, locale);
+if (!developer) {
+  return Astro.redirect("/admin/developers");
+}
+
+const initialData = {
+  id: developer.id,
+  locale,
+  original_locale: developer.original_locale,
+  existing_locales: [],
+  name: developer.name,
+  role: developer.role,
+  bio: developer.bio,
+  tiptap_json: developer.tiptap_json,
+  avatar_url: developer.avatar_url,
+  publish_status: developer.publish_status,
+  github_url: developer.github_url,
+  email: developer.email,
+  website_url: developer.website_url,
+  tech_stack: tryParseJson<string[]>(developer.tech_stack),
+};
+---
+
+<AdminFormLayout
+  title={t("admin.newProfile")}
+  headerTitle={t("admin.newProfile")}
+  backHref="/admin/developers"
+  backLabel={t("admin.backToDevelopers")}
+  currentPath="/admin/developers"
+  viewHref={`/admin/developers/view/${MAIN_DEVELOPER_ID}?locale=${locale}`}
+  viewLabel={t("admin.view")}
+>
+  <DeveloperEditor
+    client:only="react"
+    initialData={initialData}
+    translations={ui[DEFAULT_LANGUAGE] ?? {}}
+  />
+</AdminFormLayout>
