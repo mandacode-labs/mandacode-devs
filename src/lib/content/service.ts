@@ -7,6 +7,10 @@ import { tryParseJson } from "@/lib/utils/json";
 import type { PostWithTranslation } from "@/lib/db/posts";
 import type { ProjectWithTranslation } from "@/lib/db/projects";
 import type { DeveloperWithTranslation } from "@/lib/db/developers";
+import type {
+  DeveloperCertificationFull,
+  DeveloperEducationFull,
+} from "@/lib/db/developers";
 import type { PublishStatus } from "@/lib/db/schema";
 import type {
   UnifiedPost,
@@ -95,6 +99,8 @@ function mapD1Project(
 
 function mapD1Developer(
   developer: DeveloperWithTranslation,
+  certs: DeveloperCertificationFull[],
+  edu: DeveloperEducationFull[],
   lang: Language,
 ): UnifiedDeveloper {
   return {
@@ -109,12 +115,22 @@ function mapD1Developer(
     email: developer.email,
     website: developer.website_url,
     techStack: tryParseJson<string[]>(developer.tech_stack) ?? [],
-    certifications:
-      tryParseJson<UnifiedDeveloper["certifications"]>(
-        developer.certifications,
-      ) ?? [],
-    education:
-      tryParseJson<UnifiedDeveloper["education"]>(developer.education) ?? [],
+    certifications: certs.map((c) => ({
+      id: c.id,
+      name: c.name,
+      issuer: c.issuer,
+      date: c.date,
+      url: c.url,
+      badge: c.badge_url,
+    })),
+    education: edu.map((e) => ({
+      id: e.id,
+      startDate: e.start_date,
+      endDate: e.end_date,
+      institution: e.institution,
+      department: e.department,
+      status: e.status,
+    })),
     publishStatus: developer.publish_status,
     isFallback: developer.is_fallback,
     d1Content: developer.tiptap_json,
@@ -125,6 +141,8 @@ function mapCollectionDeveloper(
   developer: CollectionEntry<"developers">,
   locale: string,
 ): UnifiedDeveloper {
+  const certs = developer.data.certifications ?? [];
+  const edu = developer.data.education ?? [];
   return {
     id: getSlugFromEntryId(developer.id),
     locale,
@@ -137,8 +155,23 @@ function mapCollectionDeveloper(
     email: developer.data.email ?? null,
     website: developer.data.website ?? null,
     techStack: developer.data.techStack ?? [],
-    certifications: developer.data.certifications ?? [],
-    education: developer.data.education ?? [],
+    // Markdown frontmatter uses `period` (string) — derive startDate/endDate heuristically.
+    certifications: certs.map((c, i) => ({
+      id: `md-cert-${i}`,
+      name: c.name,
+      issuer: c.issuer,
+      date: c.date,
+      url: c.url ?? null,
+      badge: c.badge ?? null,
+    })),
+    education: edu.map((e, i) => ({
+      id: `md-edu-${i}`,
+      startDate: null,
+      endDate: null,
+      institution: e.institution,
+      department: e.department ?? null,
+      status: e.status ?? null,
+    })),
     publishStatus: "published" as PublishStatus,
     isFallback: false,
     markdownContent: developer.rendered?.html ?? developer.body,
@@ -314,18 +347,28 @@ export async function getDeveloperForAdminPreview(
 ): Promise<UnifiedDeveloper | null> {
   const developer = await developersRepo.getDeveloperById(id, lang);
   if (!developer) return null;
-  return mapD1Developer(developer, lang);
+  const [certs, edu] = await Promise.all([
+    developersRepo.getDeveloperCertifications(id, lang),
+    developersRepo.getDeveloperEducation(id, lang),
+  ]);
+  return mapD1Developer(developer, certs, edu, lang);
 }
 
 export async function getDevelopers(
   lang: Language,
 ): Promise<UnifiedDeveloper[]> {
   const [d1Developers, collectionDevelopers] = await Promise.all([
-    developersRepo
-      .getDevelopers(lang)
-      .then((developers) =>
-        developers.map((developer) => mapD1Developer(developer, lang)),
-      ),
+    developersRepo.getDevelopers(lang).then(async (developers) => {
+      return Promise.all(
+        developers.map(async (developer) => {
+          const [certs, edu] = await Promise.all([
+            developersRepo.getDeveloperCertifications(developer.id, lang),
+            developersRepo.getDeveloperEducation(developer.id, lang),
+          ]);
+          return mapD1Developer(developer, certs, edu, lang);
+        }),
+      );
+    }),
     getCollection("developers").then((developers) => {
       const deduped = dedupeCollectionBySlug<"developers">(
         developers,
@@ -345,25 +388,23 @@ export async function getDeveloper(
   slug: string,
   lang: Language,
 ): Promise<UnifiedDeveloper | null> {
-  // The DB join already falls back to the original when the requested
-  // lang has no translation, so a single getDeveloperById call covers
-  // both. Collection entries are looked up with the same fallback chain:
-  // requested lang -> default lang -> any available.
-  const [d1Developer, collectionDeveloper] = await Promise.all([
-    developersRepo
-      .getDeveloperById(slug, lang)
-      .then((developer) =>
-        developer ? mapD1Developer(developer, lang) : null,
-      ),
-    (async () => {
-      const all = await getCollection("developers");
-      const matches = all.filter(
-        (entry) => getSlugFromEntryId(entry.id) === slug,
-      );
-      const developer = pickByLang(matches, lang, DEFAULT_LANGUAGE);
-      return developer ? mapCollectionDeveloper(developer, lang) : null;
-    })(),
-  ]);
+  // Priority: D1 first, content collection as fallback.
+  // The DB join already falls back to the original locale when the
+  // requested lang has no translation, so a single getDeveloperById call
+  // covers both the requested locale and the fallback.
+  const d1Developer = await developersRepo.getDeveloperById(slug, lang);
+  if (d1Developer) {
+    const [certs, edu] = await Promise.all([
+      developersRepo.getDeveloperCertifications(slug, lang),
+      developersRepo.getDeveloperEducation(slug, lang),
+    ]);
+    return mapD1Developer(d1Developer, certs, edu, lang);
+  }
 
-  return mergeContent(d1Developer, collectionDeveloper);
+  const all = await getCollection("developers");
+  const matches = all.filter((entry) => getSlugFromEntryId(entry.id) === slug);
+  const developer = pickByLang(matches, lang, DEFAULT_LANGUAGE);
+  if (developer) return mapCollectionDeveloper(developer, lang);
+
+  return null;
 }

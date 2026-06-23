@@ -50,10 +50,6 @@ const initialData = {
   email: developer.email,
   website_url: developer.website_url,
   tech_stack: tryParseJson<string[]>(developer.tech_stack),
-  certifications: tryParseJson<Record<string, unknown>[]>(
-    developer.certifications,
-  ),
-  education: tryParseJson<Record<string, unknown>[]>(developer.education),
 };
 ---
 

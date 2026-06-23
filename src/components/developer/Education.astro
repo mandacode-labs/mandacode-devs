@@ -1,4 +1,5 @@
 ---
+import { formatProjectPeriod } from "@/lib/content/project-period";
 import { useTranslations } from "@/lib/i18n/utils";
 import type { Lang } from "@/types";
 import type { UnifiedDeveloper } from "@/lib/content/types";
@@ -24,14 +25,21 @@ const education = developer.education;
             <div class="flex-1">
               <div class="flex items-center gap-2 mb-1">
                 <h5>{edu.institution}</h5>
-                <span class="px-2 py-0.5 text-xs bg-accent-subtle text-accent rounded-full">
-                  {edu.status}
-                </span>
+                {edu.status && (
+                  <span class="px-2 py-0.5 text-xs bg-accent-subtle text-accent rounded-full">
+                    {edu.status}
+                  </span>
+                )}
               </div>
-              <p class="text-sm text-text-secondary">{edu.department}</p>
+              {edu.department && (
+                <p class="text-sm text-text-secondary">{edu.department}</p>
+              )}
             </div>
             <p class="text-sm text-text-muted whitespace-nowrap">
-              {edu.period}
+              {formatProjectPeriod({
+                startDate: edu.startDate,
+                endDate: edu.endDate,
+              })}
             </p>
           </li>
         ))}

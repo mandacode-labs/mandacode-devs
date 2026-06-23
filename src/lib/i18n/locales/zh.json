@@ -146,5 +146,13 @@
   "admin.regenerateTranslationConfirm": "是否重新生成此语言的翻译?",
   "admin.regenerateTranslationHint": "现有翻译将被覆盖。",
   "admin.translatePending": "待翻译",
-  "admin.chipActions": "操作"
+  "admin.chipActions": "操作",
+  "admin.add": "添加",
+  "admin.badge": "徽章",
+  "admin.date": "日期",
+  "admin.department": "专业",
+  "admin.institution": "学校",
+  "admin.issuer": "颁发机构",
+  "admin.noCertifications": "暂无证书。",
+  "admin.noEducation": "无学历记录。"
 }

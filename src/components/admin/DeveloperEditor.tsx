@@ -1,4 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import TiptapEditor from "@/components/editor/TiptapEditor";
 import ImageUploadButton from "@/components/editor/ImageUploadButton";
 import { AdminSection } from "@/components/admin/AdminSection";
@@ -6,10 +23,14 @@ import { TranslationsSection } from "@/components/admin/TranslationsSection";
 import { StickyEditorActions } from "@/components/admin/StickyEditorActions";
 import { LANGUAGE_CONFIGS } from "@/lib/config/languages";
 import { useAdminEditor } from "@/components/admin/use-admin-editor";
+import { apiFetch } from "@/lib/api/client";
+import type { UIKey } from "@/lib/i18n";
 import {
   useAdminTranslations,
   type AdminTranslations,
 } from "@/components/admin/use-admin-translations";
+
+type Translator = ReturnType<typeof useAdminTranslations>;
 
 export interface DeveloperEditorInitialData {
   id: string;
@@ -26,13 +47,29 @@ export interface DeveloperEditorInitialData {
   email: string | null;
   website_url: string | null;
   tech_stack: string[] | null;
-  certifications: Array<Record<string, unknown>> | null;
-  education: Array<Record<string, unknown>> | null;
 }
 
 interface DeveloperEditorProps {
   initialData?: DeveloperEditorInitialData;
   translations: AdminTranslations;
+}
+
+interface CertificationItem {
+  id: string;
+  name: string;
+  issuer: string;
+  date: string;
+  badge_url: string | null;
+  url: string | null;
+}
+
+interface EducationItem {
+  id: string;
+  start_date: string | null;
+  end_date: string | null;
+  institution: string;
+  department: string | null;
+  status: string | null;
 }
 
 export default function DeveloperEditor({
@@ -56,12 +93,9 @@ export default function DeveloperEditor({
   const [techStack, setTechStack] = useState(
     initialData?.tech_stack?.join(", ") ?? "",
   );
-  const [certifications, setCertifications] = useState<Array<
-    Record<string, unknown>
-  > | null>(initialData?.certifications ?? null);
-  const [education, setEducation] = useState<Array<
-    Record<string, unknown>
-  > | null>(initialData?.education ?? null);
+  const [certifications, setCertifications] = useState<CertificationItem[]>([]);
+  const [education, setEducation] = useState<EducationItem[]>([]);
+  const [nestedLoading, setNestedLoading] = useState(true);
 
   const {
     id,
@@ -100,29 +134,26 @@ export default function DeveloperEditor({
       email: email || null,
       website_url: websiteUrl || null,
       tech_stack: techStack ? techStack.split(",").map((s) => s.trim()) : null,
-      certifications,
-      education,
       target_locales: targetLocales,
     }),
   });
 
+  // Hydrate nested state on first mount / locale change.
+  const initialDataRef = useRef(initialData);
   useEffect(() => {
-    if (initialData) {
-      setLocale(initialData.locale);
-      setOriginalLocale(initialData.original_locale);
-      setName(initialData.name);
-      setRole(initialData.role);
-      setBio(initialData.bio);
-      setTiptapJson(initialData.tiptap_json);
-      setAvatarUrl(initialData.avatar_url ?? "");
-      setPublishStatus(initialData.publish_status);
-      setGithubUrl(initialData.github_url ?? "");
-      setEmail(initialData.email ?? "");
-      setWebsiteUrl(initialData.website_url ?? "");
-      setTechStack(initialData.tech_stack?.join(", ") ?? "");
-      setCertifications(initialData.certifications);
-      setEducation(initialData.education);
-    }
+    if (!initialData) return;
+    setLocale(initialData.locale);
+    setOriginalLocale(initialData.original_locale);
+    setName(initialData.name);
+    setRole(initialData.role);
+    setBio(initialData.bio);
+    setTiptapJson(initialData.tiptap_json);
+    setAvatarUrl(initialData.avatar_url ?? "");
+    setPublishStatus(initialData.publish_status);
+    setGithubUrl(initialData.github_url ?? "");
+    setEmail(initialData.email ?? "");
+    setWebsiteUrl(initialData.website_url ?? "");
+    setTechStack(initialData.tech_stack?.join(", ") ?? "");
   }, [initialData, setLocale, setOriginalLocale]);
 
   useEffect(() => {
@@ -130,6 +161,36 @@ export default function DeveloperEditor({
       setOriginalLocale(locale);
     }
   }, [isEditMode, locale, setOriginalLocale]);
+
+  // Fetch cert/edu lists from new endpoints on mount / locale change.
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    setNestedLoading(true);
+    Promise.all([
+      apiFetch<CertificationItem[]>(
+        `/api/admin/developers/${id}/certifications?locale=${encodeURIComponent(locale)}`,
+      ),
+      apiFetch<EducationItem[]>(
+        `/api/admin/developers/${id}/education?locale=${encodeURIComponent(locale)}`,
+      ),
+    ])
+      .then(([certs, edu]) => {
+        if (!cancelled) {
+          setCertifications(certs);
+          setEducation(edu);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load nested items", err);
+      })
+      .finally(() => {
+        if (!cancelled) setNestedLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id, locale]);
 
   const editorKey = `${id || "new"}-${locale}`;
 
@@ -208,12 +269,12 @@ export default function DeveloperEditor({
 
         <label className="block mt-4">
           <span className="text-sm font-medium text-text-primary">
-            {t("admin.bio", "Bio")}
+            {t("admin.bio", "Bio (short)")}
           </span>
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            rows={4}
+            rows={3}
             required
             className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent resize-y"
           />
@@ -318,13 +379,31 @@ export default function DeveloperEditor({
         </label>
       </AdminSection>
 
+      <CertificationsSection
+        developerId={id}
+        locale={locale}
+        items={certifications}
+        loading={nestedLoading}
+        onChange={setCertifications}
+        t={t}
+      />
+
+      <EducationSection
+        developerId={id}
+        locale={locale}
+        items={education}
+        loading={nestedLoading}
+        onChange={setEducation}
+        t={t}
+      />
+
       <AdminSection title={t("admin.content", "Content")}>
         <div className="space-y-2">
           <TiptapEditor
             key={editorKey}
             content={tiptapJson}
             onChange={setTiptapJson}
-            placeholder="Write additional content..."
+            placeholder="Write the long-form intro (markdown body)..."
             entityType="developer"
             entityId={id}
           />
@@ -382,5 +461,693 @@ export default function DeveloperEditor({
         cancelLabel={t("admin.cancel", "Cancel")}
       />
     </form>
+  );
+}
+
+// =====================================================================
+// Certifications (sortable list, multi-locale via current locale field)
+// =====================================================================
+
+function CertificationsSection({
+  developerId,
+  locale,
+  items,
+  loading,
+  onChange,
+  t,
+}: {
+  developerId: string;
+  locale: string;
+  items: CertificationItem[];
+  loading: boolean;
+  onChange: (next: CertificationItem[]) => void;
+  t: Translator;
+}) {
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = items.findIndex((it) => it.id === active.id);
+    const newIndex = items.findIndex((it) => it.id === over.id);
+    const next = arrayMove(items, oldIndex, newIndex);
+    onChange(next);
+    try {
+      await apiFetch(
+        "/api/admin/developers/" + developerId + "/certifications-reorder",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ orderedIds: next.map((it) => it.id) }),
+        },
+      );
+    } catch (err) {
+      console.error("Failed to save cert order", err);
+    }
+  };
+
+  const handleAdd = async () => {
+    try {
+      const res = await apiFetch<{ id: string }>(
+        `/api/admin/developers/${developerId}/certifications`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            locale,
+            translation: {
+              name: "New certification",
+              issuer: "",
+              date: new Date().toISOString().slice(0, 10),
+            },
+          }),
+        },
+      );
+      onChange([
+        ...items,
+        {
+          id: res.id,
+          name: "New certification",
+          issuer: "",
+          date: new Date().toISOString().slice(0, 10),
+          badge_url: null,
+          url: null,
+        },
+      ]);
+    } catch (err) {
+      console.error("Failed to add certification", err);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm(t("admin.confirmDelete", "Delete this item?"))) return;
+    try {
+      await apiFetch(
+        `/api/admin/developers/${developerId}/certifications/${id}`,
+        { method: "DELETE" },
+      );
+      onChange(items.filter((it) => it.id !== id));
+    } catch (err) {
+      console.error("Failed to delete cert", err);
+    }
+  };
+
+  const handleUpdate = async (
+    id: string,
+    field: "name" | "issuer" | "date" | "badge_url" | "url",
+    value: string | null,
+  ) => {
+    onChange(
+      items.map((it) => (it.id === id ? { ...it, [field]: value } : it)),
+    );
+    try {
+      await apiFetch(
+        `/api/admin/developers/${developerId}/certifications/${id}/translation`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            locale,
+            translation: {
+              name:
+                field === "name"
+                  ? (value as string)
+                  : (items.find((it) => it.id === id)?.name ?? ""),
+              issuer:
+                field === "issuer"
+                  ? (value as string)
+                  : (items.find((it) => it.id === id)?.issuer ?? ""),
+              date:
+                field === "date"
+                  ? (value as string)
+                  : (items.find((it) => it.id === id)?.date ?? ""),
+              badge_url:
+                field === "badge_url"
+                  ? value
+                  : (items.find((it) => it.id === id)?.badge_url ?? null),
+              url:
+                field === "url"
+                  ? value
+                  : (items.find((it) => it.id === id)?.url ?? null),
+            },
+          }),
+        },
+      );
+    } catch (err) {
+      console.error("Failed to update cert", err);
+    }
+  };
+
+  return (
+    <AdminSection
+      title={t("admin.certifications", "Certifications")}
+      action={
+        <button
+          type="button"
+          onClick={handleAdd}
+          disabled={!developerId}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-accent text-white hover:bg-accent-hover disabled:opacity-50 transition-colors"
+        >
+          + {t("admin.add", "Add")}
+        </button>
+      }
+    >
+      {loading ? (
+        <p className="text-sm text-text-muted">Loading...</p>
+      ) : items.length === 0 ? (
+        <p className="text-sm text-text-muted">
+          {t("admin.noCertifications", "No certifications yet.")}
+        </p>
+      ) : (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={items.map((it) => it.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-3">
+              {items.map((item) => (
+                <SortableCertificationItem
+                  key={item.id}
+                  item={item}
+                  developerId={developerId}
+                  onUpdate={handleUpdate}
+                  onDelete={handleDelete}
+                  t={t}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      )}
+    </AdminSection>
+  );
+}
+
+function SortableCertificationItem({
+  item,
+  developerId,
+  onUpdate,
+  onDelete,
+  t,
+}: {
+  item: CertificationItem;
+  developerId: string;
+  onUpdate: (
+    id: string,
+    field: "name" | "issuer" | "date" | "badge_url" | "url",
+    value: string | null,
+  ) => void;
+  onDelete: (id: string) => void;
+  t: Translator;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : undefined,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex gap-2 p-3 border border-border rounded-lg bg-bg-primary ${
+        isDragging ? "shadow-lg" : ""
+      }`}
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="p-1.5 text-text-muted hover:text-text-primary cursor-grab active:cursor-grabbing rounded-md hover:bg-bg-tertiary self-start mt-7"
+        aria-label="Drag to reorder"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="w-4 h-4"
+        >
+          <circle cx="9" cy="6" r="1.5" />
+          <circle cx="9" cy="12" r="1.5" />
+          <circle cx="9" cy="18" r="1.5" />
+          <circle cx="15" cy="6" r="1.5" />
+          <circle cx="15" cy="12" r="1.5" />
+          <circle cx="15" cy="18" r="1.5" />
+        </svg>
+      </button>
+
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <label className="block">
+          <span className="text-xs font-medium text-text-primary">
+            {t("admin.name", "Name")}
+          </span>
+          <input
+            type="text"
+            value={item.name}
+            onChange={(e) => onUpdate(item.id, "name", e.target.value)}
+            className="w-full mt-1 px-2 py-1.5 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+          />
+        </label>
+        <label className="block">
+          <span className="text-xs font-medium text-text-primary">
+            {t("admin.issuer", "Issuer")}
+          </span>
+          <input
+            type="text"
+            value={item.issuer}
+            onChange={(e) => onUpdate(item.id, "issuer", e.target.value)}
+            className="w-full mt-1 px-2 py-1.5 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+          />
+        </label>
+        <label className="block">
+          <span className="text-xs font-medium text-text-primary">
+            {t("admin.date", "Date")}
+          </span>
+          <input
+            type="text"
+            value={item.date}
+            onChange={(e) => onUpdate(item.id, "date", e.target.value)}
+            placeholder="2026-03"
+            className="w-full mt-1 px-2 py-1.5 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+          />
+        </label>
+        <label className="block">
+          <span className="text-xs font-medium text-text-primary">
+            {t("admin.url", "URL")}
+          </span>
+          <input
+            type="url"
+            value={item.url ?? ""}
+            onChange={(e) => onUpdate(item.id, "url", e.target.value || null)}
+            className="w-full mt-1 px-2 py-1.5 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+          />
+        </label>
+        <div className="block md:col-span-2">
+          <span className="text-xs font-medium text-text-primary">
+            {t("admin.badge", "Badge")}
+          </span>
+          <div className="flex gap-2 mt-1">
+            <input
+              type="url"
+              value={item.badge_url ?? ""}
+              onChange={(e) =>
+                onUpdate(item.id, "badge_url", e.target.value || null)
+              }
+              className="flex-1 px-2 py-1.5 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+            />
+            <ImageUploadButton
+              onUpload={(url) => onUpdate(item.id, "badge_url", url)}
+              entityType="developer"
+              entityId={`${developerId}/certifications/${item.id}`}
+            />
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onDelete(item.id)}
+        className="p-1.5 text-text-muted hover:text-red-600 self-start mt-7"
+        aria-label="Delete"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="w-4 h-4"
+        >
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+          <path d="M10 11v6M14 11v6" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+// =====================================================================
+// Education (sortable list, dates are shared, translations per-locale)
+// =====================================================================
+
+function EducationSection({
+  developerId,
+  locale,
+  items,
+  loading,
+  onChange,
+  t,
+}: {
+  developerId: string;
+  locale: string;
+  items: EducationItem[];
+  loading: boolean;
+  onChange: (next: EducationItem[]) => void;
+  t: Translator;
+}) {
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = items.findIndex((it) => it.id === active.id);
+    const newIndex = items.findIndex((it) => it.id === over.id);
+    const next = arrayMove(items, oldIndex, newIndex);
+    onChange(next);
+    try {
+      await apiFetch(
+        "/api/admin/developers/" + developerId + "/education-reorder",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ orderedIds: next.map((it) => it.id) }),
+        },
+      );
+    } catch (err) {
+      console.error("Failed to save education order", err);
+    }
+  };
+
+  const handleAdd = async () => {
+    try {
+      const res = await apiFetch<{ id: string }>(
+        `/api/admin/developers/${developerId}/education`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            start_date: null,
+            end_date: null,
+            locale,
+            translation: { institution: "New school" },
+          }),
+        },
+      );
+      onChange([
+        ...items,
+        {
+          id: res.id,
+          start_date: null,
+          end_date: null,
+          institution: "New school",
+          department: null,
+          status: null,
+        },
+      ]);
+    } catch (err) {
+      console.error("Failed to add education", err);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm(t("admin.confirmDelete", "Delete this item?"))) return;
+    try {
+      await apiFetch(`/api/admin/developers/${developerId}/education/${id}`, {
+        method: "DELETE",
+      });
+      onChange(items.filter((it) => it.id !== id));
+    } catch (err) {
+      console.error("Failed to delete edu", err);
+    }
+  };
+
+  const updateTranslation = async (
+    id: string,
+    field: "institution" | "department" | "status",
+    value: string | null,
+  ) => {
+    const current = items.find((it) => it.id === id);
+    if (!current) return;
+    onChange(
+      items.map((it) => (it.id === id ? { ...it, [field]: value } : it)),
+    );
+    try {
+      await apiFetch(`/api/admin/developers/${developerId}/education/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          locale,
+          translation: {
+            institution:
+              field === "institution" ? (value as string) : current.institution,
+            department: field === "department" ? value : current.department,
+            status: field === "status" ? value : current.status,
+          },
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to update edu translation", err);
+    }
+  };
+
+  const updateDates = async (
+    id: string,
+    startDate: string | null,
+    endDate: string | null,
+  ) => {
+    onChange(
+      items.map((it) =>
+        it.id === id ? { ...it, start_date: startDate, end_date: endDate } : it,
+      ),
+    );
+    try {
+      await apiFetch(`/api/admin/developers/${developerId}/education/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ start_date: startDate, end_date: endDate }),
+      });
+    } catch (err) {
+      console.error("Failed to update edu dates", err);
+    }
+  };
+
+  return (
+    <AdminSection
+      title={t("admin.education", "Education")}
+      action={
+        <button
+          type="button"
+          onClick={handleAdd}
+          disabled={!developerId}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-accent text-white hover:bg-accent-hover disabled:opacity-50 transition-colors"
+        >
+          + {t("admin.add", "Add")}
+        </button>
+      }
+    >
+      {loading ? (
+        <p className="text-sm text-text-muted">Loading...</p>
+      ) : items.length === 0 ? (
+        <p className="text-sm text-text-muted">
+          {t("admin.noEducation", "No education yet.")}
+        </p>
+      ) : (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={items.map((it) => it.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-3">
+              {items.map((item) => (
+                <SortableEducationItem
+                  key={item.id}
+                  item={item}
+                  onUpdateTranslation={updateTranslation}
+                  onUpdateDates={updateDates}
+                  onDelete={handleDelete}
+                  t={t}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      )}
+    </AdminSection>
+  );
+}
+
+function SortableEducationItem({
+  item,
+  onUpdateTranslation,
+  onUpdateDates,
+  onDelete,
+  t,
+}: {
+  item: EducationItem;
+  onUpdateTranslation: (
+    id: string,
+    field: "institution" | "department" | "status",
+    value: string | null,
+  ) => void;
+  onUpdateDates: (
+    id: string,
+    startDate: string | null,
+    endDate: string | null,
+  ) => void;
+  onDelete: (id: string) => void;
+  t: Translator;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : undefined,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex gap-2 p-3 border border-border rounded-lg bg-bg-primary ${
+        isDragging ? "shadow-lg" : ""
+      }`}
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="p-1.5 text-text-muted hover:text-text-primary cursor-grab active:cursor-grabbing rounded-md hover:bg-bg-tertiary self-start mt-7"
+        aria-label="Drag to reorder"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="w-4 h-4"
+        >
+          <circle cx="9" cy="6" r="1.5" />
+          <circle cx="9" cy="12" r="1.5" />
+          <circle cx="9" cy="18" r="1.5" />
+          <circle cx="15" cy="6" r="1.5" />
+          <circle cx="15" cy="12" r="1.5" />
+          <circle cx="15" cy="18" r="1.5" />
+        </svg>
+      </button>
+
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <label className="block">
+          <span className="text-xs font-medium text-text-primary">
+            {t("admin.institution", "Institution")}
+          </span>
+          <input
+            type="text"
+            value={item.institution}
+            onChange={(e) =>
+              onUpdateTranslation(item.id, "institution", e.target.value)
+            }
+            className="w-full mt-1 px-2 py-1.5 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+          />
+        </label>
+        <label className="block">
+          <span className="text-xs font-medium text-text-primary">
+            {t("admin.department", "Department")}
+          </span>
+          <input
+            type="text"
+            value={item.department ?? ""}
+            onChange={(e) =>
+              onUpdateTranslation(item.id, "department", e.target.value || null)
+            }
+            className="w-full mt-1 px-2 py-1.5 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+          />
+        </label>
+        <label className="block">
+          <span className="text-xs font-medium text-text-primary">
+            {t("admin.startDate", "Start date")}
+          </span>
+          <input
+            type="date"
+            value={item.start_date ?? ""}
+            onChange={(e) =>
+              onUpdateDates(item.id, e.target.value || null, item.end_date)
+            }
+            className="w-full mt-1 px-2 py-1.5 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+          />
+        </label>
+        <label className="block">
+          <span className="text-xs font-medium text-text-primary">
+            {t("admin.endDate", "End date")}
+          </span>
+          <input
+            type="date"
+            value={item.end_date ?? ""}
+            onChange={(e) =>
+              onUpdateDates(item.id, item.start_date, e.target.value || null)
+            }
+            className="w-full mt-1 px-2 py-1.5 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+          />
+        </label>
+        <label className="block md:col-span-2">
+          <span className="text-xs font-medium text-text-primary">
+            {t("admin.status", "Status")}
+          </span>
+          <input
+            type="text"
+            value={item.status ?? ""}
+            onChange={(e) =>
+              onUpdateTranslation(item.id, "status", e.target.value || null)
+            }
+            placeholder="졸업 / Graduated / 卒業 / 毕业"
+            className="w-full mt-1 px-2 py-1.5 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+          />
+        </label>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onDelete(item.id)}
+        className="p-1.5 text-text-muted hover:text-red-600 self-start mt-7"
+        aria-label="Delete"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="w-4 h-4"
+        >
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+          <path d="M10 11v6M14 11v6" />
+        </svg>
+      </button>
+    </div>
   );
 }

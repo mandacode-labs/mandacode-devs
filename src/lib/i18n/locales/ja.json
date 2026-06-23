@@ -146,5 +146,13 @@
   "admin.regenerateTranslationConfirm": "この言語の翻訳を再生成しますか?",
   "admin.regenerateTranslationHint": "既存の翻訳は上書きされます。",
   "admin.translatePending": "翻訳待ち",
-  "admin.chipActions": "アクション"
+  "admin.chipActions": "アクション",
+  "admin.add": "追加",
+  "admin.badge": "バッジ",
+  "admin.date": "日付",
+  "admin.department": "学科",
+  "admin.institution": "学校",
+  "admin.issuer": "発行機関",
+  "admin.noCertifications": "資格が登録されていません。",
+  "admin.noEducation": "学歴が登録されていません。"
 }

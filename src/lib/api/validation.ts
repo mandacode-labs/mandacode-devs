@@ -114,11 +114,6 @@ export const createDeveloperSchema = z.object({
   email: z.string().email().nullable().optional(),
   website_url: z.string().url().nullable().optional(),
   tech_stack: z.array(z.string()).nullable().optional(),
-  certifications: z
-    .array(z.record(z.string(), z.unknown()))
-    .nullable()
-    .optional(),
-  education: z.array(z.record(z.string(), z.unknown())).nullable().optional(),
   target_locales: z.array(localeSchema).default([]),
 });
 
@@ -134,9 +129,59 @@ export const updateDeveloperSchema = z.object({
   email: z.string().email().nullable().optional(),
   website_url: z.string().url().nullable().optional(),
   tech_stack: z.array(z.string()).nullable().optional(),
-  certifications: z.array(z.record(z.string(), z.unknown())).optional(),
-  education: z.array(z.record(z.string(), z.unknown())).optional(),
   target_locales: z.array(localeSchema).optional(),
+});
+
+// Certifications and education are managed via separate endpoints
+// (see /api/admin/developers/[id]/certifications and .../education).
+
+export const certificationTranslationInputSchema = z.object({
+  name: z.string().min(1),
+  issuer: z.string().min(1),
+  date: z.string().min(1),
+  badge_url: urlOrPathSchema.nullable().optional(),
+  url: z.string().url().nullable().optional(),
+});
+
+export const createCertificationSchema = z.object({
+  locale: localeSchema,
+  translation: certificationTranslationInputSchema,
+});
+
+export const updateCertificationTranslationSchema = z.object({
+  locale: localeSchema,
+  translation: certificationTranslationInputSchema,
+});
+
+export const reorderCertificationsSchema = z.object({
+  orderedIds: z.array(z.string().min(1)).min(1),
+});
+
+export const educationTranslationInputSchema = z.object({
+  institution: z.string().min(1),
+  department: z.string().nullable().optional(),
+  status: z.string().nullable().optional(),
+});
+
+export const createEducationSchema = z.object({
+  start_date: dateStringSchema.optional(),
+  end_date: dateStringSchema.optional(),
+  locale: localeSchema,
+  translation: educationTranslationInputSchema,
+});
+
+export const updateEducationSchema = z.object({
+  start_date: dateStringSchema.optional(),
+  end_date: dateStringSchema.optional(),
+});
+
+export const updateEducationTranslationSchema = z.object({
+  locale: localeSchema,
+  translation: educationTranslationInputSchema,
+});
+
+export const reorderEducationSchema = z.object({
+  orderedIds: z.array(z.string().min(1)).min(1),
 });
 
 export type CreatePostInput = z.infer<typeof createPostSchema>;

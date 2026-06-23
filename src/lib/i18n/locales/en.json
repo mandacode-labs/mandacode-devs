@@ -146,5 +146,13 @@
   "admin.regenerateTranslationConfirm": "Re-generate the translation for this language?",
   "admin.regenerateTranslationHint": "The existing translation will be overwritten.",
   "admin.translatePending": "Translation pending",
-  "admin.chipActions": "Actions"
+  "admin.chipActions": "Actions",
+  "admin.add": "Add",
+  "admin.badge": "Badge",
+  "admin.date": "Date",
+  "admin.department": "Department",
+  "admin.institution": "Institution",
+  "admin.issuer": "Issuer",
+  "admin.noCertifications": "No certifications yet.",
+  "admin.noEducation": "No education yet."
 }

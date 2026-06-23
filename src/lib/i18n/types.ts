@@ -2,8 +2,16 @@
 // Run `npm run translate` to regenerate.
 
 export type UIKey =
+  | "admin.add"
   | "admin.archived"
   | "admin.avatarUrl"
+  | "admin.badge"
+  | "admin.date"
+  | "admin.department"
+  | "admin.institution"
+  | "admin.issuer"
+  | "admin.noCertifications"
+  | "admin.noEducation"
   | "admin.backToDevelopers"
   | "admin.backToPosts"
   | "admin.backToProjects"
