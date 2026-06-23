@@ -382,7 +382,7 @@ export interface DeveloperCertificationTranslation {
   certification_id: string;
   locale: string;
   name: string;
-  issuer: string;
+  issuer: string | null;
   date: string;
   badge_url: string | null;
   url: string | null;
