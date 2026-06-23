@@ -23,7 +23,7 @@ export const PUT: APIRoute = async (context) => {
 
     await developersRepo.upsertCertificationTranslation(certId, body.locale, {
       name: body.translation.name,
-      issuer: body.translation.issuer,
+      issuer: body.translation.issuer ?? null,
       date: body.translation.date,
       badge_url: body.translation.badge_url ?? null,
       url: body.translation.url ?? null,
