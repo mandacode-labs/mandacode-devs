@@ -21,6 +21,7 @@ import type {
   DeveloperTranslation,
   PublishStatus,
 } from "@/lib/db/schema";
+import { hashContent } from "@/lib/hash";
 
 export type { LocaleMeta as DeveloperLocaleMeta };
 
@@ -213,6 +214,45 @@ export async function createDeveloper(
       input.original_locale,
     )
     .run();
+}
+
+/**
+ * Idempotent bootstrap for a developer row + its first translation. Used by
+ * the admin "new profile" flow so the editor always has a row to attach
+ * cert/edu/order fields to. Skips when the row already exists.
+ */
+export async function ensureDeveloperExists(
+  id: string,
+  locale: string,
+  authorId: string,
+): Promise<void> {
+  const existing = await getDeveloperById(id, locale);
+  if (existing) return;
+
+  await createDeveloper({
+    id,
+    author_id: authorId,
+    github_url: null,
+    email: null,
+    website_url: null,
+    tech_stack: null,
+    original_locale: locale,
+  });
+
+  const emptyTiptap = JSON.stringify({ type: "doc", content: [] });
+  await createDeveloperTranslation({
+    id: `${id}_${locale}`,
+    developer_id: id,
+    locale,
+    name: "",
+    role: "",
+    bio: "",
+    tiptap_json: emptyTiptap,
+    avatar_url: null,
+    publish_status: "draft",
+    published_at: null,
+    source_hash: await hashContent(emptyTiptap),
+  });
 }
 
 export async function createDeveloperTranslation(

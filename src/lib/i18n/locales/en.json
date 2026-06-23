@@ -154,5 +154,6 @@
   "admin.institution": "Institution",
   "admin.issuer": "Issuer",
   "admin.noCertifications": "No certifications yet.",
-  "admin.noEducation": "No education yet."
+  "admin.noEducation": "No education yet.",
+  "admin.newProfile": "New Profile"
 }

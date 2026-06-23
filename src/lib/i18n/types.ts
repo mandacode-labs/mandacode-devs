@@ -53,6 +53,7 @@ export type UIKey =
   | "admin.media"
   | "admin.name"
   | "admin.newPost"
+  | "admin.newProfile"
   | "admin.newProject"
   | "admin.noItems"
   | "admin.order"

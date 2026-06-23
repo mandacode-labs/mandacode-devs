@@ -134,7 +134,7 @@ function formatDate(iso: string): string {
             </p>
             <div class="mt-3">
               <a
-                href={`/admin/developers/edit/${MAIN_DEVELOPER_ID}?locale=${DEFAULT_LANGUAGE}`}
+                href="/admin/developers/new"
                 class="text-xs font-medium text-accent hover:text-accent-hover"
               >
                 Edit profile →
@@ -182,7 +182,7 @@ function formatDate(iso: string): string {
               {t("admin.newProject")}
             </a>
             <a
-              href={`/admin/developers/edit/${MAIN_DEVELOPER_ID}?locale=${DEFAULT_LANGUAGE}`}
+              href="/admin/developers/new"
               class="inline-flex items-center gap-2 px-4 py-2.5 border border-border text-text-primary text-sm font-medium rounded-lg hover:bg-bg-secondary transition-colors"
             >
               <svg
@@ -195,7 +195,7 @@ function formatDate(iso: string): string {
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
-              {t("admin.developer")}
+              {t("admin.newProfile")}
             </a>
           </div>
         </AdminCard>

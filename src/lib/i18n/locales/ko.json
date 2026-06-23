@@ -154,5 +154,6 @@
   "admin.institution": "학교",
   "admin.issuer": "발급기관",
   "admin.noCertifications": "등록된 자격증이 없습니다.",
-  "admin.noEducation": "등록된 학력이 없습니다."
+  "admin.noEducation": "등록된 학력이 없습니다.",
+  "admin.newProfile": "새 프로필"
 }

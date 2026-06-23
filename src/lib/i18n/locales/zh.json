@@ -154,5 +154,6 @@
   "admin.institution": "学校",
   "admin.issuer": "颁发机构",
   "admin.noCertifications": "暂无证书。",
-  "admin.noEducation": "无学历记录。"
+  "admin.noEducation": "无学历记录。",
+  "admin.newProfile": "新个人资料"
 }
