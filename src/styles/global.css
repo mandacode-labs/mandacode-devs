@@ -1,6 +1,5 @@
 @import "./_variables.scss";
 @import "./_keyframe-animations.scss";
-@import "./contents/contents.scss";
 
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";

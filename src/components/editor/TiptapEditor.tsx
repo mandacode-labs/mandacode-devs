@@ -43,6 +43,8 @@ import {
 } from "@/lib/tiptap-upload";
 import { MAX_FILE_SIZE } from "@/lib/tiptap-utils";
 
+import "highlight.js/styles/atom-one-dark.css";
+import "@/components/content-body/content-body.scss";
 import "@/components/tiptap-templates/simple/simple-editor.scss";
 
 function parseTiptapContent(content: string): Record<string, unknown> {
