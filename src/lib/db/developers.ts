@@ -25,6 +25,8 @@ import { hashContent } from "@/lib/hash";
 
 export type { LocaleMeta as DeveloperLocaleMeta };
 
+export type EducationStatus = "graduated" | "enrolled" | "withdrawn";
+
 const MAIN_CFG: MainTableConfig = {
   table: "developers",
   alias: "d",
@@ -460,7 +462,12 @@ export async function getDeveloperCertifications(
   const result = await db
     .prepare(
       `SELECT c.id, c.developer_id, c.order_index, c.created_at, c.updated_at,
-              t.locale, t.name, t.issuer, t.date, t.badge_url, t.url
+              COALESCE(t.locale, fallback.locale) AS locale,
+              COALESCE(t.name, fallback.name) AS name,
+              COALESCE(t.issuer, fallback.issuer) AS issuer,
+              COALESCE(t.date, fallback.date) AS date,
+              COALESCE(t.badge_url, fallback.badge_url) AS badge_url,
+              COALESCE(t.url, fallback.url) AS url
          FROM developer_certifications c
          LEFT JOIN developer_certification_translations t
            ON t.certification_id = c.id AND t.locale = ?
@@ -473,21 +480,12 @@ export async function getDeveloperCertifications(
     .bind(locale, originalLocale, developerId)
     .all<CertificationRow>();
 
-  return (result.results ?? []).map((row) => {
-    // If requested-locale join has data, use it; else fall back.
-    if (row.locale === locale && row.name !== null) {
-      return mapCertificationRow(row);
-    }
-    return mapCertificationRow({
+  return (result.results ?? []).map((row) =>
+    mapCertificationRow({
       ...row,
-      locale: originalLocale,
-      name: row.name, // may still be null if no translation exists
-      issuer: row.issuer,
-      date: row.date,
-      badge_url: row.badge_url,
-      url: row.url,
-    });
-  });
+      locale: row.locale ?? originalLocale,
+    }),
+  );
 }
 
 export async function getCertificationTranslations(
@@ -597,7 +595,7 @@ export interface DeveloperEducationTranslation {
   locale: string;
   institution: string;
   department: string | null;
-  status: string | null;
+  status: EducationStatus | null;
 }
 
 export interface DeveloperEducation {
@@ -614,7 +612,7 @@ export interface DeveloperEducationFull extends DeveloperEducation {
   resolved_locale: string;
   institution: string;
   department: string | null;
-  status: string | null;
+  status: EducationStatus | null;
 }
 
 interface EducationRow {
@@ -643,7 +641,7 @@ function mapEducationRow(row: EducationRow): DeveloperEducationFull {
     resolved_locale: row.locale ?? "",
     institution: row.institution ?? "",
     department: row.department,
-    status: row.status,
+    status: (row.status as EducationStatus | null) ?? null,
   };
 }
 
@@ -665,7 +663,10 @@ export async function getDeveloperEducation(
     .prepare(
       `SELECT e.id, e.developer_id, e.start_date, e.end_date, e.order_index,
               e.created_at, e.updated_at,
-              t.locale, t.institution, t.department, t.status
+              COALESCE(t.locale, fallback.locale) AS locale,
+              COALESCE(t.institution, fallback.institution) AS institution,
+              COALESCE(t.department, fallback.department) AS department,
+              COALESCE(t.status, fallback.status) AS status
          FROM developer_education e
          LEFT JOIN developer_education_translations t
            ON t.education_id = e.id AND t.locale = ?
@@ -678,18 +679,12 @@ export async function getDeveloperEducation(
     .bind(locale, originalLocale, developerId)
     .all<EducationRow>();
 
-  return (result.results ?? []).map((row) => {
-    if (row.locale === locale && row.institution !== null) {
-      return mapEducationRow(row);
-    }
-    return mapEducationRow({
+  return (result.results ?? []).map((row) =>
+    mapEducationRow({
       ...row,
-      locale: originalLocale,
-      institution: row.institution,
-      department: row.department,
-      status: row.status,
-    });
-  });
+      locale: row.locale ?? originalLocale,
+    }),
+  );
 }
 
 export async function getEducationTranslations(

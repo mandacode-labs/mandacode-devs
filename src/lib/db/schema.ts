@@ -134,10 +134,3 @@ export interface Certification {
   url?: string;
   badge?: string;
 }
-
-export interface Education {
-  period: string;
-  institution: string;
-  department: string;
-  status: string;
-}

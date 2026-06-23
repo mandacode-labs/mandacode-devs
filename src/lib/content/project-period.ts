@@ -1,10 +1,15 @@
-export function formatProjectPeriod(project: {
-  startDate: string | null;
-  endDate: string | null;
-}): string {
+import { formatMonthYear } from "@/lib/utils/date";
+import type { Language } from "@/lib/config/languages";
+
+export function formatProjectPeriod(
+  project: { startDate: string | null; endDate: string | null },
+  lang: Language = "ko",
+): string {
   const { startDate, endDate } = project;
-  if (startDate && endDate) return `${startDate} ~ ${endDate}`;
-  if (startDate) return `${startDate} ~`;
-  if (endDate) return `~ ${endDate}`;
+  const start = formatMonthYear(startDate, lang);
+  const end = formatMonthYear(endDate, lang);
+  if (start !== "-" && end !== "-") return `${start} ~ ${end}`;
+  if (start !== "-") return `${start} ~`;
+  if (end !== "-") return `~ ${end}`;
   return "-";
 }

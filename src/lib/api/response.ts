@@ -29,8 +29,10 @@ export function errorResponse(error: unknown): Response {
   }
 
   if (error instanceof Error) {
+    console.error("API error:", error.message, error.stack);
     return jsonResponse({ error: "Internal server error" }, 500);
   }
 
+  console.error("API error:", error);
   return jsonResponse({ error: "Internal server error" }, 500);
 }

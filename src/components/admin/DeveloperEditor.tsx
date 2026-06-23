@@ -27,6 +27,7 @@ import { useAdminEditor } from "@/components/admin/use-admin-editor";
 import { useClickOutside } from "@/hooks/use-click-outside";
 import { useTagSuggestions } from "@/hooks/use-tag-suggestions";
 import { apiFetch } from "@/lib/api/client";
+import type { EducationStatus } from "@/lib/db/developers";
 import type { UIKey } from "@/lib/i18n";
 import {
   useAdminTranslations,
@@ -72,8 +73,17 @@ interface EducationItem {
   end_date: string | null;
   institution: string;
   department: string | null;
-  status: string | null;
+  status: EducationStatus | null;
 }
+
+const EDUCATION_STATUS_OPTIONS: Array<{
+  value: EducationStatus;
+  key: "status.graduated" | "status.enrolled" | "status.withdrawn";
+}> = [
+  { value: "graduated", key: "status.graduated" },
+  { value: "enrolled", key: "status.enrolled" },
+  { value: "withdrawn", key: "status.withdrawn" },
+];
 
 export default function DeveloperEditor({
   initialData,
@@ -653,19 +663,26 @@ function CertificationsSection({
           }),
         },
       );
+      if (!res?.id) {
+        throw new Error("Add failed: response missing id");
+      }
+      const today = new Date().toISOString().slice(0, 10);
       onChange([
         ...items,
         {
           id: res.id,
           name: "New certification",
           issuer: "",
-          date: new Date().toISOString().slice(0, 10),
+          date: today,
           badge_url: null,
           url: null,
         },
       ]);
     } catch (err) {
       console.error("Failed to add certification", err);
+      window.alert(
+        `Failed to add certification: ${err instanceof Error ? err.message : "Unknown error"}`,
+      );
     }
   };
 
@@ -992,6 +1009,9 @@ function EducationSection({
           }),
         },
       );
+      if (!res?.id) {
+        throw new Error("Add failed: response missing id");
+      }
       onChange([
         ...items,
         {
@@ -1005,6 +1025,9 @@ function EducationSection({
       ]);
     } catch (err) {
       console.error("Failed to add education", err);
+      window.alert(
+        `Failed to add education: ${err instanceof Error ? err.message : "Unknown error"}`,
+      );
     }
   };
 
@@ -1243,15 +1266,24 @@ function SortableEducationItem({
           <span className="text-xs font-medium text-text-primary">
             {t("admin.status", "Status")}
           </span>
-          <input
-            type="text"
+          <select
             value={item.status ?? ""}
             onChange={(e) =>
-              onUpdateTranslation(item.id, "status", e.target.value || null)
+              onUpdateTranslation(
+                item.id,
+                "status",
+                (e.target.value || null) as EducationStatus | null,
+              )
             }
-            placeholder="졸업 / Graduated / 卒業 / 毕业"
             className="w-full mt-1 px-2 py-1.5 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-          />
+          >
+            <option value="">—</option>
+            {EDUCATION_STATUS_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {t(option.key, option.value)}
+              </option>
+            ))}
+          </select>
         </label>
       </div>
 

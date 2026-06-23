@@ -1,6 +1,7 @@
 ---
 import { formatProjectPeriod } from "@/lib/content/project-period";
 import { useTranslations } from "@/lib/i18n/utils";
+import type { UIKey } from "@/lib/i18n";
 import type { Lang } from "@/types";
 import type { UnifiedDeveloper } from "@/lib/content/types";
 
@@ -27,7 +28,7 @@ const education = developer.education;
                 <h5>{edu.institution}</h5>
                 {edu.status && (
                   <span class="px-2 py-0.5 text-xs bg-accent-subtle text-accent rounded-full">
-                    {edu.status}
+                    {t(`status.${edu.status}` as UIKey)}
                   </span>
                 )}
               </div>
@@ -36,10 +37,13 @@ const education = developer.education;
               )}
             </div>
             <p class="text-sm text-text-muted whitespace-nowrap">
-              {formatProjectPeriod({
-                startDate: edu.startDate,
-                endDate: edu.endDate,
-              })}
+              {formatProjectPeriod(
+                {
+                  startDate: edu.startDate,
+                  endDate: edu.endDate,
+                },
+                lang,
+              )}
             </p>
           </li>
         ))}

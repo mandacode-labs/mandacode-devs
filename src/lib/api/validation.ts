@@ -11,6 +11,11 @@ const projectStatusSchema = z.enum([
   "planning",
   "completed",
 ]);
+export const educationStatusSchema = z.enum([
+  "graduated",
+  "enrolled",
+  "withdrawn",
+]);
 
 const urlOrPathSchema = z
   .string()
@@ -137,7 +142,7 @@ export const updateDeveloperSchema = z.object({
 
 export const certificationTranslationInputSchema = z.object({
   name: z.string().min(1),
-  issuer: z.string().min(1),
+  issuer: z.string().optional(),
   date: z.string().min(1),
   badge_url: urlOrPathSchema.nullable().optional(),
   url: z.string().url().nullable().optional(),
@@ -160,7 +165,7 @@ export const reorderCertificationsSchema = z.object({
 export const educationTranslationInputSchema = z.object({
   institution: z.string().min(1),
   department: z.string().nullable().optional(),
-  status: z.string().nullable().optional(),
+  status: educationStatusSchema.nullable().optional(),
 });
 
 export const createEducationSchema = z.object({
