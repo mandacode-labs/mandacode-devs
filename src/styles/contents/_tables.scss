@@ -1,0 +1,42 @@
+/* Shared table styles. Single source of truth for the public
+   view, admin previews, and the Tiptap editor — so the table a
+   reader sees is the same table the author edits. Selectors are
+   intentionally unscoped so the rules apply wherever a table
+   appears, including inside .prose (public) and .tiptap.ProseMirror
+   (editor).
+
+   The cell's inner paragraph and list default to big margin and
+   a different line-height (Tailwind Typography in the prose
+   context, the simple-editor p rule in the editor). Both end up
+   adding 30+ px to every cell, which fights the table's compact
+   line-height: 2. !important lands over both to keep the cell
+   height predictable. */
+
+table {
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+  width: 100%;
+  table-layout: fixed;
+  overflow: hidden;
+
+  th,
+  td {
+    border: 1px solid var(--color-border, #e5e5e5);
+    padding: 0.25rem 0.5rem;
+    vertical-align: top;
+    position: relative;
+    line-height: 2;
+  }
+
+  th {
+    font-weight: 600;
+    background-color: var(--color-bg-secondary, #fafafa);
+    text-align: left;
+  }
+
+  p,
+  li {
+    margin: 0 !important;
+    line-height: inherit !important;
+  }
+}

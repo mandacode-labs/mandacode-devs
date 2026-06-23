@@ -1,40 +1,7 @@
+@import "../../../styles/contents/contents.scss";
+
 .tiptap.ProseMirror {
   table {
-    border-collapse: collapse;
-    margin: 0.75rem 0;
-    width: 100%;
-    table-layout: fixed;
-    overflow: hidden;
-
-    td,
-    th {
-      border: 1px solid var(--color-border, #e5e5e5);
-      padding: 0.25rem 0.5rem;
-      vertical-align: top;
-      position: relative;
-      line-height: 1.4;
-
-      > * {
-        margin: 0;
-        line-height: 1.4;
-      }
-
-      // Override the more-specific .simple-editor-content ... p rule
-      // that would otherwise re-introduce margin and 1.7 line-height.
-      // Both selectors carry 5 classes, so we bump with `!important`
-      // to land the cell's intent: a tight table.
-      p {
-        margin: 0 !important;
-        line-height: 1.4 !important;
-      }
-    }
-
-    th {
-      background-color: var(--color-bg-secondary, #fafafa);
-      font-weight: 600;
-      text-align: left;
-    }
-
     .selectedCell {
       &::after {
         z-index: 2;
