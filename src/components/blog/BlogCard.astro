@@ -1,8 +1,8 @@
 ---
+import { Image } from "lucide-react";
 import Card from "@/components/ui/Card.astro";
 import Badge from "@/components/ui/Badge.astro";
 import CoverImage from "@/components/ui/CoverImage.astro";
-import ImagePlaceholder from "@/components/icons/ImagePlaceholder.astro";
 import type { Lang } from "@/types";
 import { formatDate } from "@/lib/utils/date";
 import type { UnifiedPost } from "@/lib/content/types";
@@ -34,7 +34,7 @@ const tags = post.tags;
           />
         ) : (
           <div class="aspect-video sm:aspect-square relative overflow-hidden rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none bg-bg-secondary flex items-center justify-center text-text-muted">
-            <ImagePlaceholder />
+            <Image />
           </div>
         )
       }

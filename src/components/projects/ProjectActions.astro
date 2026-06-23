@@ -1,8 +1,7 @@
 ---
+import { ExternalLink, BookOpen } from "lucide-react";
 import Button from "@/components/ui/Button.astro";
-import ExternalLinkIcon from "@/components/icons/ExternalLink.astro";
 import GithubIcon from "@/components/icons/Github.astro";
-import BookOpenIcon from "@/components/icons/BookOpen.astro";
 import { useTranslations } from "@/lib/i18n/utils";
 import type { Lang } from "@/types";
 import type { UnifiedProject } from "@/lib/content/types";
@@ -24,7 +23,7 @@ const blogHref = project.blogPostId
     project.url && (
       <Button href={project.url} variant="primary">
         <span>{t("projects.visitSite")}</span>
-        <ExternalLinkIcon size={16} />
+        <ExternalLink size={16} />
       </Button>
     )
   }
@@ -39,7 +38,7 @@ const blogHref = project.blogPostId
   {
     blogHref && (
       <Button href={blogHref} variant="secondary">
-        <BookOpenIcon size={16} />
+        <BookOpen size={16} />
         <span>Blog</span>
       </Button>
     )

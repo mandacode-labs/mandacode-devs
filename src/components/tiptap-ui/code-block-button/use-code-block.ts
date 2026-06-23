@@ -1,5 +1,6 @@
 "use client";
 
+import { SquareCode } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { type Editor } from "@tiptap/react";
 import { NodeSelection, TextSelection } from "@tiptap/pm/state";
@@ -16,9 +17,6 @@ import {
   isValidPosition,
   selectionWithinConvertibleTypes,
 } from "@/lib/tiptap-utils";
-
-// --- Icons ---
-import { CodeBlockIcon } from "@/components/tiptap-icons/code-block-icon";
 
 export const CODE_BLOCK_SHORTCUT_KEY = "mod+alt+c";
 
@@ -278,6 +276,6 @@ export function useCodeBlock(config?: UseCodeBlockConfig) {
     canToggle: canToggleState,
     label: "Code Block",
     shortcutKeys: CODE_BLOCK_SHORTCUT_KEY,
-    Icon: CodeBlockIcon,
+    Icon: SquareCode,
   };
 }

@@ -1,11 +1,9 @@
+import { Link } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { Editor } from "@tiptap/react";
 
 // --- Hooks ---
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor";
-
-// --- Icons ---
-import { LinkIcon } from "@/components/tiptap-icons/link-icon";
 
 // --- Lib ---
 import {
@@ -291,7 +289,7 @@ export function useLinkPopover(config?: UseLinkPopoverConfig) {
     canSet,
     isActive,
     label: "Link",
-    Icon: LinkIcon,
+    Icon: Link,
     ...linkHandler,
   };
 }

@@ -1,3 +1,4 @@
+import { Ban, Baseline, Highlighter } from "lucide-react";
 import { forwardRef, useMemo, useRef, useState } from "react";
 import { type Editor } from "@tiptap/react";
 
@@ -5,11 +6,6 @@ import { type Editor } from "@tiptap/react";
 import { useMenuNavigation } from "@/hooks/use-menu-navigation";
 import { useIsBreakpoint } from "@/hooks/use-is-breakpoint";
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor";
-
-// --- Icons ---
-import { BanIcon } from "@/components/tiptap-icons/ban-icon";
-import { FontColorIcon } from "@/components/tiptap-icons/font-color-icon";
-import { HighlighterIcon } from "@/components/tiptap-icons/highlighter-icon";
 
 // --- UI Primitives ---
 import type { ButtonProps } from "@/components/tiptap-ui-primitive/button";
@@ -106,7 +102,7 @@ export const ColorHighlightPopoverButton = forwardRef<
     ref={ref}
     {...props}
   >
-    {children ?? <FontColorIcon className="tiptap-button-icon" />}
+    {children ?? <Baseline className="tiptap-button-icon" />}
   </Button>
 ));
 
@@ -200,7 +196,7 @@ export function ColorHighlightPopoverContent({
               aria-label="Text color"
               tooltip="Text color"
             >
-              <FontColorIcon className="tiptap-button-icon" />
+              <Baseline className="tiptap-button-icon" />
             </Button>
             <Button
               type="button"
@@ -209,7 +205,7 @@ export function ColorHighlightPopoverContent({
               aria-label="Highlight"
               tooltip="Highlight"
             >
-              <HighlighterIcon className="tiptap-button-icon" />
+              <Highlighter className="tiptap-button-icon" />
             </Button>
           </ButtonGroup>
         </CardItemGroup>
@@ -264,7 +260,7 @@ export function ColorHighlightPopoverContent({
               variant="ghost"
               data-highlighted={selectedIndex === items.length - 1}
             >
-              <BanIcon className="tiptap-button-icon" />
+              <Ban className="tiptap-button-icon" />
             </Button>
           </ButtonGroup>
         </CardItemGroup>

@@ -1,11 +1,10 @@
 "use client";
 
+import { Code, Play } from "lucide-react";
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { NodeViewProps } from "@tiptap/react";
 import { NodeViewWrapper, NodeViewContent } from "@tiptap/react";
 import { Button } from "@/components/tiptap-ui-primitive/button";
-import { Code2Icon } from "@/components/tiptap-icons/code2-icon";
-import { PlayIcon } from "@/components/tiptap-icons/play-icon";
 import "@/components/tiptap-node/mermaid-node/mermaid-node.scss";
 
 let mermaidPromise: Promise<typeof import("mermaid").default> | null = null;
@@ -139,12 +138,12 @@ export function MermaidNode(props: NodeViewProps) {
         >
           {isPreview ? (
             <>
-              <Code2Icon className="tiptap-button-icon" />
+              <Code className="tiptap-button-icon" />
               <span>Edit source</span>
             </>
           ) : (
             <>
-              <PlayIcon className="tiptap-button-icon" />
+              <Play className="tiptap-button-icon" />
               <span>Preview</span>
             </>
           )}

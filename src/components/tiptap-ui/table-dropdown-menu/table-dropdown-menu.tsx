@@ -1,9 +1,6 @@
+import { ChevronDown, Table } from "lucide-react";
 import { forwardRef, useCallback, useState, type ForwardedRef } from "react";
 import { type Editor } from "@tiptap/react";
-
-// --- Icons ---
-import { ChevronDownIcon } from "@/components/tiptap-icons/chevron-down-icon";
-import { TableIcon } from "@/components/tiptap-icons/table-icon";
 
 // --- Hooks ---
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor";
@@ -78,8 +75,8 @@ function TableDropdownMenuImpl(
           {...props}
           ref={ref}
         >
-          <TableIcon className="tiptap-button-icon" />
-          <ChevronDownIcon className="tiptap-button-dropdown-small" />
+          <Table className="tiptap-button-icon" />
+          <ChevronDown className="tiptap-button-dropdown-small" />
         </Button>
       </DropdownMenuTrigger>
 

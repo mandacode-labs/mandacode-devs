@@ -1,7 +1,5 @@
+import { ChevronDown } from "lucide-react";
 import { forwardRef, useCallback, useState } from "react";
-
-// --- Icons ---
-import { ChevronDownIcon } from "@/components/tiptap-icons/chevron-down-icon";
 
 // --- Hooks ---
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor";
@@ -98,7 +96,7 @@ export const HeadingDropdownMenu = forwardRef<
             ) : (
               <>
                 <Icon className="tiptap-button-icon" />
-                <ChevronDownIcon className="tiptap-button-dropdown-small" />
+                <ChevronDown className="tiptap-button-dropdown-small" />
               </>
             )}
           </Button>

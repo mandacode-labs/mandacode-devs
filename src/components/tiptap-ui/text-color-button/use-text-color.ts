@@ -1,5 +1,6 @@
 "use client";
 
+import { Baseline } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { type Editor } from "@tiptap/react";
 
@@ -8,9 +9,6 @@ import { useTiptapEditor } from "@/hooks/use-tiptap-editor";
 
 // --- Lib ---
 import { isMarkInSchema, isNodeTypeSelected } from "@/lib/tiptap-utils";
-
-// --- Icons ---
-import { FontColorIcon } from "@/components/tiptap-icons/font-color-icon";
 
 export const TEXT_COLORS = [
   {
@@ -216,6 +214,6 @@ export function useTextColor(config: UseTextColorConfig) {
     handleRemoveTextColor,
     canTextColor: canTextColorState,
     label: label || "Text color",
-    Icon: FontColorIcon,
+    Icon: Baseline,
   };
 }

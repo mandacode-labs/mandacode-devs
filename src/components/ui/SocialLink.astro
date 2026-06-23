@@ -1,9 +1,7 @@
 ---
+import { Mail, Globe } from "lucide-react";
 import Button from "@/components/ui/Button.astro";
 import GithubIcon from "@/components/icons/Github.astro";
-import EmailIcon from "@/components/icons/Email.astro";
-import GlobeIcon from "@/components/icons/Globe.astro";
-
 interface Props {
   platform: "github" | "email" | "website";
   href: string;
@@ -19,11 +17,11 @@ const config = {
   },
   email: {
     label: "Email",
-    icon: EmailIcon,
+    icon: Mail,
   },
   website: {
     label: "Website",
-    icon: GlobeIcon,
+    icon: Globe,
   },
 };
 
