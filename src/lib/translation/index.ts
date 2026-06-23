@@ -3,6 +3,7 @@ import * as postsRepo from "@/lib/db/posts";
 import * as projectsRepo from "@/lib/db/projects";
 import * as developersRepo from "@/lib/db/developers";
 import { updateTranslationJobStatus } from "@/lib/db/translation-jobs";
+import { hashContent } from "@/lib/hash";
 import type { Language } from "@/lib/config/languages";
 import type { TranslationContentType } from "@/lib/db/schema";
 
@@ -35,6 +36,7 @@ async function translatePost(job: TranslationJobInput): Promise<void> {
     job.targetLocale,
   );
 
+  const sourceHash = await hashContent(source.tiptap_json);
   const existing = await postsRepo.getPostTranslationById(
     job.id,
     job.targetLocale,
@@ -45,6 +47,7 @@ async function translatePost(job: TranslationJobInput): Promise<void> {
       title: translated.title,
       description: translated.description,
       tiptap_json: translated.tiptapJson,
+      source_hash: sourceHash,
     });
     return;
   }
@@ -60,6 +63,7 @@ async function translatePost(job: TranslationJobInput): Promise<void> {
     cover_image_url: source.cover_image_url,
     publish_status: source.publish_status,
     published_at: source.published_at ? now : null,
+    source_hash: sourceHash,
   });
 }
 
@@ -82,6 +86,7 @@ async function translateProject(job: TranslationJobInput): Promise<void> {
     job.targetLocale,
   );
 
+  const sourceHash = await hashContent(source.tiptap_json);
   const existing = await projectsRepo.getProjectTranslationById(
     job.id,
     job.targetLocale,
@@ -93,6 +98,7 @@ async function translateProject(job: TranslationJobInput): Promise<void> {
       description: translated.description,
       tiptap_json: translated.tiptapJson,
       role: translated.role ?? source.role,
+      source_hash: sourceHash,
     });
     return;
   }
@@ -109,6 +115,7 @@ async function translateProject(job: TranslationJobInput): Promise<void> {
     cover_image_url: source.cover_image_url,
     publish_status: source.publish_status,
     published_at: source.published_at ? now : null,
+    source_hash: sourceHash,
   });
 }
 
@@ -133,6 +140,7 @@ async function translateDeveloper(job: TranslationJobInput): Promise<void> {
     job.targetLocale,
   );
 
+  const sourceHash = await hashContent(source.tiptap_json);
   const existing = await developersRepo.getDeveloperTranslationById(
     job.id,
     job.targetLocale,
@@ -144,6 +152,7 @@ async function translateDeveloper(job: TranslationJobInput): Promise<void> {
       role: translated.role ?? source.role,
       bio: translated.description ?? source.bio,
       tiptap_json: translated.tiptapJson,
+      source_hash: sourceHash,
     });
     return;
   }
@@ -160,6 +169,7 @@ async function translateDeveloper(job: TranslationJobInput): Promise<void> {
     avatar_url: source.avatar_url,
     publish_status: source.publish_status,
     published_at: source.published_at ? now : null,
+    source_hash: sourceHash,
   });
 }
 

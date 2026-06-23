@@ -1,5 +1,4 @@
 import { getDatabase } from "@/lib/db/client";
-import { hashContent } from "@/lib/db/translation-repo";
 import {
   buildByIdQuery,
   buildListQuery,
@@ -67,7 +66,7 @@ export interface CreatePostTranslationInput {
   cover_image_url: string | null;
   publish_status: PublishStatus;
   published_at: string | null;
-  source_hash?: string | null;
+  source_hash: string;
 }
 
 export interface UpdatePostTranslationInput {
@@ -222,8 +221,6 @@ export async function createPostTranslation(
   input: CreatePostTranslationInput,
 ): Promise<void> {
   const db = getDatabase();
-  const sourceHash =
-    input.source_hash ?? (await hashContent(input.tiptap_json));
 
   await db
     .prepare(
@@ -242,7 +239,7 @@ export async function createPostTranslation(
       input.cover_image_url,
       input.publish_status,
       input.published_at,
-      sourceHash,
+      input.source_hash,
     )
     .run();
 }

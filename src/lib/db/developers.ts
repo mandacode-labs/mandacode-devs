@@ -1,5 +1,4 @@
 import { getDatabase } from "@/lib/db/client";
-import { hashContent } from "@/lib/db/translation-repo";
 import {
   deleteAllEntityTranslations,
   deleteEntity,
@@ -83,7 +82,7 @@ export interface CreateDeveloperTranslationInput {
   avatar_url: string | null;
   publish_status: PublishStatus;
   published_at: string | null;
-  source_hash?: string | null;
+  source_hash: string;
 }
 
 export interface UpdateDeveloperTranslationInput {
@@ -230,8 +229,6 @@ export async function createDeveloperTranslation(
   input: CreateDeveloperTranslationInput,
 ): Promise<void> {
   const db = getDatabase();
-  const sourceHash =
-    input.source_hash ?? (await hashContent(input.tiptap_json));
 
   await db
     .prepare(
@@ -251,7 +248,7 @@ export async function createDeveloperTranslation(
       input.avatar_url,
       input.publish_status,
       input.published_at,
-      sourceHash,
+      input.source_hash,
     )
     .run();
 }

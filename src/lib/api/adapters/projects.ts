@@ -51,6 +51,7 @@ export const projectAdapter: AdminCrudAdapter<
       cover_image_url: body.cover_image_url ?? null,
       publish_status: body.publish_status,
       published_at: publishedAt,
+      source_hash: await hashContent(body.tiptap_json),
     });
 
     await tagsRepo.setProjectTags(body.id, body.tags);
@@ -77,12 +78,17 @@ export const projectAdapter: AdminCrudAdapter<
       translationUpdate.published_at = new Date().toISOString();
     }
 
-    await projectsRepo.updateProjectTranslation(id, locale, translationUpdate);
-
     const projectOriginalLocale =
       await projectsRepo.getProjectOriginalLocale(id);
+    let newSourceHash: string | null = null;
     if (locale === projectOriginalLocale && body.tiptap_json !== undefined) {
-      const newSourceHash = await hashContent(body.tiptap_json);
+      newSourceHash = await hashContent(body.tiptap_json);
+      translationUpdate.source_hash = newSourceHash;
+    }
+
+    await projectsRepo.updateProjectTranslation(id, locale, translationUpdate);
+
+    if (newSourceHash !== null) {
       await projectsRepo.updateProjectTranslationsCascade(
         id,
         locale,
