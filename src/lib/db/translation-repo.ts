@@ -1,5 +1,4 @@
 import { getDatabase } from "@/lib/db/client";
-import { hashContent } from "@/lib/hash";
 import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
 import type { PublishStatus } from "@/lib/db/schema";
 
@@ -310,11 +309,6 @@ export async function updateEntityTranslation(
     values.push(value);
   }
 
-  if (input.tiptap_json !== undefined && input.source_hash === undefined) {
-    fields.push("source_hash = ?");
-    values.push(await hashContent(input.tiptap_json as string));
-  }
-
   if (fields.length === 0) return;
 
   fields.push("updated_at = CURRENT_TIMESTAMP");
@@ -326,5 +320,3 @@ export async function updateEntityTranslation(
     .bind(...values, entityId, locale)
     .run();
 }
-
-export { hashContent };

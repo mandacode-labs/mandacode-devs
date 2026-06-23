@@ -42,6 +42,7 @@ export const postAdapter: AdminCrudAdapter<
       cover_image_url: body.cover_image_url ?? null,
       publish_status: body.publish_status,
       published_at: publishedAt,
+      source_hash: await hashContent(body.tiptap_json),
     });
 
     await tagsRepo.setPostTags(body.id, body.tags);
@@ -67,11 +68,16 @@ export const postAdapter: AdminCrudAdapter<
       updateData.published_at = new Date().toISOString();
     }
 
+    const postOriginalLocale = await postsRepo.getPostOriginalLocale(id);
+    let newSourceHash: string | null = null;
+    if (locale === postOriginalLocale && body.tiptap_json !== undefined) {
+      newSourceHash = await hashContent(body.tiptap_json);
+      updateData.source_hash = newSourceHash;
+    }
+
     await postsRepo.updatePostTranslation(id, locale, updateData);
 
-    const postOriginalLocale = await postsRepo.getPostOriginalLocale(id);
-    if (locale === postOriginalLocale && body.tiptap_json !== undefined) {
-      const newSourceHash = await hashContent(body.tiptap_json);
+    if (newSourceHash !== null) {
       await postsRepo.updatePostTranslationsCascade(id, locale, newSourceHash);
     }
 
