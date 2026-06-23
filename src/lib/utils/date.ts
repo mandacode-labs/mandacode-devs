@@ -7,6 +7,11 @@ const SHORT_DATE_OPTIONS: Intl.DateTimeFormatOptions = {
   day: "numeric",
 };
 
+const MONTH_YEAR_OPTIONS: Intl.DateTimeFormatOptions = {
+  year: "numeric",
+  month: "long",
+};
+
 const formatters = new Map<string, Intl.DateTimeFormat>();
 
 function getShortDateFormatter(locale: string): Intl.DateTimeFormat {
@@ -14,6 +19,15 @@ function getShortDateFormatter(locale: string): Intl.DateTimeFormat {
   if (!f) {
     f = new Intl.DateTimeFormat(locale, SHORT_DATE_OPTIONS);
     formatters.set(locale, f);
+  }
+  return f;
+}
+
+function getMonthYearFormatter(locale: string): Intl.DateTimeFormat {
+  let f = formatters.get(`my:${locale}`);
+  if (!f) {
+    f = new Intl.DateTimeFormat(locale, MONTH_YEAR_OPTIONS);
+    formatters.set(`my:${locale}`, f);
   }
   return f;
 }
@@ -33,6 +47,16 @@ export function formatShortDate(
 ): string {
   if (!iso) return "-";
   return getShortDateFormatter(getLanguageConfig(lang).locale).format(
+    new Date(iso),
+  );
+}
+
+export function formatMonthYear(
+  iso: string | null,
+  lang: Language = "ko",
+): string {
+  if (!iso) return "-";
+  return getMonthYearFormatter(getLanguageConfig(lang).locale).format(
     new Date(iso),
   );
 }

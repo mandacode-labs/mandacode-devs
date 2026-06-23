@@ -1,5 +1,6 @@
 ---
 import { useTranslations } from "@/lib/i18n/utils";
+import { formatMonthYear } from "@/lib/utils/date";
 import type { Lang } from "@/types";
 import type { UnifiedDeveloper } from "@/lib/content/types";
 
@@ -45,7 +46,9 @@ const certifications = developer.certifications;
                 )}
               </h6>
               <p class="text-xs text-text-muted mb-1">{cert.issuer}</p>
-              <p class="text-xs text-text-secondary">{cert.date}</p>
+              <p class="text-xs text-text-secondary">
+                {formatMonthYear(cert.date, lang)}
+              </p>
             </div>
           </li>
         ))}

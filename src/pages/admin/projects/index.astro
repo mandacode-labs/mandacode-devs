@@ -13,6 +13,7 @@ import {
 import { useTranslations } from "@/lib/i18n/utils";
 import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@/lib/config/languages";
 import { formatShortDate } from "@/lib/utils/date";
+import { formatProjectPeriod } from "@/lib/content/project-period";
 import type { AdminListItem } from "@/components/admin/AdminList";
 
 requireAuth(Astro);
@@ -21,13 +22,6 @@ const projects = await getProjects(DEFAULT_LANGUAGE, {
   includeUnpublished: true,
 });
 const t = useTranslations(DEFAULT_LANGUAGE);
-
-function formatProjectPeriod(start: string | null, end: string | null): string {
-  if (start && end) return `${start} ~ ${end}`;
-  if (start) return `${start} ~`;
-  if (end) return `~ ${end}`;
-  return "-";
-}
 
 const itemsWithLocales = await Promise.all(
   projects.map(async (project) => {
@@ -86,7 +80,10 @@ const items: AdminListItem[] = itemsWithLocales.map(
     ],
     extras: {
       order: `#${project.project_order}`,
-      period: formatProjectPeriod(project.start_date, project.end_date),
+      period: formatProjectPeriod(
+        { startDate: project.start_date, endDate: project.end_date },
+        DEFAULT_LANGUAGE,
+      ),
       updated: formatShortDate(project.updated_at),
     },
   }),
