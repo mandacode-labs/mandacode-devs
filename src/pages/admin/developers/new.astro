@@ -3,9 +3,9 @@ import AdminFormLayout from "@/components/admin/AdminFormLayout.astro";
 import DeveloperEditor from "@/components/admin/DeveloperEditor";
 import { requireAuth } from "@/lib/auth";
 import { ensureDeveloperExists, getDeveloperById } from "@/lib/db/developers";
+import { getDeveloperTags } from "@/lib/db/tags";
 import { useTranslations } from "@/lib/i18n/utils";
 import { ui } from "@/lib/i18n";
-import { tryParseJson } from "@/lib/utils/json";
 import { DEFAULT_LANGUAGE, MAIN_DEVELOPER_ID } from "@/lib/config/languages";
 
 requireAuth(Astro);
@@ -24,6 +24,8 @@ if (!developer) {
   return Astro.redirect("/admin/developers");
 }
 
+const techStack = await getDeveloperTags(MAIN_DEVELOPER_ID);
+
 const initialData = {
   id: developer.id,
   locale,
@@ -38,7 +40,7 @@ const initialData = {
   github_url: developer.github_url,
   email: developer.email,
   website_url: developer.website_url,
-  tech_stack: tryParseJson<string[]>(developer.tech_stack),
+  techStack,
 };
 ---
 

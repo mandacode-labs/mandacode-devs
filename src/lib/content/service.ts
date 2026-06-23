@@ -24,6 +24,10 @@ import {
   pickByLang,
 } from "@/lib/content/utils";
 
+function getDeveloperTags(developerId: string): Promise<string[]> {
+  return tagsRepo.getDeveloperTags(developerId);
+}
+
 function mapD1Post(
   post: PostWithTranslation,
   lang: Language,
@@ -99,6 +103,7 @@ function mapD1Project(
 
 function mapD1Developer(
   developer: DeveloperWithTranslation,
+  techStack: string[],
   certs: DeveloperCertificationFull[],
   edu: DeveloperEducationFull[],
   lang: Language,
@@ -114,7 +119,7 @@ function mapD1Developer(
     github: developer.github_url,
     email: developer.email,
     website: developer.website_url,
-    techStack: tryParseJson<string[]>(developer.tech_stack) ?? [],
+    techStack,
     certifications: certs.map((c) => ({
       id: c.id,
       name: c.name,
@@ -347,11 +352,12 @@ export async function getDeveloperForAdminPreview(
 ): Promise<UnifiedDeveloper | null> {
   const developer = await developersRepo.getDeveloperById(id, lang);
   if (!developer) return null;
-  const [certs, edu] = await Promise.all([
+  const [certs, edu, techStack] = await Promise.all([
     developersRepo.getDeveloperCertifications(id, lang),
     developersRepo.getDeveloperEducation(id, lang),
+    getDeveloperTags(id),
   ]);
-  return mapD1Developer(developer, certs, edu, lang);
+  return mapD1Developer(developer, techStack, certs, edu, lang);
 }
 
 export async function getDevelopers(
@@ -361,11 +367,12 @@ export async function getDevelopers(
     developersRepo.getDevelopers(lang).then(async (developers) => {
       return Promise.all(
         developers.map(async (developer) => {
-          const [certs, edu] = await Promise.all([
+          const [certs, edu, techStack] = await Promise.all([
             developersRepo.getDeveloperCertifications(developer.id, lang),
             developersRepo.getDeveloperEducation(developer.id, lang),
+            getDeveloperTags(developer.id),
           ]);
-          return mapD1Developer(developer, certs, edu, lang);
+          return mapD1Developer(developer, techStack, certs, edu, lang);
         }),
       );
     }),
@@ -394,11 +401,12 @@ export async function getDeveloper(
   // covers both the requested locale and the fallback.
   const d1Developer = await developersRepo.getDeveloperById(slug, lang);
   if (d1Developer) {
-    const [certs, edu] = await Promise.all([
+    const [certs, edu, techStack] = await Promise.all([
       developersRepo.getDeveloperCertifications(slug, lang),
       developersRepo.getDeveloperEducation(slug, lang),
+      getDeveloperTags(slug),
     ]);
-    return mapD1Developer(d1Developer, certs, edu, lang);
+    return mapD1Developer(d1Developer, techStack, certs, edu, lang);
   }
 
   const all = await getCollection("developers");

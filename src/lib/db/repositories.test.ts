@@ -189,7 +189,6 @@ describe("rowToDeveloperWithTranslation", () => {
       github_url: "https://github.com/foo",
       email: "foo@example.com",
       website_url: null,
-      tech_stack: '["TypeScript","React"]',
       certifications: '[{"name":"AWS","issuer":"Amazon"}]',
       education:
         '[{"period":"2020-2024","institution":"Foo Univ","department":"CS","status":"graduated"}]',
@@ -226,7 +225,6 @@ describe("rowToDeveloperWithTranslation", () => {
       github_url: null,
       email: null,
       website_url: null,
-      tech_stack: null,
       certifications: null,
       education: null,
       original_locale: "ko",

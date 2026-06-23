@@ -8,9 +8,9 @@ import {
   getDeveloperLocales,
   getDeveloperTranslationById,
 } from "@/lib/db/developers";
+import { getDeveloperTags } from "@/lib/db/tags";
 import { useTranslations } from "@/lib/i18n/utils";
 import { ui } from "@/lib/i18n";
-import { tryParseJson } from "@/lib/utils/json";
 import { DEFAULT_LANGUAGE, MAIN_DEVELOPER_ID } from "@/lib/config/languages";
 
 const user = requireAuth(Astro);
@@ -36,9 +36,10 @@ if (!developer) {
   return Astro.redirect("/admin/developers");
 }
 
-const [translation, existingLocales] = await Promise.all([
+const [translation, existingLocales, techStack] = await Promise.all([
   getDeveloperTranslationById(id, locale),
   getDeveloperLocales(id),
+  getDeveloperTags(id),
 ]);
 
 const data = translation ?? developer;
@@ -57,7 +58,7 @@ const initialData = {
   github_url: developer.github_url,
   email: developer.email,
   website_url: developer.website_url,
-  tech_stack: tryParseJson<string[]>(developer.tech_stack),
+  techStack,
 };
 ---
 
