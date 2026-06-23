@@ -1,6 +1,6 @@
 ---
+import { Menu } from "lucide-react";
 import LanguageSwitcher from "@/components/shared/LanguageSwitcher.astro";
-import MenuIcon from "@/components/icons/Menu.astro";
 import { useTranslations, getRelativeLocaleUrl } from "@/lib/i18n/utils";
 import { getStaticAssetUrl } from "@/lib/config/site";
 import type { Lang } from "@/types";
@@ -84,7 +84,7 @@ function navLinkClass(href: string, mobile: boolean): string {
           aria-label="Open menu"
           data-mobile-btn
         >
-          <MenuIcon size={20} />
+          <Menu size={20} />
         </button>
       </div>
     </div>

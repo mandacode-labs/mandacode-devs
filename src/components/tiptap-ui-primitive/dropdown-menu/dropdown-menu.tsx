@@ -1,7 +1,6 @@
+import { Check } from "lucide-react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { cn } from "@/lib/tiptap-utils";
-import { CheckIcon } from "@/components/tiptap-icons/check-icon";
-
 import "@/components/tiptap-ui-primitive/dropdown-menu/dropdown-menu.scss";
 
 function DropdownMenu({
@@ -109,7 +108,7 @@ function DropdownMenuCheckboxItem({
         data-slot="tiptap-dropdown-menu-checkbox-item-indicator"
       >
         <DropdownMenuPrimitive.ItemIndicator>
-          <CheckIcon />
+          <Check />
         </DropdownMenuPrimitive.ItemIndicator>
       </span>
       {children}
@@ -148,7 +147,7 @@ function DropdownMenuRadioItem({
         data-slot="tiptap-dropdown-menu-radio-item-indicator"
       >
         <DropdownMenuPrimitive.ItemIndicator>
-          <CheckIcon />
+          <Check />
         </DropdownMenuPrimitive.ItemIndicator>
       </span>
       {children}

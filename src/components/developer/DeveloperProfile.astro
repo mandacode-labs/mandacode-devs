@@ -1,7 +1,7 @@
 ---
+import { Printer } from "lucide-react";
 import SocialLink from "@/components/ui/SocialLink.astro";
 import Button from "@/components/ui/Button.astro";
-import PrintIcon from "@/components/icons/Print.astro";
 import { useTranslations } from "@/lib/i18n/utils";
 import type { Lang } from "@/types";
 import type { UnifiedDeveloper } from "@/lib/content/types";
@@ -60,7 +60,7 @@ const avatar = developer.avatar || "https://avatars.githubusercontent.com/u/0";
           class="px-3 py-1.5 text-xs"
           onclick="window.print()"
         >
-          <PrintIcon size={14} />
+          <Printer size={14} />
           <span>{t("print")}</span>
         </Button>
       </div>

@@ -1,10 +1,6 @@
 ---
+import { ArrowRight, Folder, User, BookOpen } from "lucide-react";
 import Card from "@/components/ui/Card.astro";
-import FolderIcon from "@/components/icons/Folder.astro";
-import UserIcon from "@/components/icons/User.astro";
-import BookOpenIcon from "@/components/icons/BookOpen.astro";
-import ArrowRightIcon from "@/components/icons/ArrowRight.astro";
-
 type IconName = "folder" | "user" | "bookOpen";
 
 interface Props {
@@ -15,10 +11,10 @@ interface Props {
   linkText: string;
 }
 
-const iconMap: Record<IconName, typeof FolderIcon> = {
-  folder: FolderIcon,
-  user: UserIcon,
-  bookOpen: BookOpenIcon,
+const iconMap: Record<IconName, typeof Folder> = {
+  folder: Folder,
+  user: User,
+  bookOpen: BookOpen,
 };
 
 const { title, description, href, icon, linkText } = Astro.props;
@@ -43,7 +39,7 @@ const IconComponent = iconMap[icon];
 
     <div class="flex items-center gap-1 text-sm font-medium text-accent">
       <span>{linkText}</span>
-      <ArrowRightIcon size={14} />
+      <ArrowRight size={14} />
     </div>
   </div>
 </Card>

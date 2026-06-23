@@ -1,14 +1,12 @@
 "use client";
 
+import { Quote } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import { NodeSelection, TextSelection } from "@tiptap/pm/state";
 
 // --- Hooks ---
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor";
-
-// --- Icons ---
-import { BlockquoteIcon } from "@/components/tiptap-icons/blockquote-icon";
 
 // --- UI Utils ---
 import {
@@ -268,6 +266,6 @@ export function useBlockquote(config?: UseBlockquoteConfig) {
     canToggle,
     label: "Blockquote",
     shortcutKeys: BLOCKQUOTE_SHORTCUT_KEY,
-    Icon: BlockquoteIcon,
+    Icon: Quote,
   };
 }

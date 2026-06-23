@@ -1,15 +1,11 @@
 "use client";
 
+import { List, ListOrdered, ListTodo } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { Editor } from "@tiptap/react";
 
 // --- Hooks ---
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor";
-
-// --- Icons ---
-import { ListIcon } from "@/components/tiptap-icons/list-icon";
-import { ListOrderedIcon } from "@/components/tiptap-icons/list-ordered-icon";
-import { ListTodoIcon } from "@/components/tiptap-icons/list-todo-icon";
 
 // --- Lib ---
 import { isNodeInSchema } from "@/lib/tiptap-utils";
@@ -52,17 +48,17 @@ export const listOptions: ListOption[] = [
   {
     label: "Bullet List",
     type: "bulletList",
-    icon: ListIcon,
+    icon: List,
   },
   {
     label: "Ordered List",
     type: "orderedList",
-    icon: ListOrderedIcon,
+    icon: ListOrdered,
   },
   {
     label: "Task List",
     type: "taskList",
-    icon: ListTodoIcon,
+    icon: ListTodo,
   },
 ];
 
@@ -215,6 +211,6 @@ export function useListDropdownMenu(config?: UseListDropdownMenuConfig) {
     types,
     filteredLists,
     label: "List",
-    Icon: activeList ? listIcons[activeList.type] : ListIcon,
+    Icon: activeList ? listIcons[activeList.type] : List,
   };
 }

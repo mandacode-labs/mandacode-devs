@@ -1,3 +1,4 @@
+import { ChevronDown } from "lucide-react";
 import { forwardRef, useCallback, useState, type ForwardedRef } from "react";
 import { type Editor } from "@tiptap/react";
 
@@ -7,8 +8,6 @@ import {
   useCodeBlockLanguageDropdown,
   CODE_BLOCK_LANGUAGE_OPTIONS,
 } from "@/components/tiptap-ui/code-block-language-dropdown";
-
-import { ChevronDownIcon } from "@/components/tiptap-icons/chevron-down-icon";
 
 import type { ButtonProps } from "@/components/tiptap-ui-primitive/button";
 import { Button } from "@/components/tiptap-ui-primitive/button";
@@ -69,7 +68,7 @@ function CodeBlockLanguageDropdownImpl(
           ref={ref}
         >
           <span className="text-xs">{currentLabel}</span>
-          <ChevronDownIcon className="tiptap-button-dropdown-small" />
+          <ChevronDown className="tiptap-button-dropdown-small" />
         </Button>
       </DropdownMenuTrigger>
 

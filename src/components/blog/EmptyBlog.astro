@@ -1,5 +1,5 @@
 ---
-import BookOpenIcon from "@/components/icons/BookOpen.astro";
+import { BookOpen } from "lucide-react";
 import { useTranslations } from "@/lib/i18n/utils";
 import type { Lang } from "@/types";
 
@@ -15,7 +15,7 @@ const t = useTranslations(lang);
   <div
     class="w-16 h-16 mx-auto mb-4 rounded-full bg-bg-secondary flex items-center justify-center"
   >
-    <BookOpenIcon size={24} class="text-text-muted" />
+    <BookOpen size={24} className="text-text-muted" />
   </div>
   <p class="text-lg text-text-secondary font-medium">
     {t("blog.comingSoon")}

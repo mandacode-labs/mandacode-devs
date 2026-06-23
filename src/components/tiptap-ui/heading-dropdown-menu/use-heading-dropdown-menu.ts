@@ -1,13 +1,11 @@
 "use client";
 
+import { Heading } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Editor } from "@tiptap/react";
 
 // --- Hooks ---
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor";
-
-// --- Icons ---
-import { HeadingIcon } from "@/components/tiptap-icons/heading-icon";
 
 // --- Tiptap UI ---
 import {
@@ -127,6 +125,6 @@ export function useHeadingDropdownMenu(config?: UseHeadingDropdownMenuConfig) {
     canToggle: canToggleState,
     levels,
     label: "Heading",
-    Icon: activeLevel ? headingIcons[activeLevel] : HeadingIcon,
+    Icon: activeLevel ? headingIcons[activeLevel] : Heading,
   };
 }
