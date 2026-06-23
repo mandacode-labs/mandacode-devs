@@ -35,8 +35,21 @@ async function translatePost(job: TranslationJobInput): Promise<void> {
     job.targetLocale,
   );
 
-  const now = new Date().toISOString();
+  const existing = await postsRepo.getPostTranslationById(
+    job.id,
+    job.targetLocale,
+  );
 
+  if (existing) {
+    await postsRepo.updatePostTranslation(job.id, job.targetLocale, {
+      title: translated.title,
+      description: translated.description,
+      tiptap_json: translated.tiptapJson,
+    });
+    return;
+  }
+
+  const now = new Date().toISOString();
   await postsRepo.createPostTranslation({
     id: `${source.post_id}_${job.targetLocale}`,
     post_id: source.post_id,
@@ -69,8 +82,22 @@ async function translateProject(job: TranslationJobInput): Promise<void> {
     job.targetLocale,
   );
 
-  const now = new Date().toISOString();
+  const existing = await projectsRepo.getProjectTranslationById(
+    job.id,
+    job.targetLocale,
+  );
 
+  if (existing) {
+    await projectsRepo.updateProjectTranslation(job.id, job.targetLocale, {
+      title: translated.title,
+      description: translated.description,
+      tiptap_json: translated.tiptapJson,
+      role: translated.role ?? source.role,
+    });
+    return;
+  }
+
+  const now = new Date().toISOString();
   await projectsRepo.createProjectTranslation({
     id: `${source.project_id}_${job.targetLocale}`,
     project_id: source.project_id,
@@ -106,8 +133,22 @@ async function translateDeveloper(job: TranslationJobInput): Promise<void> {
     job.targetLocale,
   );
 
-  const now = new Date().toISOString();
+  const existing = await developersRepo.getDeveloperTranslationById(
+    job.id,
+    job.targetLocale,
+  );
 
+  if (existing) {
+    await developersRepo.updateDeveloperTranslation(job.id, job.targetLocale, {
+      name: translated.title,
+      role: translated.role ?? source.role,
+      bio: translated.description ?? source.bio,
+      tiptap_json: translated.tiptapJson,
+    });
+    return;
+  }
+
+  const now = new Date().toISOString();
   await developersRepo.createDeveloperTranslation({
     id: `${source.developer_id}_${job.targetLocale}`,
     developer_id: source.developer_id,
