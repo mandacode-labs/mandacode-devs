@@ -154,6 +154,7 @@
   0% {
     background-position: -200% 0;
   }
+
   100% {
     background-position: 200% 0;
   }
@@ -197,6 +198,23 @@
   font-size: 1.125rem;
   margin-top: 2rem;
   margin-bottom: 0.75rem;
+}
+
+.prose table td,
+.prose table th {
+  padding: 0.25rem 0.5rem;
+  line-height: 1.4;
+}
+
+/* Tailwind Typography adds margin to <p> in prose. Inside a table
+ * cell, the <p> is the only child of <td>/<th>, and we want a tight
+ * table — zero its margin and match the cell's line-height.
+ * !important lands over Tailwind's .prose p rule (same specificity,
+ * declared earlier). */
+.prose table p,
+.prose table li {
+  margin: 0 !important;
+  line-height: 1.4 !important;
 }
 
 /* Highlight mark fix */
