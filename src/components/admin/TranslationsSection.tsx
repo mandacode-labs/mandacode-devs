@@ -1,10 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AdminSection } from "./AdminSection";
 import { LANGUAGE_CONFIGS } from "@/lib/config/languages";
 import { useAdminTranslations } from "./use-admin-translations";
 import { apiFetch } from "@/lib/api/client";
 import { interpolate } from "@/lib/utils/interpolate";
-import { useWatchTranslationJobs } from "@/hooks/use-translation-status";
+import {
+  useTranslationStatus,
+  useWatchTranslationJobs,
+} from "@/hooks/use-translation-status";
 import type { AdminTranslations } from "./use-admin-translations";
 import type { TranslationContentType } from "@/lib/db/schema";
 
@@ -88,6 +91,14 @@ export function TranslationsSection({
     contentId,
     jobIds: watchJobIds,
   });
+
+  const { getStatus, getError } = useTranslationStatus({
+    contentType,
+    ids: useMemo(() => [contentId], [contentId]),
+    interval: 5000,
+  });
+  const currentJobStatus = getStatus(contentId, locale);
+  const currentJobError = getError(contentId, locale);
 
   useEffect(() => {
     if (watchJobIds.length === 0 || isPolling) return;
@@ -207,6 +218,25 @@ export function TranslationsSection({
 
   return (
     <AdminSection title={title}>
+      {isEditMode &&
+        currentJobStatus === "failed" &&
+        currentJobError !== null && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-start gap-2">
+              <span className="text-red-600 font-semibold text-sm shrink-0">
+                ⚠
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-red-800">
+                  번역 실패 ({locale})
+                </p>
+                <p className="text-xs text-red-700 mt-0.5 break-words">
+                  {currentJobError}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       {isEditMode && (
         <div className="mb-4 p-4 bg-bg-secondary rounded-lg border border-border">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
