@@ -11,6 +11,8 @@ export type TranslationStatusMap = Record<
   Record<string, TranslationJobStatus>
 >;
 
+export type TranslationErrorMap = Record<string, Record<string, string | null>>;
+
 interface UseTranslationStatusOptions {
   contentType: TranslationContentType;
   ids: string[];
@@ -21,6 +23,7 @@ interface UseTranslationStatusOptions {
 export function useTranslationStatus(options: UseTranslationStatusOptions) {
   const { contentType, ids, enabled = true, interval = 5000 } = options;
   const [statusMap, setStatusMap] = useState<TranslationStatusMap>({});
+  const [errorMap, setErrorMap] = useState<TranslationErrorMap>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchStatus = useCallback(async () => {
@@ -44,18 +47,23 @@ export function useTranslationStatus(options: UseTranslationStatusOptions) {
           content_id: string;
           target_locale: string;
           status: TranslationJobStatus;
+          error_message: string | null;
         }>;
       };
-      const next: TranslationStatusMap = {};
+      const nextStatus: TranslationStatusMap = {};
+      const nextErrors: TranslationErrorMap = {};
 
       for (const job of data.jobs) {
-        const byLocale = (next[job.content_id] ??= {});
+        const byLocale = (nextStatus[job.content_id] ??= {});
+        const byLocaleErr = (nextErrors[job.content_id] ??= {});
         if (!byLocale[job.target_locale]) {
           byLocale[job.target_locale] = job.status;
+          byLocaleErr[job.target_locale] = job.error_message;
         }
       }
 
-      setStatusMap(next);
+      setStatusMap(nextStatus);
+      setErrorMap(nextErrors);
     } catch {
       // ignore polling errors
     } finally {
@@ -78,7 +86,21 @@ export function useTranslationStatus(options: UseTranslationStatusOptions) {
     [statusMap],
   );
 
-  return { statusMap, getStatus, isLoading, refetch: fetchStatus };
+  const getError = useCallback(
+    (id: string, locale: string): string | null => {
+      return errorMap[id]?.[locale] ?? null;
+    },
+    [errorMap],
+  );
+
+  return {
+    statusMap,
+    errorMap,
+    getStatus,
+    getError,
+    isLoading,
+    refetch: fetchStatus,
+  };
 }
 
 export interface WatchedJob extends TranslationJob {

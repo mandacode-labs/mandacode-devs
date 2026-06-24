@@ -1,4 +1,5 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useClickOutside } from "@/hooks/use-click-outside";
 import { useTranslationStatus } from "@/hooks/use-translation-status";
 import type {
@@ -99,6 +100,8 @@ interface RegenerateMenuProps {
   href: string;
   isOriginal: boolean;
   isOutdated: boolean;
+  errorMessage: string | null;
+  rect: DOMRect;
   onRegenerate: () => void;
   onClose: () => void;
 }
@@ -107,11 +110,23 @@ function RegenerateMenu({
   href,
   isOriginal,
   isOutdated,
+  errorMessage,
+  rect,
   onRegenerate,
   onClose,
 }: RegenerateMenuProps) {
-  return (
-    <div className="absolute top-full left-0 mt-1 z-50 min-w-[160px] bg-bg-primary border border-border rounded-lg shadow-lg py-1">
+  const menuRef = useRef<HTMLDivElement>(null);
+  useClickOutside(menuRef, onClose, true);
+
+  const top = rect.bottom + 4;
+  const left = rect.left;
+
+  return createPortal(
+    <div
+      ref={menuRef}
+      className="fixed z-[100] min-w-[200px] max-w-[280px] bg-bg-primary border border-border rounded-lg shadow-lg py-1"
+      style={{ top, left }}
+    >
       <a
         href={href}
         className="flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-bg-secondary"
@@ -139,7 +154,14 @@ function RegenerateMenu({
           ⚠ 원본이 변경됨
         </div>
       )}
-    </div>
+      {errorMessage && (
+        <div className="px-3 py-1.5 text-[10px] text-red-600 border-t border-border mt-1 pt-1.5 break-words">
+          <div className="font-semibold mb-0.5">번역 실패</div>
+          {errorMessage}
+        </div>
+      )}
+    </div>,
+    document.body,
   );
 }
 
@@ -152,6 +174,7 @@ interface ChipProps {
   isOriginal: boolean;
   isTranslating: boolean;
   jobStatus: TranslationJobStatus | null;
+  errorMessage: string | null;
   canRegenerate: boolean;
   onRegenerate: (() => void) | null;
 }
@@ -165,20 +188,46 @@ function Chip({
   isOriginal,
   isTranslating,
   jobStatus,
+  errorMessage,
   canRegenerate,
   onRegenerate,
 }: ChipProps) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuRect, setMenuRect] = useState<DOMRect | null>(null);
+  const chipRef = useRef<HTMLAnchorElement>(null);
   const hasTranslation = state.kind !== "no-translation";
 
-  useClickOutside(menuRef, () => setMenuOpen(false), menuOpen);
+  const showMenu = canRegenerate && onRegenerate && hasTranslation;
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (showMenu) {
+      e.preventDefault();
+      if (chipRef.current) {
+        setMenuRect(chipRef.current.getBoundingClientRect());
+      }
+      setMenuOpen((v) => !v);
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (showMenu) {
+      e.stopPropagation();
+    }
+  };
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onScroll = () => setMenuOpen(false);
+    window.addEventListener("scroll", onScroll, true);
+    return () => window.removeEventListener("scroll", onScroll, true);
+  }, [menuOpen]);
 
   const tooltipParts: string[] = [];
   if (isOriginal) tooltipParts.push("원본");
   if (hasTranslation) tooltipParts.push("번역됨");
   else tooltipParts.push("번역 없음");
   if (jobStatus) tooltipParts.push(`작업: ${jobStatus}`);
+  if (errorMessage) tooltipParts.push(errorMessage);
   if (isOutdated) tooltipParts.push("원본 변경됨");
   const tooltip = tooltipParts.join(" · ");
 
@@ -186,31 +235,24 @@ function Chip({
     isOutdated ? outdatedRingClass : ""
   } ${!hasTranslation && !isTranslating ? "opacity-50" : ""}`;
 
-  const showMenu = canRegenerate && onRegenerate && hasTranslation;
-
-  const handleClick = (e: React.MouseEvent) => {
-    if (showMenu) {
-      e.preventDefault();
-      setMenuOpen((v) => !v);
-    }
-  };
-
   if (showMenu) {
     return (
-      <div className="relative inline-flex" ref={menuRef}>
-        <a
-          href={href}
-          className={className}
-          title={tooltip}
-          onClick={handleClick}
-        >
-          {locale}
-        </a>
-        {menuOpen && (
+      <a
+        ref={chipRef}
+        href={href}
+        className={className}
+        title={tooltip}
+        onClick={handleClick}
+        onMouseDown={handleMouseDown}
+      >
+        {locale}
+        {menuOpen && menuRect && (
           <RegenerateMenu
             href={href}
             isOriginal={isOriginal}
             isOutdated={isOutdated}
+            errorMessage={errorMessage}
+            rect={menuRect}
             onRegenerate={() => {
               setMenuOpen(false);
               onRegenerate?.();
@@ -218,12 +260,18 @@ function Chip({
             onClose={() => setMenuOpen(false)}
           />
         )}
-      </div>
+      </a>
     );
   }
 
   return (
-    <a href={href} className={className} title={tooltip} onClick={handleClick}>
+    <a
+      ref={chipRef}
+      href={href}
+      className={className}
+      title={tooltip}
+      onClick={handleClick}
+    >
       {locale}
     </a>
   );
@@ -238,7 +286,7 @@ export function AdminLocaleChips({
   onRegenerate,
 }: AdminLocaleChipsProps) {
   const ids = useMemo(() => [contentId], [contentId]);
-  const { getStatus } = useTranslationStatus({
+  const { getStatus, getError } = useTranslationStatus({
     contentType,
     ids,
     interval: 5000,
@@ -261,6 +309,7 @@ export function AdminLocaleChips({
           canRegenerate = true,
         }) => {
           const status = getStatus(contentId, locale);
+          const errorMessage = getError(contentId, locale);
           const hasTranslation =
             publishStatus !== null && publishStatus !== undefined;
           const isOriginal = locale === originalLocale;
@@ -283,6 +332,7 @@ export function AdminLocaleChips({
               isOriginal={isOriginal}
               isTranslating={isTranslating}
               jobStatus={status}
+              errorMessage={errorMessage}
               canRegenerate={canRegenerate}
               onRegenerate={
                 onRegenerate
