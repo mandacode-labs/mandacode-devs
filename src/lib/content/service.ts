@@ -63,7 +63,6 @@ function mapD1Project(
     order: project.project_order,
     url: project.url,
     sourceUrl: project.source_url,
-    blogUrl: project.blog_url,
     blogPostId: project.blog_post_id,
     coverImage: project.cover_image_url,
     hidden: project.publish_status === "archived",

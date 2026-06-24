@@ -15,7 +15,7 @@ const { project, lang } = Astro.props;
 const t = useTranslations(lang);
 const blogHref = project.blogPostId
   ? `/${lang}/blog/${project.blogPostId}`
-  : project.blogUrl;
+  : null;
 ---
 
 <div class="flex flex-wrap items-center gap-3">

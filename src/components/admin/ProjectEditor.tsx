@@ -38,7 +38,6 @@ export interface ProjectEditorInitialData {
   project_order: number;
   url: string | null;
   source_url: string | null;
-  blog_url: string | null;
   blog_post_id: string | null;
   cover_image_url: string | null;
   tags: string[];
@@ -73,7 +72,6 @@ export default function ProjectEditor({
   );
   const [url, setUrl] = useState(initialData?.url ?? "");
   const [sourceUrl, setSourceUrl] = useState(initialData?.source_url ?? "");
-  const [blogUrl, setBlogUrl] = useState(initialData?.blog_url ?? "");
   const [blogPostId, setBlogPostId] = useState<string | null>(
     initialData?.blog_post_id ?? null,
   );
@@ -129,7 +127,6 @@ export default function ProjectEditor({
       project_order: projectOrder,
       url: url || null,
       source_url: sourceUrl || null,
-      blog_url: blogUrl || null,
       blog_post_id: blogPostId,
       cover_image_url: coverImageUrl || null,
       tags,
@@ -152,7 +149,6 @@ export default function ProjectEditor({
       setProjectOrder(initialData.project_order);
       setUrl(initialData.url ?? "");
       setSourceUrl(initialData.source_url ?? "");
-      setBlogUrl(initialData.blog_url ?? "");
       setBlogPostId(initialData.blog_post_id ?? null);
       setCoverImageUrl(initialData.cover_image_url ?? "");
       setTags(initialData.tags ?? []);
@@ -447,19 +443,7 @@ export default function ProjectEditor({
           </label>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <label className="block">
-            <span className="text-sm font-medium text-text-primary">
-              {t("admin.blogUrl", "Blog URL")}
-            </span>
-            <input
-              type="url"
-              value={blogUrl}
-              onChange={(e) => setBlogUrl(e.target.value)}
-              className="w-full mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-            />
-          </label>
-
+        <div className="mt-4">
           <BlogPostSelector
             value={blogPostId}
             onChange={setBlogPostId}

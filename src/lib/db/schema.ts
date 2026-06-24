@@ -62,7 +62,6 @@ export interface Project {
   project_order: number;
   url: string | null;
   source_url: string | null;
-  blog_url: string | null;
   blog_post_id: string | null;
   original_locale: string;
   created_at: string;

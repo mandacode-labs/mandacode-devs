@@ -30,7 +30,6 @@ export interface UnifiedProject extends BaseUnifiedContent {
   order: number;
   url: string | null;
   sourceUrl: string | null;
-  blogUrl: string | null;
   blogPostId: string | null;
   coverImage: string | null;
   hidden: boolean;
