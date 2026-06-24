@@ -160,9 +160,7 @@ export async function getEntityLocalesWithContent(
   transIdColumn: string,
   id: string,
   extraColumns: string[] = [],
-): Promise<
-  Array<{ locale: string; intro: string } & Record<string, unknown>>
-> {
+): Promise<Array<{ locale: string; intro: string } & Record<string, unknown>>> {
   const db = getDatabase();
   const extra = extraColumns.length > 0 ? `, ${extraColumns.join(", ")}` : "";
   const result = await db

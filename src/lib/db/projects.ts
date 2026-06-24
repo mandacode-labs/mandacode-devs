@@ -145,9 +145,7 @@ function mapProjectRow(row: Record<string, unknown>): ProjectWithTranslation {
     description: hasTranslation
       ? (row.translation_description as string | null)
       : (row.original_description as string | null),
-    intro: String(
-      hasTranslation ? row.translation_intro : row.original_intro,
-    ),
+    intro: String(hasTranslation ? row.translation_intro : row.original_intro),
     role: String(hasTranslation ? row.translation_role : row.original_role),
     cover_image_url: hasTranslation
       ? (row.translation_cover_image_url as string | null)

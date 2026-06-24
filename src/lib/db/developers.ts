@@ -131,9 +131,7 @@ function mapDeveloperRow(
     name: String(hasTranslation ? row.translation_name : row.original_name),
     role: String(hasTranslation ? row.translation_role : row.original_role),
     bio: String(hasTranslation ? row.translation_bio : row.original_bio),
-    intro: String(
-      hasTranslation ? row.translation_intro : row.original_intro,
-    ),
+    intro: String(hasTranslation ? row.translation_intro : row.original_intro),
     body: String(hasTranslation ? row.translation_body : row.original_body),
     avatar_url: hasTranslation
       ? (row.translation_avatar_url as string | null)

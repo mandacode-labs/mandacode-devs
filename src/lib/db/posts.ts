@@ -106,9 +106,7 @@ function mapPostRow(row: Record<string, unknown>): PostWithTranslation {
     description: hasTranslation
       ? (row.translation_description as string | null)
       : (row.original_description as string | null),
-    intro: String(
-      hasTranslation ? row.translation_intro : row.original_intro,
-    ),
+    intro: String(hasTranslation ? row.translation_intro : row.original_intro),
     cover_image_url: hasTranslation
       ? (row.translation_cover_image_url as string | null)
       : (row.original_cover_image_url as string | null),
