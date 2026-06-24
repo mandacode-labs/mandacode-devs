@@ -174,6 +174,6 @@
   "admin.searchTagsHint": "搜索标签...",
   "admin.noTags": "暂无标签",
   "admin.noTagsMessage": "内容使用标签后会显示在这里。",
-  "admin.article": "文章",
-  "admin.body": "正文"
+  "admin.intro": "序论",
+  "admin.body": "本论"
 }

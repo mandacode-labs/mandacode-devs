@@ -6,7 +6,7 @@ interface BaseUnifiedContent {
   originalLocale: string;
   publishStatus: PublishStatus;
   isFallback: boolean;
-  article?: string;
+  intro?: string;
 }
 
 export interface UnifiedPost extends BaseUnifiedContent {

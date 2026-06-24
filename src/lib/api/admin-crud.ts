@@ -18,7 +18,7 @@ export type AdminEntityType = AssetEntityType;
 
 export interface LocaleContentRow {
   locale: string;
-  article: string;
+  intro: string;
   [field: string]: unknown;
 }
 
@@ -29,7 +29,7 @@ interface CreateBody {
 }
 
 interface UpdateBody {
-  article?: string;
+  intro?: string;
   body?: string;
   target_locales?: string[];
 }
@@ -97,7 +97,7 @@ async function cleanupEntityAssets<
       }
     } else {
       for (const url of extractAssetUrlsFromTiptapJson(
-        (row as { article: string }).article,
+        (row as { intro: string }).intro,
       )) {
         usedUrls.add(url);
       }
@@ -210,7 +210,7 @@ export function createAdminPutHandler<
           adapter,
           id,
           locale,
-          body.article,
+          body.intro,
           adapter.getImageUrls(body),
         ),
       );

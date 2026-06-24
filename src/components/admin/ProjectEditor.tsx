@@ -28,7 +28,7 @@ export interface ProjectEditorInitialData {
   existing_locales: string[];
   title: string;
   description: string | null;
-  article: string;
+  intro: string;
   publish_status: string;
   project_status: string;
   start_date: string | null;
@@ -57,8 +57,8 @@ export default function ProjectEditor({
   const [description, setDescription] = useState(
     initialData?.description ?? "",
   );
-  const [article, setArticle] = useState(
-    initialData?.article ?? JSON.stringify({ type: "doc", content: [] }),
+  const [intro, setIntro] = useState(
+    initialData?.intro ?? JSON.stringify({ type: "doc", content: [] }),
   );
   const [projectStatus, setProjectStatus] = useState(
     initialData?.project_status ?? "development",
@@ -117,7 +117,7 @@ export default function ProjectEditor({
     getSubmitBody: () => ({
       title,
       description: description || null,
-      article: article,
+      intro: intro,
       publish_status: publishStatus,
       project_status: projectStatus,
       start_date: startDate || null,
@@ -140,7 +140,7 @@ export default function ProjectEditor({
       setOriginalLocale(initialData.original_locale);
       setTitle(initialData.title);
       setDescription(initialData.description ?? "");
-      setArticle(initialData.article);
+      setIntro(initialData.intro);
       setProjectStatus(initialData.project_status);
       setStartDate(initialData.start_date ?? "");
       setEndDate(initialData.end_date ?? "");
@@ -542,12 +542,12 @@ export default function ProjectEditor({
         </label>
       </AdminSection>
 
-      <AdminSection title={t("admin.article", "Article")}>
+      <AdminSection title={t("admin.intro", "Intro")}>
         <div className="space-y-2">
           <TiptapEditor
             key={editorKey}
-            content={article}
-            onChange={setArticle}
+            content={intro}
+            onChange={setIntro}
             placeholder="Write your project content..."
             entityType="project"
             entityId={id}
