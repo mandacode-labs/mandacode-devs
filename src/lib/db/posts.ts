@@ -160,39 +160,38 @@ export async function searchPostsByTitle(
   const trimmed = query.trim();
   if (!trimmed) return [];
   const db = getDatabase();
+  // Match only the original-locale title (the canonical text the admin
+  // entered). Rank prefix matches before substring matches; fall back
+  // to recency.
   const result = await db
     .prepare(
       `SELECT p.id, p.original_locale, orig.title AS original_title,
-              trans.title AS translation_title
+              CASE WHEN LOWER(orig.title) LIKE LOWER(?) ESCAPE '\\' THEN 0
+                   ELSE 1
+              END AS match_kind
          FROM posts p
          LEFT JOIN post_translations orig
            ON orig.post_id = p.id AND orig.locale = p.original_locale
-         LEFT JOIN post_translations trans
-           ON trans.post_id = p.id
-              AND trans.locale = (
-                SELECT post_translations.locale
-                  FROM post_translations
-                 WHERE post_translations.post_id = p.id
-                 GROUP BY post_translations.locale
-                 ORDER BY COUNT(*) DESC, post_translations.locale ASC
-                 LIMIT 1
-              )
-        WHERE orig.title LIKE ? OR trans.title LIKE ?
-        ORDER BY p.updated_at DESC
+        WHERE orig.title LIKE ? ESCAPE '\\'
+        ORDER BY match_kind ASC, p.updated_at DESC
         LIMIT ?`,
     )
-    .bind(`%${trimmed}%`, `%${trimmed}%`, limit)
+    .bind(`${escapeLike(trimmed)}%`, `%${escapeLike(trimmed)}%`, limit)
     .all<{
       id: string;
       original_locale: string;
       original_title: string | null;
-      translation_title: string | null;
+      match_kind: number;
     }>();
   return (result.results ?? []).map((row) => ({
     id: row.id,
     original_locale: row.original_locale,
-    title: row.translation_title ?? row.original_title ?? "(untitled)",
+    title: row.original_title ?? "(untitled)",
   }));
+}
+
+function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, "\\$&");
 }
 
 export async function getPostTranslationById(
