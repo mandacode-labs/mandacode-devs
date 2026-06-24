@@ -55,12 +55,7 @@ const projects = sortProjectsByDate(await getProjectsForAdminPreview(locale));
   <div class="max-w-4xl mx-auto">
     <DeveloperProfile developer={developer} lang={locale} />
 
-    <ContentRenderer
-      d1Content={developer.d1Content}
-      markdownContent={developer.markdownContent}
-      mode="fallback"
-      class="mb-10"
-    />
+    <ContentRenderer content={developer.d1Content} class="mb-10" />
 
     <TechStack developer={developer} lang={locale} />
 

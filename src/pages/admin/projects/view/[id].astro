@@ -51,12 +51,7 @@ const coverImage = project.coverImage;
 
     <ProjectMeta project={project} lang={locale} />
 
-    <ContentRenderer
-      d1Content={project.d1Content}
-      markdownContent={project.markdownContent}
-      mode="stack"
-      class="mb-8"
-    />
+    <ContentRenderer content={project.d1Content} class="mb-8" />
 
     <ProjectActions project={project} lang={locale} />
   </div>

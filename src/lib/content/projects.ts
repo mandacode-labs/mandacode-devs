@@ -1,11 +1,4 @@
-import type { Lang } from "@/types";
 import type { UnifiedProject } from "@/lib/content/types";
-
-export async function getProjectsByLang(lang: Lang): Promise<UnifiedProject[]> {
-  const { getProjects } = await import("@/lib/content/service");
-  const projects = await getProjects(lang);
-  return sortProjectsByDate(projects);
-}
 
 export function sortProjectsByOrder(
   projects: UnifiedProject[],

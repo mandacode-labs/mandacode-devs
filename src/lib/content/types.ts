@@ -7,7 +7,6 @@ interface BaseUnifiedContent {
   publishStatus: PublishStatus;
   isFallback: boolean;
   d1Content?: string;
-  markdownContent?: string;
 }
 
 export interface UnifiedPost extends BaseUnifiedContent {
