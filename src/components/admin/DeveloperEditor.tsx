@@ -572,6 +572,19 @@ export default function DeveloperEditor({
         )}
         originalChipLabel={t("admin.original", "Original")}
         translatedChipLabel={t("admin.translated", "Translated")}
+        contentType="developer"
+        contentId={id}
+        onAfterBulkAction={() => window.location.reload()}
+        regenerateAllLabel={t("admin.regenerateAll", "전체 재번역")}
+        regenerateAllConfirmLabel={t(
+          "admin.regenerateAllConfirm",
+          "{count}개 언어의 번역을 다시 생성하시겠어요?",
+        )}
+        publishAllLabel={t("admin.publishAll", "전체 개시")}
+        publishAllConfirmLabel={t(
+          "admin.publishAllConfirm",
+          "{count}개 언어를 published로 변경하시겠어요?",
+        )}
       />
 
       <StickyEditorActions

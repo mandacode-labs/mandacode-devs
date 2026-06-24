@@ -1,5 +1,11 @@
+import { useState } from "react";
 import { AdminSection } from "./AdminSection";
 import { LANGUAGE_CONFIGS } from "@/lib/config/languages";
+import { useAdminTranslations } from "./use-admin-translations";
+import { apiFetch } from "@/lib/api/client";
+import { interpolate } from "@/lib/utils/interpolate";
+import type { AdminTranslations } from "./use-admin-translations";
+import type { TranslationContentType } from "@/lib/db/schema";
 
 interface TranslationsSectionProps {
   isEditMode: boolean;
@@ -8,9 +14,12 @@ interface TranslationsSectionProps {
   existingLocales: string[];
   targetLocales: string[];
   isSettingOriginal: boolean;
+  contentType: TranslationContentType;
+  contentId: string;
   onSetOriginalLocale: () => void;
   onSetOriginalLocaleValue: (value: string) => void;
   onToggleTargetLocale: (code: string) => void;
+  onAfterBulkAction: () => void;
   title: string;
   originalLocaleLabel: string;
   originalHint: string;
@@ -20,6 +29,13 @@ interface TranslationsSectionProps {
   translateDescription: string;
   originalChipLabel: string;
   translatedChipLabel: string;
+  regenerateAllLabel?: string;
+  regenerateAllConfirmLabel?: string;
+  publishAllLabel?: string;
+  publishAllConfirmLabel?: string;
+  successLabel?: string;
+  failedLabel?: string;
+  noopLabel?: string;
 }
 
 export function TranslationsSection({
@@ -29,9 +45,12 @@ export function TranslationsSection({
   existingLocales,
   targetLocales,
   isSettingOriginal,
+  contentType,
+  contentId,
   onSetOriginalLocale,
   onSetOriginalLocaleValue,
   onToggleTargetLocale,
+  onAfterBulkAction,
   title,
   originalLocaleLabel,
   originalHint,
@@ -41,7 +60,93 @@ export function TranslationsSection({
   translateDescription,
   originalChipLabel,
   translatedChipLabel,
+  regenerateAllLabel = "전체 재번역",
+  regenerateAllConfirmLabel = "{count}개 언어의 번역을 다시 생성하시겠어요?",
+  publishAllLabel = "전체 개시",
+  publishAllConfirmLabel = "{count}개 언어를 published로 변경하시겠어요?",
+  successLabel = "성공",
+  failedLabel = "실패",
+  noopLabel = "처리할 항목이 없습니다",
 }: TranslationsSectionProps) {
+  const t = useAdminTranslations({} as AdminTranslations);
+  const [bulkAction, setBulkAction] = useState<
+    null | "regenerate-all" | "publish-all"
+  >(null);
+  const [toast, setToast] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  const translatableCount = existingLocales.filter(
+    (l) => l !== originalLocale,
+  ).length;
+
+  async function handleRegenerateAll() {
+    if (translatableCount === 0) return;
+    if (
+      !window.confirm(
+        interpolate(regenerateAllConfirmLabel, { count: translatableCount }),
+      )
+    )
+      return;
+    setBulkAction("regenerate-all");
+    setToast(null);
+    try {
+      const params = new URLSearchParams();
+      params.set("content_type", contentType);
+      params.set("content_id", contentId);
+      const res = await apiFetch<{ success: true; targetLocales: string[] }>(
+        `/api/admin/translations/regenerate-all?${params.toString()}`,
+        { method: "POST" },
+      );
+      setToast({
+        type: "success",
+        message: `${successLabel}: ${res.targetLocales.length}`,
+      });
+      onAfterBulkAction();
+    } catch (error) {
+      setToast({
+        type: "error",
+        message: `${failedLabel}: ${error instanceof Error ? error.message : "Unknown"}`,
+      });
+    } finally {
+      setBulkAction(null);
+      setTimeout(() => setToast(null), 4000);
+    }
+  }
+
+  async function handlePublishAll() {
+    if (translatableCount === 0) return;
+    if (
+      !window.confirm(
+        interpolate(publishAllConfirmLabel, { count: translatableCount }),
+      )
+    )
+      return;
+    setBulkAction("publish-all");
+    setToast(null);
+    try {
+      const plural = contentType === "post" ? "posts" : `${contentType}s`;
+      const res = await apiFetch<{ success: true; publishedCount: number }>(
+        `/api/admin/${plural}/${contentId}/publish-all`,
+        { method: "POST" },
+      );
+      setToast({
+        type: "success",
+        message: `${successLabel}: ${res.publishedCount}`,
+      });
+      onAfterBulkAction();
+    } catch (error) {
+      setToast({
+        type: "error",
+        message: `${failedLabel}: ${error instanceof Error ? error.message : "Unknown"}`,
+      });
+    } finally {
+      setBulkAction(null);
+      setTimeout(() => setToast(null), 4000);
+    }
+  }
+
   return (
     <AdminSection title={title}>
       {isEditMode && (
@@ -90,6 +195,36 @@ export function TranslationsSection({
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {isEditMode && translatableCount > 0 && (
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={handleRegenerateAll}
+            disabled={bulkAction !== null}
+            className="px-3 py-1.5 text-xs font-medium rounded-md border border-accent text-accent hover:bg-accent/5 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {regenerateAllLabel}
+          </button>
+          <button
+            type="button"
+            onClick={handlePublishAll}
+            disabled={bulkAction !== null}
+            className="px-3 py-1.5 text-xs font-medium rounded-md border border-green-600 text-green-700 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {publishAllLabel}
+          </button>
+          {toast && (
+            <span
+              className={`text-xs ${
+                toast.type === "success" ? "text-green-700" : "text-red-700"
+              }`}
+            >
+              {toast.message}
+            </span>
+          )}
         </div>
       )}
 
