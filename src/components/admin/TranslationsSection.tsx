@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AdminSection } from "./AdminSection";
 import { LANGUAGE_CONFIGS } from "@/lib/config/languages";
 import { useAdminTranslations } from "./use-admin-translations";
 import { apiFetch } from "@/lib/api/client";
 import { interpolate } from "@/lib/utils/interpolate";
+import { useWatchTranslationJobs } from "@/hooks/use-translation-status";
 import type { AdminTranslations } from "./use-admin-translations";
 import type { TranslationContentType } from "@/lib/db/schema";
 
@@ -36,6 +37,7 @@ interface TranslationsSectionProps {
   successLabel?: string;
   failedLabel?: string;
   noopLabel?: string;
+  runningLabel?: string;
 }
 
 export function TranslationsSection({
@@ -67,15 +69,62 @@ export function TranslationsSection({
   successLabel = "성공",
   failedLabel = "실패",
   noopLabel = "처리할 항목이 없습니다",
+  runningLabel = "진행 중",
 }: TranslationsSectionProps) {
   const t = useAdminTranslations({} as AdminTranslations);
   const [bulkAction, setBulkAction] = useState<
     null | "regenerate-all" | "publish-all"
   >(null);
   const [toast, setToast] = useState<{
-    type: "success" | "error";
+    type: "success" | "error" | "info";
     message: string;
   } | null>(null);
+  const [watchJobIds, setWatchJobIds] = useState<string[]>([]);
+  const [expectedCount, setExpectedCount] = useState(0);
+  const reportedRef = useRef<string | null>(null);
+
+  const { jobs: watchedJobs, isPolling } = useWatchTranslationJobs({
+    contentType,
+    contentId,
+    jobIds: watchJobIds,
+  });
+
+  useEffect(() => {
+    if (watchJobIds.length === 0 || isPolling) return;
+    if (watchedJobs.length === 0) return;
+    if (reportedRef.current === watchJobIds.join(",")) return;
+
+    const failed = watchedJobs.filter((j) => j.status === "failed");
+    const completed = watchedJobs.filter((j) => j.status === "completed");
+    reportedRef.current = watchJobIds.join(",");
+
+    if (failed.length > 0) {
+      const first = failed[0]!;
+      setToast({
+        type: "error",
+        message: `${failedLabel} (${first.target_locale}): ${first.error_message ?? "Unknown error"}`,
+      });
+    } else if (completed.length === expectedCount) {
+      setToast({
+        type: "success",
+        message: `${successLabel}: ${completed.length}`,
+      });
+    } else {
+      setToast({
+        type: "error",
+        message: `${failedLabel}: timed out (${completed.length}/${expectedCount})`,
+      });
+    }
+    setWatchJobIds([]);
+    setTimeout(() => setToast(null), 6000);
+  }, [
+    watchedJobs,
+    isPolling,
+    watchJobIds,
+    expectedCount,
+    successLabel,
+    failedLabel,
+  ]);
 
   const translatableCount = existingLocales.filter(
     (l) => l !== originalLocale,
@@ -91,19 +140,29 @@ export function TranslationsSection({
       return;
     setBulkAction("regenerate-all");
     setToast(null);
+    reportedRef.current = null;
     try {
       const params = new URLSearchParams();
       params.set("content_type", contentType);
       params.set("content_id", contentId);
-      const res = await apiFetch<{ success: true; targetLocales: string[] }>(
-        `/api/admin/translations/regenerate-all?${params.toString()}`,
-        { method: "POST" },
-      );
-      setToast({
-        type: "success",
-        message: `${successLabel}: ${res.targetLocales.length}`,
+      const res = await apiFetch<{
+        success: true;
+        jobIds: string[];
+        targetLocales: string[];
+      }>(`/api/admin/translations/regenerate-all?${params.toString()}`, {
+        method: "POST",
       });
-      onAfterBulkAction();
+      if (res.jobIds.length === 0) {
+        setToast({ type: "info", message: noopLabel });
+        onAfterBulkAction();
+        return;
+      }
+      setExpectedCount(res.jobIds.length);
+      setWatchJobIds(res.jobIds);
+      setToast({
+        type: "info",
+        message: `${runningLabel} (${res.jobIds.length})`,
+      });
     } catch (error) {
       setToast({
         type: "error",
@@ -111,7 +170,6 @@ export function TranslationsSection({
       });
     } finally {
       setBulkAction(null);
-      setTimeout(() => setToast(null), 4000);
     }
   }
 
@@ -218,8 +276,12 @@ export function TranslationsSection({
           </button>
           {toast && (
             <span
-              className={`text-xs ${
-                toast.type === "success" ? "text-green-700" : "text-red-700"
+              className={`text-xs font-medium px-2 py-1 rounded-md ${
+                toast.type === "success"
+                  ? "bg-green-50 text-green-700 border border-green-200"
+                  : toast.type === "info"
+                    ? "bg-blue-50 text-blue-700 border border-blue-200"
+                    : "bg-red-50 text-red-700 border border-red-200"
               }`}
             >
               {toast.message}

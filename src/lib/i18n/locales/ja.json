@@ -61,6 +61,7 @@
   "admin.publishDate": "公開日",
   "admin.save": "保存",
   "admin.saveOrder": "順序を保存",
+  "admin.running": "実行中...",
   "admin.saving": "保存中...",
   "admin.savingOrder": "順序を保存中...",
   "admin.cancel": "キャンセル",

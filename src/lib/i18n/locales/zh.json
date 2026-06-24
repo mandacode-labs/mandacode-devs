@@ -61,6 +61,7 @@
   "admin.publishDate": "发布日期",
   "admin.save": "保存",
   "admin.saveOrder": "保存顺序",
+  "admin.running": "正在执行...",
   "admin.saving": "正在保存...",
   "admin.savingOrder": "正在保存顺序...",
   "admin.cancel": "取消",
