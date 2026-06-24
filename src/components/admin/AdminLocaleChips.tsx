@@ -126,6 +126,7 @@ function RegenerateMenu({
       ref={menuRef}
       className="fixed z-[100] min-w-[200px] max-w-[280px] bg-bg-primary border border-border rounded-lg shadow-lg py-1"
       style={{ top, left }}
+      onClick={(e) => e.stopPropagation()}
     >
       <a
         href={href}
