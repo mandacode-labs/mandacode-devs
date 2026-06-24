@@ -50,7 +50,6 @@ export const POST: APIRoute = async (context) => {
         issuer: body.translation.issuer ?? null,
         date: body.translation.date,
         badge_url: body.translation.badge_url ?? null,
-        url: body.translation.url ?? null,
       },
       order_index: orderIndex,
     });

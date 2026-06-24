@@ -385,7 +385,6 @@ export interface DeveloperCertificationTranslation {
   issuer: string | null;
   date: string;
   badge_url: string | null;
-  url: string | null;
 }
 
 export interface DeveloperCertification {
@@ -403,7 +402,6 @@ export interface DeveloperCertificationFull extends DeveloperCertification {
   issuer: string;
   date: string;
   badge_url: string | null;
-  url: string | null;
 }
 
 interface CertificationRow {
@@ -417,7 +415,6 @@ interface CertificationRow {
   issuer: string | null;
   date: string | null;
   badge_url: string | null;
-  url: string | null;
   locale: string | null;
 }
 
@@ -435,7 +432,6 @@ function mapCertificationRow(
     issuer: row.issuer ?? "",
     date: row.date ?? "",
     badge_url: row.badge_url,
-    url: row.url,
   };
 }
 
@@ -466,8 +462,7 @@ export async function getDeveloperCertifications(
               COALESCE(t.name, fallback.name) AS name,
               COALESCE(t.issuer, fallback.issuer) AS issuer,
               COALESCE(t.date, fallback.date) AS date,
-              COALESCE(t.badge_url, fallback.badge_url) AS badge_url,
-              COALESCE(t.url, fallback.url) AS url
+              COALESCE(t.badge_url, fallback.badge_url) AS badge_url
          FROM developer_certifications c
          LEFT JOIN developer_certification_translations t
            ON t.certification_id = c.id AND t.locale = ?
@@ -494,7 +489,7 @@ export async function getCertificationTranslations(
   const db = getDatabase();
   const result = await db
     .prepare(
-      "SELECT certification_id, locale, name, issuer, date, badge_url, url FROM developer_certification_translations WHERE certification_id = ? ORDER BY locale ASC",
+      "SELECT certification_id, locale, name, issuer, date, badge_url FROM developer_certification_translations WHERE certification_id = ? ORDER BY locale ASC",
     )
     .bind(certificationId)
     .all();
@@ -540,14 +535,13 @@ export async function upsertCertificationTranslation(
   await db
     .prepare(
       `INSERT INTO developer_certification_translations
-        (certification_id, locale, name, issuer, date, badge_url, url)
-       VALUES (?, ?, ?, ?, ?, ?, ?)
+        (certification_id, locale, name, issuer, date, badge_url)
+       VALUES (?, ?, ?, ?, ?, ?)
        ON CONFLICT(certification_id, locale) DO UPDATE SET
         name = excluded.name,
         issuer = excluded.issuer,
         date = excluded.date,
-        badge_url = excluded.badge_url,
-        url = excluded.url`,
+        badge_url = excluded.badge_url`,
     )
     .bind(
       certificationId,
@@ -556,7 +550,6 @@ export async function upsertCertificationTranslation(
       data.issuer,
       data.date,
       data.badge_url,
-      data.url,
     )
     .run();
 }

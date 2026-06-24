@@ -125,7 +125,6 @@ function mapD1Developer(
       name: c.name,
       issuer: c.issuer,
       date: c.date,
-      url: c.url,
       badge: c.badge_url,
     })),
     education: edu.map((e) => ({
@@ -166,7 +165,6 @@ function mapCollectionDeveloper(
       name: c.name,
       issuer: c.issuer,
       date: c.date,
-      url: c.url ?? null,
       badge: c.badge ?? null,
     })),
     education: edu.map((e, i) => ({
