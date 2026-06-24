@@ -160,23 +160,31 @@ export async function searchPostsByTitle(
   const trimmed = query.trim();
   if (!trimmed) return [];
   const db = getDatabase();
-  // Match only the original-locale title (the canonical text the admin
-  // entered). Rank prefix matches before substring matches; fall back
-  // to recency.
+  // Match by id prefix OR by title in any locale (substring). The
+  // returned title is always the canonical original-locale title so
+  // the admin sees the same text regardless of UI language.
+  // Rank id matches above title matches; tie-break on recency.
+  const like = escapeLike(trimmed);
   const result = await db
     .prepare(
       `SELECT p.id, p.original_locale, orig.title AS original_title,
-              CASE WHEN LOWER(orig.title) LIKE LOWER(?) ESCAPE '\\' THEN 0
-                   ELSE 1
+              CASE
+                WHEN LOWER(p.id) LIKE LOWER(?) ESCAPE '\\' THEN 0
+                ELSE 1
               END AS match_kind
          FROM posts p
          LEFT JOIN post_translations orig
            ON orig.post_id = p.id AND orig.locale = p.original_locale
-        WHERE orig.title LIKE ? ESCAPE '\\'
+        WHERE LOWER(p.id) LIKE LOWER(?) ESCAPE '\\'
+           OR EXISTS (
+             SELECT 1 FROM post_translations pt
+             WHERE pt.post_id = p.id
+               AND LOWER(pt.title) LIKE LOWER(?) ESCAPE '\\'
+           )
         ORDER BY match_kind ASC, p.updated_at DESC
         LIMIT ?`,
     )
-    .bind(`${escapeLike(trimmed)}%`, `%${escapeLike(trimmed)}%`, limit)
+    .bind(`${like}%`, `${like}%`, `%${like}%`, limit)
     .all<{
       id: string;
       original_locale: string;
