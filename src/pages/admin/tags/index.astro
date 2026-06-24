@@ -1,0 +1,48 @@
+---
+import AdminLayout from "@/components/layouts/AdminLayout.astro";
+import AdminSidebar from "@/components/admin/AdminSidebar.astro";
+import AdminHeader from "@/components/admin/AdminHeader.astro";
+import { TagList } from "@/components/admin/TagList";
+import { requireAuth } from "@/lib/auth";
+import { listTagsWithUsage } from "@/lib/db/tags";
+import { useTranslations } from "@/lib/i18n/utils";
+import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
+
+requireAuth(Astro);
+
+const tags = await listTagsWithUsage();
+const t = useTranslations(DEFAULT_LANGUAGE);
+---
+
+<AdminLayout title={t("admin.tags")}>
+  <div class="flex min-h-screen">
+    <AdminSidebar currentPath={Astro.url.pathname} />
+
+    <div class="flex-1 md:ml-64">
+      <AdminHeader
+        title={t("admin.tags")}
+        subtitle="Manage tags across content"
+      />
+
+      <main class="p-4 sm:p-6 lg:p-8">
+        <div class="mb-6">
+          <h1 class="text-2xl font-bold text-text-primary">
+            {t("admin.tags")}
+          </h1>
+          <p class="text-sm text-text-secondary mt-1">
+            {tags.length}
+            {tags.length === 1 ? "tag" : "tags"}
+          </p>
+        </div>
+
+        <TagList
+          initialTags={tags}
+          searchHint={t("admin.searchTagsHint")}
+          emptyTitle={t("admin.noTags")}
+          emptyMessage={t("admin.noTagsMessage")}
+          client:only="react"
+        />
+      </main>
+    </div>
+  </div>
+</AdminLayout>

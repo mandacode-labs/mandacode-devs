@@ -162,5 +162,17 @@
   "admin.issuer": "Issuer",
   "admin.noCertifications": "No certifications yet.",
   "admin.noEducation": "No education yet.",
-  "admin.newProfile": "New Profile"
+  "admin.newProfile": "New Profile",
+  "admin.tagName": "Tag name",
+  "admin.rename": "Rename",
+  "admin.renameHint": "Renaming applies to all content using this tag.",
+  "admin.tagRenamed": "Tag renamed",
+  "admin.deleteTagConfirm": "Delete this tag? It will be removed from all posts, projects, and developers.",
+  "admin.tagDeleted": "Tag deleted",
+  "admin.usage": "Usage",
+  "admin.noUsage": "Not used by any content yet.",
+  "admin.backToTags": "Back to tags",
+  "admin.searchTagsHint": "Search tags...",
+  "admin.noTags": "No tags yet",
+  "admin.noTagsMessage": "Tags will appear here once content uses them."
 }
