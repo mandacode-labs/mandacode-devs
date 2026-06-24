@@ -186,13 +186,30 @@ export async function translateFields(
                       properties: {
                         type: { type: "string" },
                         attrs: {
-                          type: "object",
-                          properties: {
-                            href: { type: "string" },
-                            color: { type: "string" },
-                            target: { type: "string" },
-                          },
-                          additionalProperties: false,
+                          oneOf: [
+                            {
+                              type: "object",
+                              properties: {},
+                              additionalProperties: false,
+                            },
+                            {
+                              type: "object",
+                              properties: {
+                                href: { type: "string" },
+                                target: { type: "string" },
+                              },
+                              required: ["href"],
+                              additionalProperties: false,
+                            },
+                            {
+                              type: "object",
+                              properties: {
+                                color: { type: "string" },
+                              },
+                              required: ["color"],
+                              additionalProperties: false,
+                            },
+                          ],
                         },
                       },
                       required: ["type"],
