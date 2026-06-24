@@ -87,14 +87,6 @@ export const projectAdapter: AdminCrudAdapter<
 
     await projectsRepo.updateProjectTranslation(id, locale, translationUpdate);
 
-    if (newSourceHash !== null) {
-      await projectsRepo.updateProjectTranslationsCascade(
-        id,
-        locale,
-        newSourceHash,
-      );
-    }
-
     const mainUpdate: projectsRepo.UpdateProjectInput = {};
     if (body.original_locale !== undefined)
       mainUpdate.original_locale = body.original_locale;

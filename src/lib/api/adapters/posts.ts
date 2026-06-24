@@ -77,10 +77,6 @@ export const postAdapter: AdminCrudAdapter<
 
     await postsRepo.updatePostTranslation(id, locale, updateData);
 
-    if (newSourceHash !== null) {
-      await postsRepo.updatePostTranslationsCascade(id, locale, newSourceHash);
-    }
-
     if (body.original_locale !== undefined) {
       await postsRepo.updatePost(id, { original_locale: body.original_locale });
     }
