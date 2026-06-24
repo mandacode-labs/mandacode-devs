@@ -730,10 +730,6 @@ function CertificationsSection({
                 field === "badge_url"
                   ? value
                   : (items.find((it) => it.id === id)?.badge_url ?? null),
-              url:
-                field === "url"
-                  ? value
-                  : (items.find((it) => it.id === id)?.url ?? null),
             },
           }),
         },
