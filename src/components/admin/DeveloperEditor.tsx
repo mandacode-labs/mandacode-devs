@@ -44,7 +44,7 @@ export interface DeveloperEditorInitialData {
   name: string;
   role: string;
   bio: string;
-  article: string;
+  intro: string;
   body: string;
   avatar_url: string | null;
   publish_status: string;
@@ -93,8 +93,8 @@ export default function DeveloperEditor({
   const [name, setName] = useState(initialData?.name ?? "");
   const [role, setRole] = useState(initialData?.role ?? "");
   const [bio, setBio] = useState(initialData?.bio ?? "");
-  const [article, setArticle] = useState(
-    initialData?.article ?? JSON.stringify({ type: "doc", content: [] }),
+  const [intro, setIntro] = useState(
+    initialData?.intro ?? JSON.stringify({ type: "doc", content: [] }),
   );
   const [body, setBody] = useState(
     initialData?.body ?? JSON.stringify({ type: "doc", content: [] }),
@@ -148,7 +148,7 @@ export default function DeveloperEditor({
       name,
       role,
       bio,
-      article: article,
+      intro: intro,
       body: body,
       avatar_url: avatarUrl || null,
       publish_status: publishStatus,
@@ -169,7 +169,7 @@ export default function DeveloperEditor({
     setName(initialData.name);
     setRole(initialData.role);
     setBio(initialData.bio);
-    setArticle(initialData.article);
+    setIntro(initialData.intro);
     setBody(initialData.body);
     setAvatarUrl(initialData.avatar_url ?? "");
     setPublishStatus(initialData.publish_status);
@@ -537,12 +537,12 @@ export default function DeveloperEditor({
         t={t}
       />
 
-      <AdminSection title={t("admin.article", "Article")}>
+      <AdminSection title={t("admin.intro", "Intro")}>
         <div className="space-y-2">
           <TiptapEditor
             key={editorKey}
-            content={article}
-            onChange={setArticle}
+            content={intro}
+            onChange={setIntro}
             placeholder="Write the long-form intro (markdown body)..."
             entityType="developer"
             entityId={id}

@@ -22,7 +22,7 @@ export type UIKey =
   | "admin.certifications"
   | "admin.confirm"
   | "admin.confirmDelete"
-  | "admin.article"
+  | "admin.intro"
   | "admin.body"
   | "admin.coverImage"
   | "admin.dashboard"

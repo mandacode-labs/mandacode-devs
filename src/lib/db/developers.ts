@@ -50,7 +50,7 @@ const TRANS_CFG: TransTableConfig = {
     "name",
     "role",
     "bio",
-    "article",
+    "intro",
     "body",
     "avatar_url",
     "publish_status",
@@ -74,7 +74,7 @@ export interface CreateDeveloperTranslationInput {
   name: string;
   role: string;
   bio: string;
-  article: string;
+  intro: string;
   body: string;
   avatar_url: string | null;
   publish_status: PublishStatus;
@@ -86,7 +86,7 @@ export interface UpdateDeveloperTranslationInput {
   name?: string;
   role?: string;
   bio?: string;
-  article?: string;
+  intro?: string;
   body?: string;
   avatar_url?: string | null;
   publish_status?: PublishStatus;
@@ -105,7 +105,7 @@ export interface DeveloperWithTranslation extends Developer {
   name: string;
   role: string;
   bio: string;
-  article: string;
+  intro: string;
   body: string;
   avatar_url: string | null;
   publish_status: PublishStatus;
@@ -131,8 +131,8 @@ function mapDeveloperRow(
     name: String(hasTranslation ? row.translation_name : row.original_name),
     role: String(hasTranslation ? row.translation_role : row.original_role),
     bio: String(hasTranslation ? row.translation_bio : row.original_bio),
-    article: String(
-      hasTranslation ? row.translation_article : row.original_article,
+    intro: String(
+      hasTranslation ? row.translation_intro : row.original_intro,
     ),
     body: String(hasTranslation ? row.translation_body : row.original_body),
     avatar_url: hasTranslation
@@ -247,7 +247,7 @@ export async function ensureDeveloperExists(
     name: "",
     role: "",
     bio: "",
-    article: emptyTiptap,
+    intro: emptyTiptap,
     body: emptyTiptap,
     avatar_url: null,
     publish_status: "draft",
@@ -263,7 +263,7 @@ export async function createDeveloperTranslation(
   await db
     .prepare(
       `INSERT INTO developer_translations (
-        id, developer_id, locale, name, role, bio, article, body,
+        id, developer_id, locale, name, role, bio, intro, body,
         avatar_url, publish_status, published_at, source_hash
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
@@ -274,7 +274,7 @@ export async function createDeveloperTranslation(
       input.name,
       input.role,
       input.bio,
-      input.article,
+      input.intro,
       input.body,
       input.avatar_url,
       input.publish_status,
@@ -341,7 +341,7 @@ export const getDeveloperOriginalHash = (id: string) =>
 export function getDeveloperLocalesWithContent(id: string): Promise<
   Array<{
     locale: string;
-    article: string;
+    intro: string;
     avatar_url: string | null;
   }>
 > {
@@ -353,7 +353,7 @@ export function getDeveloperLocalesWithContent(id: string): Promise<
   ) as Promise<
     Array<{
       locale: string;
-      article: string;
+      intro: string;
       avatar_url: string | null;
     }>
   >;

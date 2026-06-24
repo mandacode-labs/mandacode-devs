@@ -37,7 +37,7 @@ const projects = sortProjectsByDate(await getProjects(lang));
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
     <DeveloperProfile developer={developer} lang={lang} />
 
-    <ContentRenderer content={developer.article} class="mb-10" />
+    <ContentRenderer content={developer.intro} class="mb-10" />
 
     <TechStack developer={developer} lang={lang} />
 

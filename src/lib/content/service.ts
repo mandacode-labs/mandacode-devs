@@ -39,7 +39,7 @@ function mapD1Post(
     hidden: post.publish_status === "archived",
     publishStatus: post.publish_status,
     isFallback: post.is_fallback,
-    article: post.article,
+    intro: post.intro,
   };
 }
 
@@ -68,7 +68,7 @@ function mapD1Project(
     hidden: project.publish_status === "archived",
     publishStatus: project.publish_status,
     isFallback: project.is_fallback,
-    article: project.article,
+    intro: project.intro,
   };
 }
 
@@ -108,7 +108,7 @@ function mapD1Developer(
     })),
     publishStatus: developer.publish_status,
     isFallback: developer.is_fallback,
-    article: developer.article,
+    intro: developer.intro,
     body: developer.body,
   };
 }

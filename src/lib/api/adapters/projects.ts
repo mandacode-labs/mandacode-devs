@@ -45,12 +45,12 @@ export const projectAdapter: AdminCrudAdapter<
       locale: originalLocale,
       title: body.title,
       description: body.description ?? null,
-      article: body.article,
+      intro: body.intro,
       role: body.role,
       cover_image_url: body.cover_image_url ?? null,
       publish_status: body.publish_status,
       published_at: publishedAt,
-      source_hash: await hashContent(body.article),
+      source_hash: await hashContent(body.intro),
     });
 
     await tagsRepo.setProjectTags(body.id, body.tags);
@@ -63,7 +63,7 @@ export const projectAdapter: AdminCrudAdapter<
     const translationUpdate: projectsRepo.UpdateProjectTranslationInput = {
       title: body.title,
       description: body.description,
-      article: body.article,
+      intro: body.intro,
       role: body.role,
       cover_image_url: body.cover_image_url,
       publish_status: body.publish_status,
@@ -80,8 +80,8 @@ export const projectAdapter: AdminCrudAdapter<
     const projectOriginalLocale =
       await projectsRepo.getProjectOriginalLocale(id);
     let newSourceHash: string | null = null;
-    if (locale === projectOriginalLocale && body.article !== undefined) {
-      newSourceHash = await hashContent(body.article);
+    if (locale === projectOriginalLocale && body.intro !== undefined) {
+      newSourceHash = await hashContent(body.intro);
       translationUpdate.source_hash = newSourceHash;
     }
 
