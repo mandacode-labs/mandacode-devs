@@ -64,7 +64,6 @@ interface CertificationItem {
   issuer: string;
   date: string;
   badge_url: string | null;
-  url: string | null;
 }
 
 interface EducationItem {
@@ -675,7 +674,6 @@ function CertificationsSection({
           issuer: "",
           date: today,
           badge_url: null,
-          url: null,
         },
       ]);
     } catch (err) {
@@ -732,10 +730,6 @@ function CertificationsSection({
                 field === "badge_url"
                   ? value
                   : (items.find((it) => it.id === id)?.badge_url ?? null),
-              url:
-                field === "url"
-                  ? value
-                  : (items.find((it) => it.id === id)?.url ?? null),
             },
           }),
         },
@@ -885,21 +879,9 @@ function SortableCertificationItem({
             {t("admin.date", "Date")}
           </span>
           <input
-            type="text"
+            type="date"
             value={item.date}
             onChange={(e) => onUpdate(item.id, "date", e.target.value)}
-            placeholder="2026-03"
-            className="w-full mt-1 px-2 py-1.5 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-          />
-        </label>
-        <label className="block">
-          <span className="text-xs font-medium text-text-primary">
-            {t("admin.url", "URL")}
-          </span>
-          <input
-            type="url"
-            value={item.url ?? ""}
-            onChange={(e) => onUpdate(item.id, "url", e.target.value || null)}
             className="w-full mt-1 px-2 py-1.5 text-sm border border-border rounded bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
           />
         </label>

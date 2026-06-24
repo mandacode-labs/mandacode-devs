@@ -51,7 +51,6 @@ export interface UnifiedDeveloper extends BaseUnifiedContent {
     name: string;
     issuer: string;
     date: string;
-    url?: string | null;
     badge?: string | null;
   }>;
   education: Array<{

@@ -143,9 +143,8 @@ export const updateDeveloperSchema = z.object({
 export const certificationTranslationInputSchema = z.object({
   name: z.string().min(1),
   issuer: z.string().optional(),
-  date: z.string().min(1),
+  date: dateStringSchema,
   badge_url: urlOrPathSchema.nullable().optional(),
-  url: z.string().url().nullable().optional(),
 });
 
 export const createCertificationSchema = z.object({
