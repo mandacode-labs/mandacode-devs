@@ -53,7 +53,7 @@ const TRANS_CFG: TransTableConfig = {
   transColumns: [
     "title",
     "description",
-    "intro",
+    "body",
     "role",
     "cover_image_url",
     "publish_status",
@@ -81,7 +81,7 @@ export interface CreateProjectTranslationInput {
   locale: string;
   title: string;
   description: string | null;
-  intro: string;
+  body: string;
   role: string;
   cover_image_url: string | null;
   publish_status: PublishStatus;
@@ -92,7 +92,7 @@ export interface CreateProjectTranslationInput {
 export interface UpdateProjectTranslationInput {
   title?: string;
   description?: string | null;
-  intro?: string;
+  body?: string;
   role?: string;
   cover_image_url?: string | null;
   publish_status?: PublishStatus;
@@ -117,7 +117,7 @@ export interface GetProjectsOptions extends ListOptions {}
 export interface ProjectWithTranslation extends Project {
   title: string;
   description: string | null;
-  intro: string;
+  body: string;
   role: string;
   cover_image_url: string | null;
   publish_status: PublishStatus;
@@ -145,7 +145,7 @@ function mapProjectRow(row: Record<string, unknown>): ProjectWithTranslation {
     description: hasTranslation
       ? (row.translation_description as string | null)
       : (row.original_description as string | null),
-    intro: String(hasTranslation ? row.translation_intro : row.original_intro),
+    body: String(hasTranslation ? row.translation_body : row.original_body),
     role: String(hasTranslation ? row.translation_role : row.original_role),
     cover_image_url: hasTranslation
       ? (row.translation_cover_image_url as string | null)
@@ -231,7 +231,7 @@ export async function createProjectTranslation(
   await db
     .prepare(
       `INSERT INTO project_translations (
-        id, project_id, locale, title, description, intro,
+        id, project_id, locale, title, description, body,
         role, cover_image_url, publish_status, published_at, source_hash
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
@@ -241,7 +241,7 @@ export async function createProjectTranslation(
       input.locale,
       input.title,
       input.description,
-      input.intro,
+      input.body,
       input.role,
       input.cover_image_url,
       input.publish_status,
@@ -304,16 +304,20 @@ export const getProjectOriginalHash = (id: string) =>
 export function getProjectLocalesWithContent(id: string): Promise<
   Array<{
     locale: string;
-    intro: string;
+    body: string;
     cover_image_url: string | null;
   }>
 > {
-  return getEntityLocalesWithContent("project_translations", "project_id", id, [
-    "cover_image_url",
-  ]) as Promise<
+  return getEntityLocalesWithContent(
+    "project_translations",
+    "project_id",
+    id,
+    "body",
+    ["cover_image_url"],
+  ) as Promise<
     Array<{
       locale: string;
-      intro: string;
+      body: string;
       cover_image_url: string | null;
     }>
   >;

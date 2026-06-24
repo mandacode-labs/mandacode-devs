@@ -159,18 +159,21 @@ export async function getEntityLocalesWithContent(
   transTable: string,
   transIdColumn: string,
   id: string,
+  contentColumn: string,
   extraColumns: string[] = [],
-): Promise<Array<{ locale: string; intro: string } & Record<string, unknown>>> {
+): Promise<
+  Array<{ locale: string; [key: string]: unknown } & Record<string, unknown>>
+> {
   const db = getDatabase();
   const extra = extraColumns.length > 0 ? `, ${extraColumns.join(", ")}` : "";
   const result = await db
     .prepare(
-      `SELECT locale, intro${extra} FROM ${transTable} WHERE ${transIdColumn} = ?`,
+      `SELECT locale, ${contentColumn}${extra} FROM ${transTable} WHERE ${transIdColumn} = ?`,
     )
     .bind(id)
     .all();
   return (result.results ?? []) as Array<
-    { locale: string; intro: string } & Record<string, unknown>
+    { locale: string; [key: string]: unknown } & Record<string, unknown>
   >;
 }
 

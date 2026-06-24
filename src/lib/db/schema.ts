@@ -44,7 +44,7 @@ export interface PostTranslation {
   locale: string;
   title: string;
   description: string | null;
-  intro: string;
+  body: string;
   cover_image_url: string | null;
   publish_status: PublishStatus;
   published_at: string | null;
@@ -74,7 +74,7 @@ export interface ProjectTranslation {
   locale: string;
   title: string;
   description: string | null;
-  intro: string;
+  body: string;
   role: string;
   cover_image_url: string | null;
   publish_status: PublishStatus;

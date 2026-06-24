@@ -18,7 +18,6 @@ export type AdminEntityType = AssetEntityType;
 
 export interface LocaleContentRow {
   locale: string;
-  intro: string;
   [field: string]: unknown;
 }
 
@@ -97,7 +96,7 @@ async function cleanupEntityAssets<
       }
     } else {
       for (const url of extractAssetUrlsFromTiptapJson(
-        (row as { intro: string }).intro,
+        (row as { body?: string }).body ?? "",
       )) {
         usedUrls.add(url);
       }
