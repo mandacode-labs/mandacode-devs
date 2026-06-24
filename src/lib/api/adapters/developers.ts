@@ -95,14 +95,6 @@ export const developerAdapter: AdminCrudAdapter<
         locale,
         translationUpdate,
       );
-
-      if (newSourceHash !== null) {
-        await developersRepo.updateDeveloperTranslationsCascade(
-          id,
-          locale,
-          newSourceHash,
-        );
-      }
     } else {
       if (body.publish_status === "published") {
         translationUpdate.published_at = new Date().toISOString();

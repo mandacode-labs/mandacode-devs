@@ -13,7 +13,6 @@ import {
   getEntityOriginalLocale,
   getListWithTranslation,
   updateEntityTranslation,
-  updateEntityTranslationsCascade,
   type ListOptions,
   type LocaleMeta,
   type MainTableConfig,
@@ -291,19 +290,6 @@ export function updatePostTranslation(
 
 export const getPostLocales = (id: string) =>
   getEntityLocales("post_translations", "post_id", id);
-
-export const updatePostTranslationsCascade = (
-  id: string,
-  originalLocale: string,
-  newSourceHash: string,
-) =>
-  updateEntityTranslationsCascade(
-    "post_translations",
-    "post_id",
-    id,
-    originalLocale,
-    newSourceHash,
-  );
 
 export const getPostLocaleMeta = (id: string) =>
   getEntityLocaleMeta("post_translations", "post_id", id);

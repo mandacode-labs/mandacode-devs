@@ -11,7 +11,6 @@ import {
   getEntityOriginalLocale,
   getListWithTranslation,
   updateEntityTranslation,
-  updateEntityTranslationsCascade,
   type ListOptions,
   type LocaleMeta,
   type MainTableConfig,
@@ -294,19 +293,6 @@ export function updateProjectTranslation(
 
 export const getProjectLocales = (id: string) =>
   getEntityLocales("project_translations", "project_id", id);
-
-export const updateProjectTranslationsCascade = (
-  id: string,
-  originalLocale: string,
-  newSourceHash: string,
-) =>
-  updateEntityTranslationsCascade(
-    "project_translations",
-    "project_id",
-    id,
-    originalLocale,
-    newSourceHash,
-  );
 
 export const getProjectLocaleMeta = (id: string) =>
   getEntityLocaleMeta("project_translations", "project_id", id);

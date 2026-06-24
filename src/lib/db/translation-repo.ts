@@ -238,24 +238,6 @@ export async function getEntityOriginalHash(
   return hash ?? null;
 }
 
-export async function updateEntityTranslationsCascade(
-  transTable: string,
-  transIdColumn: string,
-  id: string,
-  originalLocale: string,
-  newSourceHash: string,
-): Promise<void> {
-  const db = getDatabase();
-  await db
-    .prepare(
-      `UPDATE ${transTable}
-       SET source_hash = ?, updated_at = CURRENT_TIMESTAMP
-       WHERE ${transIdColumn} = ? AND locale != ?`,
-    )
-    .bind(newSourceHash, id, originalLocale)
-    .run();
-}
-
 export async function deleteEntity(
   mainTable: string,
   id: string,
