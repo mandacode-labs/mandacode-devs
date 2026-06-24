@@ -42,7 +42,7 @@ const TRANS_CFG: TransTableConfig = {
   transColumns: [
     "title",
     "description",
-    "intro",
+    "body",
     "cover_image_url",
     "publish_status",
     "published_at",
@@ -61,7 +61,7 @@ export interface CreatePostTranslationInput {
   locale: string;
   title: string;
   description: string | null;
-  intro: string;
+  body: string;
   cover_image_url: string | null;
   publish_status: PublishStatus;
   published_at: string | null;
@@ -71,7 +71,7 @@ export interface CreatePostTranslationInput {
 export interface UpdatePostTranslationInput {
   title?: string;
   description?: string | null;
-  intro?: string;
+  body?: string;
   cover_image_url?: string | null;
   publish_status?: PublishStatus;
   published_at?: string | null;
@@ -87,7 +87,7 @@ export interface GetPostsOptions extends ListOptions {}
 export interface PostWithTranslation extends Post {
   title: string;
   description: string | null;
-  intro: string;
+  body: string;
   cover_image_url: string | null;
   publish_status: PublishStatus;
   published_at: string | null;
@@ -106,7 +106,7 @@ function mapPostRow(row: Record<string, unknown>): PostWithTranslation {
     description: hasTranslation
       ? (row.translation_description as string | null)
       : (row.original_description as string | null),
-    intro: String(hasTranslation ? row.translation_intro : row.original_intro),
+    body: String(hasTranslation ? row.translation_body : row.original_body),
     cover_image_url: hasTranslation
       ? (row.translation_cover_image_url as string | null)
       : (row.original_cover_image_url as string | null),
@@ -229,7 +229,7 @@ export async function createPostTranslation(
   await db
     .prepare(
       `INSERT INTO post_translations (
-        id, post_id, locale, title, description, intro,
+        id, post_id, locale, title, description, body,
         cover_image_url, publish_status, published_at, source_hash
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
@@ -239,7 +239,7 @@ export async function createPostTranslation(
       input.locale,
       input.title,
       input.description,
-      input.intro,
+      input.body,
       input.cover_image_url,
       input.publish_status,
       input.published_at,
@@ -301,16 +301,20 @@ export const getPostOriginalHash = (id: string) =>
 export function getPostLocalesWithContent(id: string): Promise<
   Array<{
     locale: string;
-    intro: string;
+    body: string;
     cover_image_url: string | null;
   }>
 > {
-  return getEntityLocalesWithContent("post_translations", "post_id", id, [
-    "cover_image_url",
-  ]) as Promise<
+  return getEntityLocalesWithContent(
+    "post_translations",
+    "post_id",
+    id,
+    "body",
+    ["cover_image_url"],
+  ) as Promise<
     Array<{
       locale: string;
-      intro: string;
+      body: string;
       cover_image_url: string | null;
     }>
   >;

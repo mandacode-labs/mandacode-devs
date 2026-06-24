@@ -28,7 +28,7 @@ export interface ProjectEditorInitialData {
   existing_locales: string[];
   title: string;
   description: string | null;
-  intro: string;
+  body: string;
   publish_status: string;
   project_status: string;
   start_date: string | null;
@@ -57,8 +57,8 @@ export default function ProjectEditor({
   const [description, setDescription] = useState(
     initialData?.description ?? "",
   );
-  const [intro, setIntro] = useState(
-    initialData?.intro ?? JSON.stringify({ type: "doc", content: [] }),
+  const [body, setIntro] = useState(
+    initialData?.body ?? JSON.stringify({ type: "doc", content: [] }),
   );
   const [projectStatus, setProjectStatus] = useState(
     initialData?.project_status ?? "development",
@@ -117,7 +117,7 @@ export default function ProjectEditor({
     getSubmitBody: () => ({
       title,
       description: description || null,
-      intro: intro,
+      body: body,
       publish_status: publishStatus,
       project_status: projectStatus,
       start_date: startDate || null,
@@ -140,7 +140,7 @@ export default function ProjectEditor({
       setOriginalLocale(initialData.original_locale);
       setTitle(initialData.title);
       setDescription(initialData.description ?? "");
-      setIntro(initialData.intro);
+      setIntro(initialData.body);
       setProjectStatus(initialData.project_status);
       setStartDate(initialData.start_date ?? "");
       setEndDate(initialData.end_date ?? "");
@@ -542,11 +542,11 @@ export default function ProjectEditor({
         </label>
       </AdminSection>
 
-      <AdminSection title={t("admin.intro", "Intro")}>
+      <AdminSection title={t("admin.body", "Body")}>
         <div className="space-y-2">
           <TiptapEditor
             key={editorKey}
-            content={intro}
+            content={body}
             onChange={setIntro}
             placeholder="Write your project content..."
             entityType="project"

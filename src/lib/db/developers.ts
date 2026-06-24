@@ -347,6 +347,7 @@ export function getDeveloperLocalesWithContent(id: string): Promise<
     "developer_translations",
     "developer_id",
     id,
+    "intro",
     ["avatar_url"],
   ) as Promise<
     Array<{

@@ -31,12 +31,12 @@ async function translatePost(job: TranslationJobInput): Promise<void> {
       title: source.title,
       description: source.description,
       role: null,
-      intro: source.intro,
+      body: source.body,
     },
     job.targetLocale,
   );
 
-  const sourceHash = await hashContent(source.intro);
+  const sourceHash = await hashContent(source.body);
   const existing = await postsRepo.getPostTranslationById(
     job.id,
     job.targetLocale,
@@ -46,7 +46,7 @@ async function translatePost(job: TranslationJobInput): Promise<void> {
     await postsRepo.updatePostTranslation(job.id, job.targetLocale, {
       title: translated.title,
       description: translated.description,
-      intro: translated.intro,
+      body: translated.body,
       source_hash: sourceHash,
     });
     return;
@@ -59,7 +59,7 @@ async function translatePost(job: TranslationJobInput): Promise<void> {
     locale: job.targetLocale,
     title: translated.title,
     description: translated.description,
-    intro: translated.intro,
+    body: translated.body,
     cover_image_url: source.cover_image_url,
     publish_status: source.publish_status,
     published_at: source.published_at ? now : null,
@@ -81,12 +81,12 @@ async function translateProject(job: TranslationJobInput): Promise<void> {
       title: source.title,
       description: source.description,
       role: source.role,
-      intro: source.intro,
+      body: source.body,
     },
     job.targetLocale,
   );
 
-  const sourceHash = await hashContent(source.intro);
+  const sourceHash = await hashContent(source.body);
   const existing = await projectsRepo.getProjectTranslationById(
     job.id,
     job.targetLocale,
@@ -96,7 +96,7 @@ async function translateProject(job: TranslationJobInput): Promise<void> {
     await projectsRepo.updateProjectTranslation(job.id, job.targetLocale, {
       title: translated.title,
       description: translated.description,
-      intro: translated.intro,
+      body: translated.body,
       role: translated.role ?? source.role,
       source_hash: sourceHash,
     });
@@ -110,7 +110,7 @@ async function translateProject(job: TranslationJobInput): Promise<void> {
     locale: job.targetLocale,
     title: translated.title,
     description: translated.description,
-    intro: translated.intro,
+    body: translated.body,
     role: translated.role ?? source.role,
     cover_image_url: source.cover_image_url,
     publish_status: source.publish_status,
@@ -136,7 +136,7 @@ async function translateDeveloper(job: TranslationJobInput): Promise<void> {
         title: source.name,
         description: source.bio,
         role: source.role,
-        intro: source.intro,
+        body: source.intro,
       },
       job.targetLocale,
     ),
@@ -146,7 +146,7 @@ async function translateDeveloper(job: TranslationJobInput): Promise<void> {
             title: source.name,
             description: source.bio,
             role: source.role,
-            intro: source.body,
+            body: source.body,
           },
           job.targetLocale,
         )
@@ -163,8 +163,8 @@ async function translateDeveloper(job: TranslationJobInput): Promise<void> {
     name: translated.title,
     role: translated.role ?? source.role,
     bio: translated.description ?? source.bio,
-    intro: translated.intro,
-    body: translatedAfter?.intro ?? source.body,
+    intro: translated.body,
+    body: translatedAfter?.body ?? source.body,
   };
 
   if (existing) {

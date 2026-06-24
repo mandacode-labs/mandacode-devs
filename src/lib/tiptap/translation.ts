@@ -330,7 +330,7 @@ export interface TranslationResponse {
 }
 
 export interface ApplyResult {
-  intro: string;
+  body: string;
   missingSegmentIds: string[];
   unknownSegmentIds: string[];
   missingAltIds: string[];
@@ -386,7 +386,7 @@ export function applyTranslations(
   }
 
   return {
-    intro: JSON.stringify(root),
+    body: JSON.stringify(root),
     missingSegmentIds,
     unknownSegmentIds,
     missingAltIds,

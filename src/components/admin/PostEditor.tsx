@@ -20,7 +20,7 @@ export interface PostEditorInitialData {
   existing_locales: string[];
   title: string;
   description: string | null;
-  intro: string;
+  body: string;
   publish_status: string;
   cover_image_url: string | null;
   tags: string[];
@@ -40,8 +40,8 @@ export default function PostEditor({
   const [description, setDescription] = useState(
     initialData?.description ?? "",
   );
-  const [intro, setIntro] = useState(
-    initialData?.intro ?? JSON.stringify({ type: "doc", content: [] }),
+  const [body, setIntro] = useState(
+    initialData?.body ?? JSON.stringify({ type: "doc", content: [] }),
   );
   const [coverImageUrl, setCoverImageUrl] = useState(
     initialData?.cover_image_url ?? "",
@@ -85,7 +85,7 @@ export default function PostEditor({
     getSubmitBody: () => ({
       title,
       description: description || null,
-      intro: intro,
+      body: body,
       publish_status: publishStatus,
       cover_image_url: coverImageUrl || null,
       tags,
@@ -99,7 +99,7 @@ export default function PostEditor({
       setOriginalLocale(initialData.original_locale);
       setTitle(initialData.title);
       setDescription(initialData.description ?? "");
-      setIntro(initialData.intro);
+      setIntro(initialData.body);
       setCoverImageUrl(initialData.cover_image_url ?? "");
       setTags(initialData.tags ?? []);
       setPublishStatus(initialData.publish_status);
@@ -364,11 +364,11 @@ export default function PostEditor({
         </label>
       </AdminSection>
 
-      <AdminSection title={t("admin.intro", "Intro")}>
+      <AdminSection title={t("admin.body", "Body")}>
         <div className="space-y-2">
           <TiptapEditor
             key={editorKey}
-            content={intro}
+            content={body}
             onChange={setIntro}
             placeholder="Write your post content..."
             entityType="post"

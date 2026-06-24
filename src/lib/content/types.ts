@@ -6,10 +6,10 @@ interface BaseUnifiedContent {
   originalLocale: string;
   publishStatus: PublishStatus;
   isFallback: boolean;
-  intro?: string;
 }
 
 export interface UnifiedPost extends BaseUnifiedContent {
+  body: string;
   title: string;
   description: string | null;
   pubDate: Date;
@@ -19,6 +19,7 @@ export interface UnifiedPost extends BaseUnifiedContent {
 }
 
 export interface UnifiedProject extends BaseUnifiedContent {
+  body: string;
   title: string;
   description: string | null;
   status: ProjectStatus;
@@ -36,10 +37,11 @@ export interface UnifiedProject extends BaseUnifiedContent {
 }
 
 export interface UnifiedDeveloper extends BaseUnifiedContent {
+  intro: string;
+  body: string;
   name: string;
   role: string;
   bio: string;
-  body?: string;
   avatar: string | null;
   github: string | null;
   email: string | null;

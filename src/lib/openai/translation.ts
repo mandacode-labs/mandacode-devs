@@ -16,14 +16,14 @@ export interface TranslatableFields {
   title: string;
   description?: string | null;
   role?: string | null;
-  intro: string;
+  body: string;
 }
 
 export interface TranslatedFields {
   title: string;
   description: string | null;
   role: string | null;
-  intro: string;
+  body: string;
 }
 
 const TRANSLATION_SYSTEM_PROMPT = `You are a professional translator for a Korean tech blog.
@@ -155,9 +155,9 @@ export async function translateFields(
   targetLanguage: Language,
 ): Promise<TranslatedFields> {
   const client = getOpenAIClient();
-  const intro = JSON.parse(fields.intro) as unknown;
-  const segments = extractTexts(intro);
-  const alts = extractImageAlts(intro);
+  const body = JSON.parse(fields.body) as unknown;
+  const segments = extractTexts(body);
+  const alts = extractImageAlts(body);
   const payload = buildPayload(fields, segments, alts);
 
   const response = await client.chat.completions.create({
@@ -224,7 +224,7 @@ export async function translateFields(
   };
 
   const applied = applyTranslations(
-    fields.intro,
+    fields.body,
     segments,
     alts,
     translationResponse,
@@ -259,6 +259,6 @@ export async function translateFields(
     title: parsed.title,
     description: parsed.description,
     role: parsed.role,
-    intro: applied.intro,
+    body: applied.body,
   };
 }

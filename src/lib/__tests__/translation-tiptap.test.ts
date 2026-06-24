@@ -386,7 +386,7 @@ describe("applyTranslations", () => {
     });
     expect(result.missingSegmentIds).toEqual([]);
     expect(result.unknownSegmentIds).toEqual([]);
-    const parsed = JSON.parse(result.intro) as {
+    const parsed = JSON.parse(result.body) as {
       content: { content: { text: string }[] }[];
     };
     expect(parsed.content[0]?.content[0]?.text).toBe("안녕");
@@ -414,7 +414,7 @@ describe("applyTranslations", () => {
       segments: [{ id: "s1", text: "클릭" }],
       alts: [],
     });
-    const parsed = JSON.parse(result.intro) as {
+    const parsed = JSON.parse(result.body) as {
       content: { content: { text: string; marks: unknown[] }[] }[];
     };
     expect(parsed.content[0]?.content[0]?.text).toBe("클릭");
@@ -438,7 +438,7 @@ describe("applyTranslations", () => {
       segments: [],
       alts: [{ id: alts[0]!.id, alt: "새 설명" }],
     });
-    const parsed = JSON.parse(result.intro) as {
+    const parsed = JSON.parse(result.body) as {
       content: { attrs: { alt: string; src: string } }[];
     };
     expect(parsed.content[0]?.attrs.alt).toBe("새 설명");
@@ -493,7 +493,7 @@ describe("applyTranslations", () => {
       ],
       alts: [],
     });
-    const parsed = JSON.parse(result.intro) as {
+    const parsed = JSON.parse(result.body) as {
       content: { content: { text: string }[] }[];
     };
     expect(parsed.content[0]?.content[0]?.text).toBe("가");
