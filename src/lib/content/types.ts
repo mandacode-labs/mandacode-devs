@@ -6,7 +6,7 @@ interface BaseUnifiedContent {
   originalLocale: string;
   publishStatus: PublishStatus;
   isFallback: boolean;
-  d1Content?: string;
+  article?: string;
 }
 
 export interface UnifiedPost extends BaseUnifiedContent {
@@ -39,6 +39,7 @@ export interface UnifiedDeveloper extends BaseUnifiedContent {
   name: string;
   role: string;
   bio: string;
+  body?: string;
   avatar: string | null;
   github: string | null;
   email: string | null;

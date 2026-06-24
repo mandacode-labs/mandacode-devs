@@ -44,7 +44,7 @@ export interface PostTranslation {
   locale: string;
   title: string;
   description: string | null;
-  tiptap_json: string;
+  article: string;
   cover_image_url: string | null;
   publish_status: PublishStatus;
   published_at: string | null;
@@ -74,7 +74,7 @@ export interface ProjectTranslation {
   locale: string;
   title: string;
   description: string | null;
-  tiptap_json: string;
+  article: string;
   role: string;
   cover_image_url: string | null;
   publish_status: PublishStatus;
@@ -103,7 +103,8 @@ export interface DeveloperTranslation {
   name: string;
   role: string;
   bio: string;
-  tiptap_json: string;
+  article: string;
+  body: string;
   avatar_url: string | null;
   publish_status: PublishStatus;
   published_at: string | null;

@@ -53,7 +53,7 @@ const TRANS_CFG: TransTableConfig = {
   transColumns: [
     "title",
     "description",
-    "tiptap_json",
+    "article",
     "role",
     "cover_image_url",
     "publish_status",
@@ -81,7 +81,7 @@ export interface CreateProjectTranslationInput {
   locale: string;
   title: string;
   description: string | null;
-  tiptap_json: string;
+  article: string;
   role: string;
   cover_image_url: string | null;
   publish_status: PublishStatus;
@@ -92,7 +92,7 @@ export interface CreateProjectTranslationInput {
 export interface UpdateProjectTranslationInput {
   title?: string;
   description?: string | null;
-  tiptap_json?: string;
+  article?: string;
   role?: string;
   cover_image_url?: string | null;
   publish_status?: PublishStatus;
@@ -117,7 +117,7 @@ export interface GetProjectsOptions extends ListOptions {}
 export interface ProjectWithTranslation extends Project {
   title: string;
   description: string | null;
-  tiptap_json: string;
+  article: string;
   role: string;
   cover_image_url: string | null;
   publish_status: PublishStatus;
@@ -145,8 +145,8 @@ function mapProjectRow(row: Record<string, unknown>): ProjectWithTranslation {
     description: hasTranslation
       ? (row.translation_description as string | null)
       : (row.original_description as string | null),
-    tiptap_json: String(
-      hasTranslation ? row.translation_tiptap_json : row.original_tiptap_json,
+    article: String(
+      hasTranslation ? row.translation_article : row.original_article,
     ),
     role: String(hasTranslation ? row.translation_role : row.original_role),
     cover_image_url: hasTranslation
@@ -233,7 +233,7 @@ export async function createProjectTranslation(
   await db
     .prepare(
       `INSERT INTO project_translations (
-        id, project_id, locale, title, description, tiptap_json,
+        id, project_id, locale, title, description, article,
         role, cover_image_url, publish_status, published_at, source_hash
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
@@ -243,7 +243,7 @@ export async function createProjectTranslation(
       input.locale,
       input.title,
       input.description,
-      input.tiptap_json,
+      input.article,
       input.role,
       input.cover_image_url,
       input.publish_status,
@@ -306,7 +306,7 @@ export const getProjectOriginalHash = (id: string) =>
 export function getProjectLocalesWithContent(id: string): Promise<
   Array<{
     locale: string;
-    tiptap_json: string;
+    article: string;
     cover_image_url: string | null;
   }>
 > {
@@ -315,7 +315,7 @@ export function getProjectLocalesWithContent(id: string): Promise<
   ]) as Promise<
     Array<{
       locale: string;
-      tiptap_json: string;
+      article: string;
       cover_image_url: string | null;
     }>
   >;

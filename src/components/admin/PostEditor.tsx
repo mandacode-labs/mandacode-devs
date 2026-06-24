@@ -20,7 +20,7 @@ export interface PostEditorInitialData {
   existing_locales: string[];
   title: string;
   description: string | null;
-  tiptap_json: string;
+  article: string;
   publish_status: string;
   cover_image_url: string | null;
   tags: string[];
@@ -40,8 +40,8 @@ export default function PostEditor({
   const [description, setDescription] = useState(
     initialData?.description ?? "",
   );
-  const [tiptapJson, setTiptapJson] = useState(
-    initialData?.tiptap_json ?? JSON.stringify({ type: "doc", content: [] }),
+  const [article, setArticle] = useState(
+    initialData?.article ?? JSON.stringify({ type: "doc", content: [] }),
   );
   const [coverImageUrl, setCoverImageUrl] = useState(
     initialData?.cover_image_url ?? "",
@@ -85,7 +85,7 @@ export default function PostEditor({
     getSubmitBody: () => ({
       title,
       description: description || null,
-      tiptap_json: tiptapJson,
+      article: article,
       publish_status: publishStatus,
       cover_image_url: coverImageUrl || null,
       tags,
@@ -99,7 +99,7 @@ export default function PostEditor({
       setOriginalLocale(initialData.original_locale);
       setTitle(initialData.title);
       setDescription(initialData.description ?? "");
-      setTiptapJson(initialData.tiptap_json);
+      setArticle(initialData.article);
       setCoverImageUrl(initialData.cover_image_url ?? "");
       setTags(initialData.tags ?? []);
       setPublishStatus(initialData.publish_status);
@@ -364,12 +364,12 @@ export default function PostEditor({
         </label>
       </AdminSection>
 
-      <AdminSection title={t("admin.content", "Content")}>
+      <AdminSection title={t("admin.article", "Article")}>
         <div className="space-y-2">
           <TiptapEditor
             key={editorKey}
-            content={tiptapJson}
-            onChange={setTiptapJson}
+            content={article}
+            onChange={setArticle}
             placeholder="Write your post content..."
             entityType="post"
             entityId={id}

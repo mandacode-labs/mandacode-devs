@@ -38,11 +38,11 @@ export const postAdapter: AdminCrudAdapter<
       locale: originalLocale,
       title: body.title,
       description: body.description ?? null,
-      tiptap_json: body.tiptap_json,
+      article: body.article,
       cover_image_url: body.cover_image_url ?? null,
       publish_status: body.publish_status,
       published_at: publishedAt,
-      source_hash: await hashContent(body.tiptap_json),
+      source_hash: await hashContent(body.article),
     });
 
     await tagsRepo.setPostTags(body.id, body.tags);
@@ -55,7 +55,7 @@ export const postAdapter: AdminCrudAdapter<
     const updateData: postsRepo.UpdatePostTranslationInput = {
       title: body.title,
       description: body.description,
-      tiptap_json: body.tiptap_json,
+      article: body.article,
       cover_image_url: body.cover_image_url,
       publish_status: body.publish_status,
     };
@@ -70,8 +70,8 @@ export const postAdapter: AdminCrudAdapter<
 
     const postOriginalLocale = await postsRepo.getPostOriginalLocale(id);
     let newSourceHash: string | null = null;
-    if (locale === postOriginalLocale && body.tiptap_json !== undefined) {
-      newSourceHash = await hashContent(body.tiptap_json);
+    if (locale === postOriginalLocale && body.article !== undefined) {
+      newSourceHash = await hashContent(body.article);
       updateData.source_hash = newSourceHash;
     }
 

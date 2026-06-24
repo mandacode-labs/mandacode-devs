@@ -56,7 +56,6 @@
   "admin.locales": "언어",
   "admin.titleLabel": "제목",
   "admin.description": "설명",
-  "admin.content": "내용",
   "admin.coverImage": "커버 이미지",
   "admin.publishDate": "발행일",
   "admin.save": "저장",
@@ -86,7 +85,7 @@
   "admin.sourceUrl": "소스 URL",
   "admin.blogPost": "참조 블로그 글",
   "admin.name": "이름",
-  "admin.bio": "소개",
+  "admin.bio": "한줄 소개",
   "admin.avatarUrl": "아바타 URL",
   "admin.backToPosts": "게시글 목록",
   "admin.backToProjects": "프로젝트 목록",
@@ -174,5 +173,7 @@
   "admin.backToTags": "태그 목록으로",
   "admin.searchTagsHint": "태그 검색...",
   "admin.noTags": "태그가 없습니다",
-  "admin.noTagsMessage": "콘텐츠에서 태그를 사용하면 여기에 표시됩니다."
+  "admin.noTagsMessage": "콘텐츠에서 태그를 사용하면 여기에 표시됩니다.",
+  "admin.article": "글",
+  "admin.body": "본문"
 }

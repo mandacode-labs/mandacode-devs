@@ -44,7 +44,8 @@ export interface DeveloperEditorInitialData {
   name: string;
   role: string;
   bio: string;
-  tiptap_json: string;
+  article: string;
+  body: string;
   avatar_url: string | null;
   publish_status: string;
   github_url: string | null;
@@ -92,8 +93,11 @@ export default function DeveloperEditor({
   const [name, setName] = useState(initialData?.name ?? "");
   const [role, setRole] = useState(initialData?.role ?? "");
   const [bio, setBio] = useState(initialData?.bio ?? "");
-  const [tiptapJson, setTiptapJson] = useState(
-    initialData?.tiptap_json ?? JSON.stringify({ type: "doc", content: [] }),
+  const [article, setArticle] = useState(
+    initialData?.article ?? JSON.stringify({ type: "doc", content: [] }),
+  );
+  const [body, setBody] = useState(
+    initialData?.body ?? JSON.stringify({ type: "doc", content: [] }),
   );
   const [avatarUrl, setAvatarUrl] = useState(initialData?.avatar_url ?? "");
   const [publishStatus, setPublishStatus] = useState(
@@ -144,7 +148,8 @@ export default function DeveloperEditor({
       name,
       role,
       bio,
-      tiptap_json: tiptapJson,
+      article: article,
+      body: body,
       avatar_url: avatarUrl || null,
       publish_status: publishStatus,
       github_url: githubUrl || null,
@@ -164,7 +169,8 @@ export default function DeveloperEditor({
     setName(initialData.name);
     setRole(initialData.role);
     setBio(initialData.bio);
-    setTiptapJson(initialData.tiptap_json);
+    setArticle(initialData.article);
+    setBody(initialData.body);
     setAvatarUrl(initialData.avatar_url ?? "");
     setPublishStatus(initialData.publish_status);
     setGithubUrl(initialData.github_url ?? "");
@@ -531,13 +537,26 @@ export default function DeveloperEditor({
         t={t}
       />
 
-      <AdminSection title={t("admin.content", "Content")}>
+      <AdminSection title={t("admin.article", "Article")}>
         <div className="space-y-2">
           <TiptapEditor
             key={editorKey}
-            content={tiptapJson}
-            onChange={setTiptapJson}
+            content={article}
+            onChange={setArticle}
             placeholder="Write the long-form intro (markdown body)..."
+            entityType="developer"
+            entityId={id}
+          />
+        </div>
+      </AdminSection>
+
+      <AdminSection title={t("admin.body", "Body")}>
+        <div className="space-y-2">
+          <TiptapEditor
+            key={`${editorKey}-after`}
+            content={body}
+            onChange={setBody}
+            placeholder="Optional body shown after TechStack / Certifications / Education / ProjectTimeline."
             entityType="developer"
             entityId={id}
           />
