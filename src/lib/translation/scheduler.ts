@@ -19,9 +19,9 @@ export async function scheduleTranslations(
   sourceLocale: Language,
   targetLocales: Language[],
   authorId: string,
-): Promise<void> {
+): Promise<TranslationJob[]> {
   if (targetLocales.length === 0) {
-    return;
+    return [];
   }
 
   const inputs = createTranslationJobInputs(
@@ -91,4 +91,6 @@ export async function scheduleTranslations(
   } else {
     await runJobs();
   }
+
+  return jobs;
 }

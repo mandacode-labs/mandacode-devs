@@ -61,6 +61,7 @@
   "admin.publishDate": "Publish Date",
   "admin.save": "Save",
   "admin.saveOrder": "Save Order",
+  "admin.running": "Running...",
   "admin.saving": "Saving...",
   "admin.savingOrder": "Saving order...",
   "admin.cancel": "Cancel",

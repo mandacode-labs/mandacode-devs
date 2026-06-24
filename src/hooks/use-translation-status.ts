@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
+import { apiFetch } from "@/lib/api/client";
 import type {
   TranslationContentType,
+  TranslationJob,
   TranslationJobStatus,
 } from "@/lib/db/schema";
 
@@ -77,4 +79,89 @@ export function useTranslationStatus(options: UseTranslationStatusOptions) {
   );
 
   return { statusMap, getStatus, isLoading, refetch: fetchStatus };
+}
+
+export interface WatchedJob extends TranslationJob {
+  status: TranslationJobStatus;
+  target_locale: string;
+  error_message: string | null;
+}
+
+interface UseWatchTranslationJobsOptions {
+  contentType: TranslationContentType;
+  contentId: string;
+  jobIds: string[];
+  interval?: number;
+  timeoutMs?: number;
+}
+
+export function useWatchTranslationJobs(
+  options: UseWatchTranslationJobsOptions,
+) {
+  const {
+    contentType,
+    contentId,
+    jobIds,
+    interval = 2000,
+    timeoutMs = 90_000,
+  } = options;
+
+  const [jobs, setJobs] = useState<WatchedJob[]>([]);
+  const [isPolling, setIsPolling] = useState(false);
+
+  const poll = useCallback(async () => {
+    if (jobIds.length === 0) return [];
+    const params = new URLSearchParams();
+    params.set("content_type", contentType);
+    params.append("content_id", contentId);
+    const data = await apiFetch<{ jobs: WatchedJob[] }>(
+      `/api/admin/translations?${params.toString()}`,
+    );
+    const byId = new Map(data.jobs.map((j) => [j.id, j]));
+    return jobIds
+      .map((id) => byId.get(id))
+      .filter((j): j is WatchedJob => j !== undefined);
+  }, [contentType, contentId, jobIds]);
+
+  useEffect(() => {
+    if (jobIds.length === 0) {
+      setJobs([]);
+      setIsPolling(false);
+      return;
+    }
+    setIsPolling(true);
+    let cancelled = false;
+    const startedAt = Date.now();
+
+    const tick = async () => {
+      if (cancelled) return;
+      try {
+        const current = await poll();
+        if (cancelled) return;
+        setJobs(current);
+        const allFound = current.length === jobIds.length;
+        const allDone =
+          allFound &&
+          current.every(
+            (j) => j.status === "completed" || j.status === "failed",
+          );
+        const timedOut = Date.now() - startedAt > timeoutMs;
+        if (allDone || timedOut) {
+          setIsPolling(false);
+          return;
+        }
+      } catch {
+        // ignore
+      }
+      setTimeout(tick, interval);
+    };
+    tick();
+
+    return () => {
+      cancelled = true;
+      setIsPolling(false);
+    };
+  }, [jobIds, interval, timeoutMs, poll]);
+
+  return { jobs, isPolling };
 }

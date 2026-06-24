@@ -68,7 +68,7 @@ export const POST: APIRoute = async (context) => {
       return jsonResponse({ success: true, targetLocales: [] });
     }
 
-    await scheduleTranslations(
+    const jobs = await scheduleTranslations(
       context,
       typed,
       contentId,
@@ -77,7 +77,11 @@ export const POST: APIRoute = async (context) => {
       auth.email,
     );
 
-    return jsonResponse({ success: true, targetLocales });
+    return jsonResponse({
+      success: true,
+      jobIds: jobs.map((j) => j.id),
+      targetLocales,
+    });
   } catch (error) {
     return errorResponse(error);
   }

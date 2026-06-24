@@ -61,6 +61,7 @@
   "admin.publishDate": "발행일",
   "admin.save": "저장",
   "admin.saveOrder": "순서 저장",
+  "admin.running": "진행 중...",
   "admin.saving": "저장 중...",
   "admin.savingOrder": "순서 저장 중...",
   "admin.cancel": "취소",

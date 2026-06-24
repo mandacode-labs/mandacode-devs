@@ -596,6 +596,7 @@ export default function ProjectEditor({
           "admin.publishAllConfirm",
           "{count}개 언어를 published로 변경하시겠어요?",
         )}
+        runningLabel={t("admin.running", "진행 중...")}
       />
 
       <StickyEditorActions

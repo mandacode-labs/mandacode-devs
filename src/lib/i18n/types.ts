@@ -72,6 +72,7 @@ export type UIKey =
   | "admin.savePost"
   | "admin.saveProfile"
   | "admin.saveProject"
+  | "admin.running"
   | "admin.saving"
   | "admin.saveOrder"
   | "admin.savingOrder"
