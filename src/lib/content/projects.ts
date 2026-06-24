@@ -1,22 +1,6 @@
 import type { UnifiedProject } from "@/lib/content/types";
 
-export function sortProjectsByOrder(
-  projects: UnifiedProject[],
-): UnifiedProject[] {
-  return [...projects].sort((a, b) => a.order - b.order);
-}
-
-export function sortProjectsByDate(
-  projects: UnifiedProject[],
-): UnifiedProject[] {
-  return [...projects].sort((a, b) => {
-    const aDate = getProjectEndDate(a);
-    const bDate = getProjectEndDate(b);
-    return bDate.getTime() - aDate.getTime();
-  });
-}
-
-export function getProjectEndDate(project: UnifiedProject): Date {
+function endDateAsDate(project: UnifiedProject): Date {
   if (project.endDate) {
     const match = project.endDate.match(/^(\d{4})-(\d{2})/);
     if (match) {
@@ -27,15 +11,12 @@ export function getProjectEndDate(project: UnifiedProject): Date {
   return new Date(0);
 }
 
-export function getProjectStartDate(project: UnifiedProject): Date {
-  if (project.startDate) {
-    const match = project.startDate.match(/^(\d{4})-(\d{2})/);
-    if (match) {
-      const [, year, month] = match;
-      return new Date(Number(year), Number(month) - 1);
-    }
-  }
-  return new Date(0);
+export function sortProjectsByDate(
+  projects: UnifiedProject[],
+): UnifiedProject[] {
+  return [...projects].sort(
+    (a, b) => endDateAsDate(b).getTime() - endDateAsDate(a).getTime(),
+  );
 }
 
 export function getProjectSlug(project: UnifiedProject): string {

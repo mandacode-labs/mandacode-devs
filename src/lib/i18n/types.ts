@@ -18,7 +18,6 @@ export type UIKey =
   | "admin.basicInformation"
   | "admin.bio"
   | "admin.blogPost"
-  | "admin.blogUrl"
   | "admin.cancel"
   | "admin.certifications"
   | "admin.confirm"
