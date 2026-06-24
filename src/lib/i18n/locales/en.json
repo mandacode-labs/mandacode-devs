@@ -56,7 +56,6 @@
   "admin.locales": "Languages",
   "admin.titleLabel": "Title",
   "admin.description": "Description",
-  "admin.content": "Content",
   "admin.coverImage": "Cover Image",
   "admin.publishDate": "Publish Date",
   "admin.save": "Save",
@@ -86,7 +85,7 @@
   "admin.sourceUrl": "Source URL",
   "admin.blogPost": "Linked Blog Post",
   "admin.name": "Name",
-  "admin.bio": "Bio",
+  "admin.bio": "One-line bio",
   "admin.avatarUrl": "Avatar URL",
   "admin.backToPosts": "Back to posts",
   "admin.backToProjects": "Back to projects",
@@ -174,5 +173,7 @@
   "admin.backToTags": "Back to tags",
   "admin.searchTagsHint": "Search tags...",
   "admin.noTags": "No tags yet",
-  "admin.noTagsMessage": "Tags will appear here once content uses them."
+  "admin.noTagsMessage": "Tags will appear here once content uses them.",
+  "admin.article": "Article",
+  "admin.body": "Body"
 }

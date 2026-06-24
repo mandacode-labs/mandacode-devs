@@ -56,7 +56,6 @@
   "admin.locales": "言語",
   "admin.titleLabel": "タイトル",
   "admin.description": "説明",
-  "admin.content": "内容",
   "admin.coverImage": "カバー画像",
   "admin.publishDate": "公開日",
   "admin.save": "保存",
@@ -86,7 +85,7 @@
   "admin.sourceUrl": "ソースURL",
   "admin.blogPost": "参照ブログ記事",
   "admin.name": "名前",
-  "admin.bio": "紹介",
+  "admin.bio": "ひとこと紹介",
   "admin.avatarUrl": "アバターURL",
   "admin.backToPosts": "投稿一覧へ",
   "admin.backToProjects": "プロジェクト一覧へ",
@@ -174,5 +173,7 @@
   "admin.backToTags": "タグ一覧へ",
   "admin.searchTagsHint": "タグを検索...",
   "admin.noTags": "タグがありません",
-  "admin.noTagsMessage": "コンテンツでタグを使用するとここに表示されます。"
+  "admin.noTagsMessage": "コンテンツでタグを使用するとここに表示されます。",
+  "admin.article": "記事",
+  "admin.body": "本文"
 }

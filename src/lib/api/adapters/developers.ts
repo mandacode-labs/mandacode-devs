@@ -27,6 +27,7 @@ export const developerAdapter: AdminCrudAdapter<
     const publishedAt =
       body.publish_status === "published" ? new Date().toISOString() : null;
     const originalLocale = body.original_locale ?? body.locale;
+    const emptyTiptap = JSON.stringify({ type: "doc", content: [] });
 
     await developersRepo.createDeveloper({
       id: body.id,
@@ -46,11 +47,12 @@ export const developerAdapter: AdminCrudAdapter<
       name: body.name,
       role: body.role,
       bio: body.bio,
-      tiptap_json: body.tiptap_json,
+      article: body.article,
+      body: body.body ?? emptyTiptap,
       avatar_url: body.avatar_url ?? null,
       publish_status: body.publish_status,
       published_at: publishedAt,
-      source_hash: await hashContent(body.tiptap_json),
+      source_hash: await hashContent(body.article),
     });
   },
   update: async (id, locale, body, existing, user) => {
@@ -67,7 +69,8 @@ export const developerAdapter: AdminCrudAdapter<
       name: body.name,
       role: body.role,
       bio: body.bio,
-      tiptap_json: body.tiptap_json,
+      article: body.article,
+      body: body.body,
       avatar_url: body.avatar_url,
       publish_status: body.publish_status,
     };
@@ -83,11 +86,8 @@ export const developerAdapter: AdminCrudAdapter<
       const developerOriginalLocale =
         await developersRepo.getDeveloperOriginalLocale(id);
       let newSourceHash: string | null = null;
-      if (
-        locale === developerOriginalLocale &&
-        body.tiptap_json !== undefined
-      ) {
-        newSourceHash = await hashContent(body.tiptap_json);
+      if (locale === developerOriginalLocale && body.article !== undefined) {
+        newSourceHash = await hashContent(body.article);
         translationUpdate.source_hash = newSourceHash;
       }
       await developersRepo.updateDeveloperTranslation(
@@ -100,7 +100,9 @@ export const developerAdapter: AdminCrudAdapter<
         translationUpdate.published_at = new Date().toISOString();
       }
       const newTiprapJson =
-        body.tiptap_json ?? JSON.stringify({ type: "doc", content: [] });
+        body.article ?? JSON.stringify({ type: "doc", content: [] });
+      const newTiptapAfter =
+        body.body ?? JSON.stringify({ type: "doc", content: [] });
       const developerOriginalLocale =
         await developersRepo.getDeveloperOriginalLocale(id);
       const originalDev = await developersRepo.getDeveloperTranslationById(
@@ -108,7 +110,7 @@ export const developerAdapter: AdminCrudAdapter<
         developerOriginalLocale,
       );
       const sourceHash = originalDev
-        ? await hashContent(originalDev.tiptap_json)
+        ? await hashContent(originalDev.article)
         : await hashContent(newTiprapJson);
       await developersRepo.createDeveloperTranslation({
         id: `${id}_${locale}`,
@@ -117,7 +119,8 @@ export const developerAdapter: AdminCrudAdapter<
         name: body.name ?? "",
         role: body.role ?? "",
         bio: body.bio ?? "",
-        tiptap_json: newTiprapJson,
+        article: newTiprapJson,
+        body: newTiptapAfter,
         avatar_url: body.avatar_url ?? null,
         publish_status: body.publish_status ?? "draft",
         published_at: translationUpdate.published_at ?? null,

@@ -161,18 +161,18 @@ export async function getEntityLocalesWithContent(
   id: string,
   extraColumns: string[] = [],
 ): Promise<
-  Array<{ locale: string; tiptap_json: string } & Record<string, unknown>>
+  Array<{ locale: string; article: string } & Record<string, unknown>>
 > {
   const db = getDatabase();
   const extra = extraColumns.length > 0 ? `, ${extraColumns.join(", ")}` : "";
   const result = await db
     .prepare(
-      `SELECT locale, tiptap_json${extra} FROM ${transTable} WHERE ${transIdColumn} = ?`,
+      `SELECT locale, article${extra} FROM ${transTable} WHERE ${transIdColumn} = ?`,
     )
     .bind(id)
     .all();
   return (result.results ?? []) as Array<
-    { locale: string; tiptap_json: string } & Record<string, unknown>
+    { locale: string; article: string } & Record<string, unknown>
   >;
 }
 

@@ -42,7 +42,7 @@ const TRANS_CFG: TransTableConfig = {
   transColumns: [
     "title",
     "description",
-    "tiptap_json",
+    "article",
     "cover_image_url",
     "publish_status",
     "published_at",
@@ -61,7 +61,7 @@ export interface CreatePostTranslationInput {
   locale: string;
   title: string;
   description: string | null;
-  tiptap_json: string;
+  article: string;
   cover_image_url: string | null;
   publish_status: PublishStatus;
   published_at: string | null;
@@ -71,7 +71,7 @@ export interface CreatePostTranslationInput {
 export interface UpdatePostTranslationInput {
   title?: string;
   description?: string | null;
-  tiptap_json?: string;
+  article?: string;
   cover_image_url?: string | null;
   publish_status?: PublishStatus;
   published_at?: string | null;
@@ -87,7 +87,7 @@ export interface GetPostsOptions extends ListOptions {}
 export interface PostWithTranslation extends Post {
   title: string;
   description: string | null;
-  tiptap_json: string;
+  article: string;
   cover_image_url: string | null;
   publish_status: PublishStatus;
   published_at: string | null;
@@ -106,8 +106,8 @@ function mapPostRow(row: Record<string, unknown>): PostWithTranslation {
     description: hasTranslation
       ? (row.translation_description as string | null)
       : (row.original_description as string | null),
-    tiptap_json: String(
-      hasTranslation ? row.translation_tiptap_json : row.original_tiptap_json,
+    article: String(
+      hasTranslation ? row.translation_article : row.original_article,
     ),
     cover_image_url: hasTranslation
       ? (row.translation_cover_image_url as string | null)
@@ -231,7 +231,7 @@ export async function createPostTranslation(
   await db
     .prepare(
       `INSERT INTO post_translations (
-        id, post_id, locale, title, description, tiptap_json,
+        id, post_id, locale, title, description, article,
         cover_image_url, publish_status, published_at, source_hash
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
@@ -241,7 +241,7 @@ export async function createPostTranslation(
       input.locale,
       input.title,
       input.description,
-      input.tiptap_json,
+      input.article,
       input.cover_image_url,
       input.publish_status,
       input.published_at,
@@ -303,7 +303,7 @@ export const getPostOriginalHash = (id: string) =>
 export function getPostLocalesWithContent(id: string): Promise<
   Array<{
     locale: string;
-    tiptap_json: string;
+    article: string;
     cover_image_url: string | null;
   }>
 > {
@@ -312,7 +312,7 @@ export function getPostLocalesWithContent(id: string): Promise<
   ]) as Promise<
     Array<{
       locale: string;
-      tiptap_json: string;
+      article: string;
       cover_image_url: string | null;
     }>
   >;

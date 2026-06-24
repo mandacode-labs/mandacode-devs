@@ -330,7 +330,7 @@ export interface TranslationResponse {
 }
 
 export interface ApplyResult {
-  tiptapJson: string;
+  article: string;
   missingSegmentIds: string[];
   unknownSegmentIds: string[];
   missingAltIds: string[];
@@ -386,7 +386,7 @@ export function applyTranslations(
   }
 
   return {
-    tiptapJson: JSON.stringify(root),
+    article: JSON.stringify(root),
     missingSegmentIds,
     unknownSegmentIds,
     missingAltIds,

@@ -56,7 +56,6 @@
   "admin.locales": "语言",
   "admin.titleLabel": "标题",
   "admin.description": "描述",
-  "admin.content": "内容",
   "admin.coverImage": "封面图片",
   "admin.publishDate": "发布日期",
   "admin.save": "保存",
@@ -86,7 +85,7 @@
   "admin.sourceUrl": "源 URL",
   "admin.blogPost": "关联博客文章",
   "admin.name": "姓名",
-  "admin.bio": "简介",
+  "admin.bio": "一句话简介",
   "admin.avatarUrl": "头像 URL",
   "admin.backToPosts": "返回帖子列表",
   "admin.backToProjects": "返回项目列表",
@@ -174,5 +173,7 @@
   "admin.backToTags": "返回标签列表",
   "admin.searchTagsHint": "搜索标签...",
   "admin.noTags": "暂无标签",
-  "admin.noTagsMessage": "内容使用标签后会显示在这里。"
+  "admin.noTagsMessage": "内容使用标签后会显示在这里。",
+  "admin.article": "文章",
+  "admin.body": "正文"
 }

@@ -31,12 +31,12 @@ async function translatePost(job: TranslationJobInput): Promise<void> {
       title: source.title,
       description: source.description,
       role: null,
-      tiptapJson: source.tiptap_json,
+      article: source.article,
     },
     job.targetLocale,
   );
 
-  const sourceHash = await hashContent(source.tiptap_json);
+  const sourceHash = await hashContent(source.article);
   const existing = await postsRepo.getPostTranslationById(
     job.id,
     job.targetLocale,
@@ -46,7 +46,7 @@ async function translatePost(job: TranslationJobInput): Promise<void> {
     await postsRepo.updatePostTranslation(job.id, job.targetLocale, {
       title: translated.title,
       description: translated.description,
-      tiptap_json: translated.tiptapJson,
+      article: translated.article,
       source_hash: sourceHash,
     });
     return;
@@ -59,7 +59,7 @@ async function translatePost(job: TranslationJobInput): Promise<void> {
     locale: job.targetLocale,
     title: translated.title,
     description: translated.description,
-    tiptap_json: translated.tiptapJson,
+    article: translated.article,
     cover_image_url: source.cover_image_url,
     publish_status: source.publish_status,
     published_at: source.published_at ? now : null,
@@ -81,12 +81,12 @@ async function translateProject(job: TranslationJobInput): Promise<void> {
       title: source.title,
       description: source.description,
       role: source.role,
-      tiptapJson: source.tiptap_json,
+      article: source.article,
     },
     job.targetLocale,
   );
 
-  const sourceHash = await hashContent(source.tiptap_json);
+  const sourceHash = await hashContent(source.article);
   const existing = await projectsRepo.getProjectTranslationById(
     job.id,
     job.targetLocale,
@@ -96,7 +96,7 @@ async function translateProject(job: TranslationJobInput): Promise<void> {
     await projectsRepo.updateProjectTranslation(job.id, job.targetLocale, {
       title: translated.title,
       description: translated.description,
-      tiptap_json: translated.tiptapJson,
+      article: translated.article,
       role: translated.role ?? source.role,
       source_hash: sourceHash,
     });
@@ -110,7 +110,7 @@ async function translateProject(job: TranslationJobInput): Promise<void> {
     locale: job.targetLocale,
     title: translated.title,
     description: translated.description,
-    tiptap_json: translated.tiptapJson,
+    article: translated.article,
     role: translated.role ?? source.role,
     cover_image_url: source.cover_image_url,
     publish_status: source.publish_status,
@@ -130,28 +130,46 @@ async function translateDeveloper(job: TranslationJobInput): Promise<void> {
     );
   }
 
-  const translated = await translateFields(
-    {
-      title: source.name,
-      description: source.bio,
-      role: source.role,
-      tiptapJson: source.tiptap_json,
-    },
-    job.targetLocale,
-  );
+  const [translated, translatedAfter] = await Promise.all([
+    translateFields(
+      {
+        title: source.name,
+        description: source.bio,
+        role: source.role,
+        article: source.article,
+      },
+      job.targetLocale,
+    ),
+    source.body
+      ? translateFields(
+          {
+            title: source.name,
+            description: source.bio,
+            role: source.role,
+            article: source.body,
+          },
+          job.targetLocale,
+        )
+      : Promise.resolve(null),
+  ]);
 
-  const sourceHash = await hashContent(source.tiptap_json);
+  const sourceHash = await hashContent(source.article);
   const existing = await developersRepo.getDeveloperTranslationById(
     job.id,
     job.targetLocale,
   );
 
+  const updates = {
+    name: translated.title,
+    role: translated.role ?? source.role,
+    bio: translated.description ?? source.bio,
+    article: translated.article,
+    body: translatedAfter?.article ?? source.body,
+  };
+
   if (existing) {
     await developersRepo.updateDeveloperTranslation(job.id, job.targetLocale, {
-      name: translated.title,
-      role: translated.role ?? source.role,
-      bio: translated.description ?? source.bio,
-      tiptap_json: translated.tiptapJson,
+      ...updates,
       source_hash: sourceHash,
     });
     return;
@@ -162,10 +180,7 @@ async function translateDeveloper(job: TranslationJobInput): Promise<void> {
     id: `${source.developer_id}_${job.targetLocale}`,
     developer_id: source.developer_id,
     locale: job.targetLocale,
-    name: translated.title,
-    role: translated.role ?? source.role,
-    bio: translated.description ?? source.bio,
-    tiptap_json: translated.tiptapJson,
+    ...updates,
     avatar_url: source.avatar_url,
     publish_status: source.publish_status,
     published_at: source.published_at ? now : null,

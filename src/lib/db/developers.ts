@@ -50,7 +50,8 @@ const TRANS_CFG: TransTableConfig = {
     "name",
     "role",
     "bio",
-    "tiptap_json",
+    "article",
+    "body",
     "avatar_url",
     "publish_status",
     "published_at",
@@ -73,7 +74,8 @@ export interface CreateDeveloperTranslationInput {
   name: string;
   role: string;
   bio: string;
-  tiptap_json: string;
+  article: string;
+  body: string;
   avatar_url: string | null;
   publish_status: PublishStatus;
   published_at: string | null;
@@ -84,7 +86,8 @@ export interface UpdateDeveloperTranslationInput {
   name?: string;
   role?: string;
   bio?: string;
-  tiptap_json?: string;
+  article?: string;
+  body?: string;
   avatar_url?: string | null;
   publish_status?: PublishStatus;
   published_at?: string | null;
@@ -102,7 +105,8 @@ export interface DeveloperWithTranslation extends Developer {
   name: string;
   role: string;
   bio: string;
-  tiptap_json: string;
+  article: string;
+  body: string;
   avatar_url: string | null;
   publish_status: PublishStatus;
   published_at: string | null;
@@ -127,9 +131,10 @@ function mapDeveloperRow(
     name: String(hasTranslation ? row.translation_name : row.original_name),
     role: String(hasTranslation ? row.translation_role : row.original_role),
     bio: String(hasTranslation ? row.translation_bio : row.original_bio),
-    tiptap_json: String(
-      hasTranslation ? row.translation_tiptap_json : row.original_tiptap_json,
+    article: String(
+      hasTranslation ? row.translation_article : row.original_article,
     ),
+    body: String(hasTranslation ? row.translation_body : row.original_body),
     avatar_url: hasTranslation
       ? (row.translation_avatar_url as string | null)
       : (row.original_avatar_url as string | null),
@@ -242,7 +247,8 @@ export async function ensureDeveloperExists(
     name: "",
     role: "",
     bio: "",
-    tiptap_json: emptyTiptap,
+    article: emptyTiptap,
+    body: emptyTiptap,
     avatar_url: null,
     publish_status: "draft",
     published_at: null,
@@ -257,9 +263,9 @@ export async function createDeveloperTranslation(
   await db
     .prepare(
       `INSERT INTO developer_translations (
-        id, developer_id, locale, name, role, bio, tiptap_json,
+        id, developer_id, locale, name, role, bio, article, body,
         avatar_url, publish_status, published_at, source_hash
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       input.id,
@@ -268,7 +274,8 @@ export async function createDeveloperTranslation(
       input.name,
       input.role,
       input.bio,
-      input.tiptap_json,
+      input.article,
+      input.body,
       input.avatar_url,
       input.publish_status,
       input.published_at,
@@ -334,7 +341,7 @@ export const getDeveloperOriginalHash = (id: string) =>
 export function getDeveloperLocalesWithContent(id: string): Promise<
   Array<{
     locale: string;
-    tiptap_json: string;
+    article: string;
     avatar_url: string | null;
   }>
 > {
@@ -346,7 +353,7 @@ export function getDeveloperLocalesWithContent(id: string): Promise<
   ) as Promise<
     Array<{
       locale: string;
-      tiptap_json: string;
+      article: string;
       avatar_url: string | null;
     }>
   >;
