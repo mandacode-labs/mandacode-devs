@@ -59,11 +59,6 @@ const image = post.coverImage;
 
     <BlogHeader post={post} lang={locale} />
 
-    <ContentRenderer
-      d1Content={post.d1Content}
-      markdownContent={post.markdownContent}
-      mode="stack"
-      class="mt-12"
-    />
+    <ContentRenderer content={post.d1Content} class="mt-12" />
   </div>
 </AdminPreviewLayout>

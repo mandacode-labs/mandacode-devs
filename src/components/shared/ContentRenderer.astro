@@ -4,37 +4,15 @@ import "highlight.js/styles/atom-one-dark.css";
 import "@/components/content-body/content-body.scss";
 
 interface Props {
-  d1Content?: string;
-  markdownContent?: string;
-  mode?: "fallback" | "stack";
+  content: string | undefined;
   class?: string;
 }
 
-const {
-  d1Content,
-  markdownContent,
-  mode = "stack",
-  class: className,
-} = Astro.props;
+const { content, class: className } = Astro.props;
 
-const d1Html = d1Content ? renderTiptapJson(d1Content) : null;
+const html = content ? renderTiptapJson(content) : null;
 ---
 
 <div class:list={["prose prose-neutral max-w-none content-body", className]}>
-  {
-    mode === "fallback" ? (
-      d1Html ? (
-        <div set:html={d1Html} />
-      ) : markdownContent ? (
-        <div set:html={markdownContent} />
-      ) : null
-    ) : (
-      <>
-        {d1Html ? <div set:html={d1Html} /> : null}
-        {markdownContent ? (
-          <div class:list={[{ "mt-12": d1Html }]} set:html={markdownContent} />
-        ) : null}
-      </>
-    )
-  }
+  {html ? <div set:html={html} /> : null}
 </div>

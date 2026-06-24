@@ -3,8 +3,11 @@ import { env } from "cloudflare:workers";
 import { ApiError } from "@/lib/api/response";
 import {
   extractTexts,
+  extractImageAlts,
   insertTexts,
+  insertImageAlts,
   type TextNode,
+  type ImageAltNode,
 } from "@/lib/tiptap/translation";
 import { parseJsonOrThrow } from "@/lib/utils/json";
 import type { Language } from "@/lib/config/languages";
@@ -24,10 +27,33 @@ export interface TranslatedFields {
 }
 
 const TRANSLATION_SYSTEM_PROMPT = `You are a professional translator for a Korean tech blog.
-Translate the given content into the target language while preserving the original meaning and technical terminology.
-Maintain a natural, fluent tone appropriate for a developer blog.
-Do not add or remove information.
-Return JSON matching the requested schema exactly.`;
+Translate the given content into the target language while preserving the
+original meaning and technical terminology.
+
+The tiptapTexts array contains body content where each item has:
+- type: the block kind (paragraph | heading | listItem | blockquote |
+       codeBlock | tableCell | other)
+- level (1-4): heading level when type=heading
+- text: the text to translate
+- marks: inline marks to preserve (bold | italic | code | link | underline |
+         strike | highlight). Preserve the mark type and attrs; only the
+         text field is translated.
+
+Translation rules per type:
+- heading: keep short, title-case where natural
+- listItem: keep concise (often just a noun phrase)
+- blockquote: preserve voice (e.g., first person)
+- codeBlock: do NOT translate code syntax; translate inline comments
+             and prose inside the code block
+- tableCell: keep brief, similar to listItem
+- paragraph: full natural translation
+
+The imageAlts array contains image alt text. Translate each alt as a
+concise descriptive caption in the target language.
+
+For every text item, return the same path, type, level, and marks
+arrays exactly as given. Only text should change. Return JSON matching
+the requested schema exactly. Do not add or remove information.`;
 
 function getOpenAIClient(): OpenAI {
   const { OPENAI_API_KEY } = env as Env & { OPENAI_API_KEY?: string };
@@ -42,30 +68,36 @@ function getOpenAIClient(): OpenAI {
 const safeJsonParse = <T>(value: string): T =>
   parseJsonOrThrow<T>(value, "Invalid JSON content");
 
-function buildTranslationPayload(fields: TranslatableFields): {
+interface TranslationPayload {
   title: string;
   description: string | null;
   role: string | null;
   tiptapTexts: TextNode[];
-} {
+  imageAlts: ImageAltNode[];
+}
+
+function buildTranslationPayload(
+  fields: TranslatableFields,
+): TranslationPayload {
   const tiptapJson = safeJsonParse<unknown>(fields.tiptapJson);
-  const textNodes = extractTexts(tiptapJson);
 
   return {
     title: fields.title,
     description: fields.description ?? null,
     role: fields.role ?? null,
-    tiptapTexts: textNodes,
+    tiptapTexts: extractTexts(tiptapJson),
+    imageAlts: extractImageAlts(tiptapJson),
   };
 }
 
 function assembleTranslatedFields(
-  payload: ReturnType<typeof buildTranslationPayload>,
+  payload: TranslationPayload,
   translated: {
     title: string;
     description: string | null;
     role: string | null;
     tiptapTexts: string[];
+    imageAlts: string[];
   },
   originalTiptapJson: string,
 ): TranslatedFields {
@@ -73,16 +105,24 @@ function assembleTranslatedFields(
 
   const textNodes = payload.tiptapTexts.map((node, index) => ({
     path: node.path,
+    type: node.type,
+    level: node.level,
     text: translated.tiptapTexts[index] ?? node.text,
+    marks: node.marks,
   }));
-
   const translatedJson = insertTexts(originalJson, textNodes);
+
+  const altNodes = payload.imageAlts.map((node, index) => ({
+    path: node.path,
+    alt: translated.imageAlts[index] ?? node.alt,
+  }));
+  const withAlts = insertImageAlts(translatedJson, altNodes);
 
   return {
     title: translated.title,
     description: translated.description,
     role: translated.role,
-    tiptapJson: JSON.stringify(translatedJson),
+    tiptapJson: JSON.stringify(withAlts),
   };
 }
 
@@ -118,10 +158,70 @@ export async function translateFields(
             role: { type: ["string", "null"] },
             tiptapTexts: {
               type: "array",
-              items: { type: "string" },
+              items: {
+                type: "object",
+                properties: {
+                  path: {
+                    type: "array",
+                    items: { type: "number" },
+                  },
+                  type: {
+                    type: "string",
+                    enum: [
+                      "paragraph",
+                      "heading",
+                      "listItem",
+                      "blockquote",
+                      "codeBlock",
+                      "tableCell",
+                      "other",
+                    ],
+                  },
+                  level: { type: ["number", "null"] },
+                  text: { type: "string" },
+                  marks: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        type: { type: "string" },
+                        attrs: {
+                          type: "object",
+                          additionalProperties: true,
+                        },
+                      },
+                      required: ["type"],
+                      additionalProperties: false,
+                    },
+                  },
+                },
+                required: ["path", "type", "text", "marks"],
+                additionalProperties: false,
+              },
+            },
+            imageAlts: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  path: {
+                    type: "array",
+                    items: { type: "number" },
+                  },
+                  alt: { type: "string" },
+                },
+                required: ["path", "alt"],
+                additionalProperties: false,
+              },
             },
           },
-          required: ["title", "description", "role", "tiptapTexts"],
+          required: [
+            "title",
+            "description",
+            "role",
+            "tiptapTexts",
+            "imageAlts",
+          ],
           additionalProperties: false,
         },
       },
@@ -139,6 +239,7 @@ export async function translateFields(
     description: string | null;
     role: string | null;
     tiptapTexts: string[];
+    imageAlts: string[];
   }>(content);
 
   return assembleTranslatedFields(payload, parsed, fields.tiptapJson);
