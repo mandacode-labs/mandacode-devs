@@ -187,7 +187,12 @@ export async function translateFields(
                         type: { type: "string" },
                         attrs: {
                           type: "object",
-                          additionalProperties: true,
+                          properties: {
+                            href: { type: "string" },
+                            color: { type: "string" },
+                            target: { type: "string" },
+                          },
+                          additionalProperties: false,
                         },
                       },
                       required: ["type"],
