@@ -4,12 +4,12 @@ import { ApiError } from "@/lib/api/response";
 import {
   extractTexts,
   extractImageAlts,
-  insertTexts,
-  insertImageAlts,
+  applyTranslations,
   type TextNode,
   type ImageAltNode,
+  type TranslationResponse,
 } from "@/lib/tiptap/translation";
-import { parseJsonOrThrow } from "@/lib/utils/json";
+import { z } from "zod";
 import type { Language } from "@/lib/config/languages";
 
 export interface TranslatableFields {
@@ -27,33 +27,40 @@ export interface TranslatedFields {
 }
 
 const TRANSLATION_SYSTEM_PROMPT = `You are a professional translator for a Korean tech blog.
-Translate the given content into the target language while preserving the
-original meaning and technical terminology.
+Translate the given content into the target language while preserving
+the original meaning and technical terminology.
 
-The tiptapTexts array contains body content where each item has:
-- type: the block kind (paragraph | heading | listItem | blockquote |
-       codeBlock | tableCell | other)
-- level (1-4): heading level when type=heading
-- text: the text to translate
-- marks: inline marks to preserve (bold | italic | code | link | underline |
-         strike | highlight). Preserve the mark type and attrs; only the
-         text field is translated.
+Each segment is a self-contained piece of text. For every segment, the
+input has a unique id and contextual metadata:
 
-Translation rules per type:
-- heading: keep short, title-case where natural
-- listItem: keep concise (often just a noun phrase)
-- blockquote: preserve voice (e.g., first person)
-- codeBlock: do NOT translate code syntax; translate inline comments
-             and prose inside the code block
-- tableCell: keep brief, similar to listItem
-- paragraph: full natural translation
+  - block: paragraph | heading | listItem | blockquote | codeBlock | tableCell
+  - For headings: level (1-6) indicates the heading rank
+  - For listItems: list (bullet|ordered), listDepth (0 = outermost),
+    listIndex (0-based position within the immediate list)
+  - For codeBlocks: language; do NOT translate code syntax; translate
+    only natural-language comments inside the code
+  - For tableCells: row (0-based), col (0-based), isHeader (true for
+    header row cells); keep the term style consistent across cells in
+    the same column
 
-The imageAlts array contains image alt text. Translate each alt as a
-concise descriptive caption in the target language.
+Each segment also carries inline marks (bold, italic, code, link,
+underline, strike, highlight). Preserve the mark type and attrs; only
+the text field is translated.
 
-For every text item, return the same path, type, level, and marks
-arrays exactly as given. Only text should change. Return JSON matching
-the requested schema exactly. Do not add or remove information.`;
+Translation rules per block:
+  - heading: keep short, title-case where natural
+  - listItem: keep concise (often just a noun phrase)
+  - blockquote: preserve voice (e.g., first person)
+  - codeBlock: do NOT translate code; translate inline comments only
+  - tableCell: keep brief, similar to listItem
+  - paragraph: full natural translation
+
+Output rules:
+  - Echo the id of every segment exactly as given
+  - Translate only the text field; leave marks unchanged
+  - Return one entry per input segment in the segments array
+  - Return one entry per input image in the alts array
+  - Do not add, remove, or reorder items`;
 
 function getOpenAIClient(): OpenAI {
   const { OPENAI_API_KEY } = env as Env & { OPENAI_API_KEY?: string };
@@ -65,81 +72,98 @@ function getOpenAIClient(): OpenAI {
   return new OpenAI({ apiKey: OPENAI_API_KEY });
 }
 
-const safeJsonParse = <T>(value: string): T =>
-  parseJsonOrThrow<T>(value, "Invalid JSON content");
+interface SegmentForPrompt {
+  id: string;
+  block: string;
+  level?: number;
+  list?: string;
+  listDepth?: number;
+  listIndex?: number;
+  row?: number;
+  col?: number;
+  isHeader?: boolean;
+  language?: string;
+  text: string;
+  marks: Array<{ type: string; attrs?: Record<string, unknown> }>;
+}
+
+interface AltForPrompt {
+  id: string;
+  alt: string;
+}
 
 interface TranslationPayload {
   title: string;
   description: string | null;
   role: string | null;
-  tiptapTexts: TextNode[];
-  imageAlts: ImageAltNode[];
+  segments: SegmentForPrompt[];
+  alts: AltForPrompt[];
 }
 
-function buildTranslationPayload(
+function buildPayload(
   fields: TranslatableFields,
+  segments: TextNode[],
+  alts: ImageAltNode[],
 ): TranslationPayload {
-  const tiptapJson = safeJsonParse<unknown>(fields.tiptapJson);
-
   return {
     title: fields.title,
     description: fields.description ?? null,
     role: fields.role ?? null,
-    tiptapTexts: extractTexts(tiptapJson),
-    imageAlts: extractImageAlts(tiptapJson),
+    segments: segments.map((s) => {
+      const seg: SegmentForPrompt = {
+        id: s.id,
+        block: s.block,
+        text: s.text,
+        marks: s.marks,
+      };
+      if (s.level !== undefined) seg.level = s.level;
+      if (s.list !== undefined) seg.list = s.list;
+      if (s.listDepth !== undefined) seg.listDepth = s.listDepth;
+      if (s.listIndex !== undefined) seg.listIndex = s.listIndex;
+      if (s.row !== undefined) seg.row = s.row;
+      if (s.col !== undefined) seg.col = s.col;
+      if (s.isHeader !== undefined) seg.isHeader = s.isHeader;
+      if (s.language !== undefined) seg.language = s.language;
+      return seg;
+    }),
+    alts: alts.map((a) => ({ id: a.id, alt: a.alt })),
   };
 }
 
-function assembleTranslatedFields(
-  payload: TranslationPayload,
-  translated: {
-    title: string;
-    description: string | null;
-    role: string | null;
-    tiptapTexts: string[];
-    imageAlts: string[];
+const translatedSegmentSchema = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    text: { type: "string" },
   },
-  originalTiptapJson: string,
-): TranslatedFields {
-  const originalJson = safeJsonParse<unknown>(originalTiptapJson);
+  required: ["id", "text"],
+  additionalProperties: false,
+} as const;
 
-  const textNodes = payload.tiptapTexts.map((node, index) => ({
-    path: node.path,
-    type: node.type,
-    level: node.level,
-    text: translated.tiptapTexts[index] ?? node.text,
-    marks: node.marks,
-  }));
-  const translatedJson = insertTexts(originalJson, textNodes);
-
-  const altNodes = payload.imageAlts.map((node, index) => ({
-    path: node.path,
-    alt: translated.imageAlts[index] ?? node.alt,
-  }));
-  const withAlts = insertImageAlts(translatedJson, altNodes);
-
-  return {
-    title: translated.title,
-    description: translated.description,
-    role: translated.role,
-    tiptapJson: JSON.stringify(withAlts),
-  };
-}
+const translatedAltSchema = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    alt: { type: "string" },
+  },
+  required: ["id", "alt"],
+  additionalProperties: false,
+} as const;
 
 export async function translateFields(
   fields: TranslatableFields,
   targetLanguage: Language,
 ): Promise<TranslatedFields> {
   const client = getOpenAIClient();
-  const payload = buildTranslationPayload(fields);
+  const tiptapJson = JSON.parse(fields.tiptapJson) as unknown;
+  const segments = extractTexts(tiptapJson);
+  const alts = extractImageAlts(tiptapJson);
+  const payload = buildPayload(fields, segments, alts);
 
   const response = await client.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      {
-        role: "system",
-        content: TRANSLATION_SYSTEM_PROMPT,
-      },
+      { role: "system", content: TRANSLATION_SYSTEM_PROMPT },
       {
         role: "user",
         content: `Translate the following content from Korean to ${targetLanguage}.\n\n${JSON.stringify(payload, null, 2)}`,
@@ -156,94 +180,16 @@ export async function translateFields(
             title: { type: "string" },
             description: { type: ["string", "null"] },
             role: { type: ["string", "null"] },
-            tiptapTexts: {
+            segments: {
               type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  path: {
-                    type: "array",
-                    items: { type: "number" },
-                  },
-                  type: {
-                    type: "string",
-                    enum: [
-                      "paragraph",
-                      "heading",
-                      "listItem",
-                      "blockquote",
-                      "codeBlock",
-                      "tableCell",
-                      "other",
-                    ],
-                  },
-                  level: { type: ["number", "null"] },
-                  text: { type: "string" },
-                  marks: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        type: { type: "string" },
-                        attrs: {
-                          oneOf: [
-                            {
-                              type: "object",
-                              properties: {},
-                              additionalProperties: false,
-                            },
-                            {
-                              type: "object",
-                              properties: {
-                                href: { type: "string" },
-                                target: { type: "string" },
-                              },
-                              required: ["href"],
-                              additionalProperties: false,
-                            },
-                            {
-                              type: "object",
-                              properties: {
-                                color: { type: "string" },
-                              },
-                              required: ["color"],
-                              additionalProperties: false,
-                            },
-                          ],
-                        },
-                      },
-                      required: ["type"],
-                      additionalProperties: false,
-                    },
-                  },
-                },
-                required: ["path", "type", "text", "marks"],
-                additionalProperties: false,
-              },
+              items: translatedSegmentSchema,
             },
-            imageAlts: {
+            alts: {
               type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  path: {
-                    type: "array",
-                    items: { type: "number" },
-                  },
-                  alt: { type: "string" },
-                },
-                required: ["path", "alt"],
-                additionalProperties: false,
-              },
+              items: translatedAltSchema,
             },
           },
-          required: [
-            "title",
-            "description",
-            "role",
-            "tiptapTexts",
-            "imageAlts",
-          ],
+          required: ["title", "description", "role", "segments", "alts"],
           additionalProperties: false,
         },
       },
@@ -256,13 +202,63 @@ export async function translateFields(
     throw new ApiError("Translation response is empty", 500);
   }
 
-  const parsed = safeJsonParse<{
-    title: string;
-    description: string | null;
-    role: string | null;
-    tiptapTexts: string[];
-    imageAlts: string[];
-  }>(content);
+  const responseSchema = z.object({
+    title: z.string(),
+    description: z.string().nullable(),
+    role: z.string().nullable(),
+    segments: z.array(z.object({ id: z.string(), text: z.string() })),
+    alts: z.array(z.object({ id: z.string(), alt: z.string() })),
+  });
 
-  return assembleTranslatedFields(payload, parsed, fields.tiptapJson);
+  let parsed: z.infer<typeof responseSchema>;
+  try {
+    parsed = responseSchema.parse(JSON.parse(content));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown";
+    throw new ApiError(`Invalid translation response: ${message}`, 500);
+  }
+
+  const translationResponse: TranslationResponse = {
+    segments: parsed.segments,
+    alts: parsed.alts,
+  };
+
+  const applied = applyTranslations(
+    fields.tiptapJson,
+    segments,
+    alts,
+    translationResponse,
+  );
+
+  if (applied.missingSegmentIds.length > 0) {
+    throw new ApiError(
+      `Translation missing segments: ${applied.missingSegmentIds.join(", ")}`,
+      500,
+    );
+  }
+  if (applied.unknownSegmentIds.length > 0) {
+    throw new ApiError(
+      `Translation returned unknown segments: ${applied.unknownSegmentIds.join(", ")}`,
+      500,
+    );
+  }
+  if (applied.missingAltIds.length > 0) {
+    throw new ApiError(
+      `Translation missing alts: ${applied.missingAltIds.join(", ")}`,
+      500,
+    );
+  }
+  if (applied.unknownAltIds.length > 0) {
+    throw new ApiError(
+      `Translation returned unknown alts: ${applied.unknownAltIds.join(", ")}`,
+      500,
+    );
+  }
+
+  return {
+    title: parsed.title,
+    description: parsed.description,
+    role: parsed.role,
+    tiptapJson: applied.tiptapJson,
+  };
 }
