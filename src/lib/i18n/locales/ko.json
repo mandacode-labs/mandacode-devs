@@ -162,5 +162,17 @@
   "admin.issuer": "발급기관",
   "admin.noCertifications": "등록된 자격증이 없습니다.",
   "admin.noEducation": "등록된 학력이 없습니다.",
-  "admin.newProfile": "새 프로필"
+  "admin.newProfile": "새 프로필",
+  "admin.tagName": "태그 이름",
+  "admin.rename": "이름 변경",
+  "admin.renameHint": "이 태그를 사용하는 모든 콘텐츠에 변경된 이름이 적용됩니다.",
+  "admin.tagRenamed": "태그 이름이 변경되었습니다",
+  "admin.deleteTagConfirm": "이 태그를 삭제하시겠어요? 사용 중인 모든 게시글/프로젝트/개발자에서 제거됩니다.",
+  "admin.tagDeleted": "태그가 삭제되었습니다",
+  "admin.usage": "사용처",
+  "admin.noUsage": "아직 어떤 콘텐츠에서도 사용되지 않았습니다.",
+  "admin.backToTags": "태그 목록으로",
+  "admin.searchTagsHint": "태그 검색...",
+  "admin.noTags": "태그가 없습니다",
+  "admin.noTagsMessage": "콘텐츠에서 태그를 사용하면 여기에 표시됩니다."
 }

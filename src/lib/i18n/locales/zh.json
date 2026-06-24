@@ -162,5 +162,17 @@
   "admin.issuer": "颁发机构",
   "admin.noCertifications": "暂无证书。",
   "admin.noEducation": "无学历记录。",
-  "admin.newProfile": "新个人资料"
+  "admin.newProfile": "新个人资料",
+  "admin.tagName": "标签名称",
+  "admin.rename": "重命名",
+  "admin.renameHint": "重命名将应用于使用此标签的所有内容。",
+  "admin.tagRenamed": "标签已重命名",
+  "admin.deleteTagConfirm": "确定删除此标签？将从所有使用它的文章、项目和开发者中移除。",
+  "admin.tagDeleted": "标签已删除",
+  "admin.usage": "使用情况",
+  "admin.noUsage": "尚未被任何内容使用。",
+  "admin.backToTags": "返回标签列表",
+  "admin.searchTagsHint": "搜索标签...",
+  "admin.noTags": "暂无标签",
+  "admin.noTagsMessage": "内容使用标签后会显示在这里。"
 }

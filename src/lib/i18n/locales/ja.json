@@ -162,5 +162,17 @@
   "admin.issuer": "発行機関",
   "admin.noCertifications": "資格が登録されていません。",
   "admin.noEducation": "学歴が登録されていません。",
-  "admin.newProfile": "新しいプロフィール"
+  "admin.newProfile": "新しいプロフィール",
+  "admin.tagName": "タグ名",
+  "admin.rename": "名前を変更",
+  "admin.renameHint": "このタグを使用しているすべてのコンテンツに変更が反映されます。",
+  "admin.tagRenamed": "タグ名を変更しました",
+  "admin.deleteTagConfirm": "このタグを削除しますか？投稿・プロジェクト・プロフィールからすべて削除されます。",
+  "admin.tagDeleted": "タグを削除しました",
+  "admin.usage": "使用箇所",
+  "admin.noUsage": "まだどのコンテンツでも使用されていません。",
+  "admin.backToTags": "タグ一覧へ",
+  "admin.searchTagsHint": "タグを検索...",
+  "admin.noTags": "タグがありません",
+  "admin.noTagsMessage": "コンテンツでタグを使用するとここに表示されます。"
 }
