@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
+import { GripVertical, Eye, Pencil, Trash2 } from "lucide-react";
 import { AdminLocaleChips, type LocaleInfo } from "./AdminLocaleChips";
-import type { TranslationContentType, PublishStatus } from "@/lib/db/schema";
+import type { TranslationContentType } from "@/lib/db/schema";
 import type { AdminTranslations } from "./use-admin-translations";
 
 export interface AdminListColumn {
@@ -42,73 +43,108 @@ interface AdminListRowProps {
   dragHandle?: ReactNode;
 }
 
-function DragHandleIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      className="w-4 h-4"
-    >
-      <circle cx="9" cy="6" r="1.5" />
-      <circle cx="9" cy="12" r="1.5" />
-      <circle cx="9" cy="18" r="1.5" />
-      <circle cx="15" cy="6" r="1.5" />
-      <circle cx="15" cy="12" r="1.5" />
-      <circle cx="15" cy="18" r="1.5" />
-    </svg>
-  );
-}
-
-function ViewIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      className="w-4 h-4"
-    >
-      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
-
-function EditIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      className="w-4 h-4"
-    >
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-    </svg>
-  );
-}
-
-function TrashIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      className="w-4 h-4"
-    >
-      <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-    </svg>
-  );
-}
-
 const actionLinkClass =
-  "inline-flex items-center justify-center w-8 h-8 rounded-lg text-text-secondary hover:text-accent hover:bg-accent-subtle transition-colors";
+  "inline-flex items-center justify-center w-8 h-8 rounded-md text-text-secondary hover:text-accent hover:bg-accent-subtle transition-colors";
 const deleteButtonClass =
-  "inline-flex items-center justify-center w-8 h-8 rounded-lg text-text-secondary hover:text-red-600 hover:bg-red-50 transition-colors";
+  "inline-flex items-center justify-center w-8 h-8 rounded-md text-text-secondary hover:text-red-600 hover:bg-red-50 transition-colors";
+const rowCellClass = "px-3 py-3 align-middle whitespace-nowrap";
+const numberBadgeClass =
+  "inline-flex items-center justify-center w-7 h-7 rounded-md bg-bg-secondary text-text-muted text-xs font-medium";
+
+interface AdminListMobileCardProps {
+  item: AdminListItem;
+  columns: AdminListColumn[];
+  contentType: TranslationContentType;
+  translations: AdminTranslations;
+  regeneratingId: string | null;
+  onRegenerate: (
+    contentId: string,
+    contentType: TranslationContentType,
+    targetLocale: string,
+  ) => void;
+  onDelete: (item: AdminListItem) => void;
+}
+
+export function AdminListMobileCard({
+  item,
+  columns,
+  contentType,
+  translations,
+  regeneratingId,
+  onRegenerate,
+  onDelete,
+}: AdminListMobileCardProps) {
+  return (
+    <div className="px-4 py-3 bg-bg-primary hover:bg-bg-secondary/30 transition-colors">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <a
+            href={item.href}
+            className="block text-sm font-medium text-text-primary hover:text-accent transition-colors truncate"
+          >
+            {item.title}
+          </a>
+          {item.meta && (
+            <p className="mt-0.5 text-[11px] text-text-muted font-mono truncate">
+              {item.meta}
+            </p>
+          )}
+        </div>
+        <div className="flex items-center gap-0.5 shrink-0 -mr-1">
+          {item.viewHref && (
+            <a
+              href={item.viewHref}
+              className={actionLinkClass}
+              title={translations["admin.view"] ?? "View"}
+            >
+              <Eye className="w-4 h-4" />
+            </a>
+          )}
+          <a href={item.href} className={actionLinkClass} title="Edit">
+            <Pencil className="w-4 h-4" />
+          </a>
+          <button
+            type="button"
+            onClick={() => onDelete(item)}
+            className={deleteButtonClass}
+            title="Delete"
+            aria-label="Delete"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-2.5 flex items-end gap-3">
+        <div className="flex-1 min-w-0">
+          <AdminLocaleChips
+            size="sm"
+            contentType={contentType}
+            contentId={item.id}
+            originalLocale={item.originalLocale}
+            locales={item.locales}
+            regenerating={regeneratingId === item.id}
+            onRegenerate={onRegenerate}
+          />
+        </div>
+        {columns.length > 0 && (
+          <div className="shrink-0 text-right text-[11px] leading-5 text-text-secondary">
+            {columns.map((column) => {
+              const value = item.extras?.[column.key];
+              if (!value) return null;
+              return (
+                <div key={column.key} className="truncate">
+                  <span className="text-text-muted">{column.label}</span>{" "}
+                  <span className="font-medium text-text-primary">{value}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export function AdminListRow({
   item,
@@ -126,71 +162,73 @@ export function AdminListRow({
   dragHandle,
 }: AdminListRowProps) {
   const className =
-    `group bg-bg-primary hover:bg-bg-secondary/40 transition-colors ${
+    `hidden sm:table-row group bg-bg-primary hover:bg-bg-secondary/40 transition-colors ${
       isDragging ? "opacity-80" : ""
     } ${rowClassName}`.trim();
 
   return (
     <tr ref={rowRef} style={rowStyle} className={className}>
-      <td className="px-4 py-4">
+      <td className={`${rowCellClass} w-14`}>
         <div className="flex items-center gap-2">
           {dragHandle}
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-bg-tertiary text-text-muted text-xs font-medium">
-            {index + 1}
-          </div>
+          <span className={numberBadgeClass}>{index + 1}</span>
         </div>
       </td>
-      <td className="px-4 py-4">
-        <a href={item.href} className="block group/link">
-          <span className="font-medium text-text-primary group-hover/link:text-accent transition-colors">
-            {item.title}
-          </span>
-          {item.meta && (
-            <span className="block text-xs text-text-muted font-mono mt-0.5">
-              {item.meta}
+      <td className={`${rowCellClass} min-w-0 w-full max-w-0`}>
+        <div className="flex items-center justify-between gap-3 min-w-0">
+          <a href={item.href} className="block group/link min-w-0 flex-1">
+            <span className="text-sm font-medium text-text-primary group-hover/link:text-accent transition-colors truncate block">
+              {item.title}
             </span>
-          )}
-        </a>
+            {item.meta && (
+              <span className="block text-xs text-text-muted font-mono truncate">
+                {item.meta}
+              </span>
+            )}
+          </a>
+        </div>
       </td>
-      <td className="px-4 py-4">
-        <AdminLocaleChips
-          contentType={contentType}
-          contentId={item.id}
-          originalLocale={item.originalLocale}
-          locales={item.locales}
-          regenerating={regeneratingId === item.id}
-          onRegenerate={onRegenerate}
-        />
+      <td className={`${rowCellClass}`}>
+        <div className="flex items-center">
+          <AdminLocaleChips
+            contentType={contentType}
+            contentId={item.id}
+            originalLocale={item.originalLocale}
+            locales={item.locales}
+            regenerating={regeneratingId === item.id}
+            onRegenerate={onRegenerate}
+          />
+        </div>
       </td>
       {columns.map((column) => (
         <td
           key={column.key}
-          className={`px-4 py-4 ${
+          className={`${rowCellClass} ${
             column.align === "right"
               ? "text-right"
               : column.align === "center"
                 ? "text-center"
                 : "text-left"
-          }`}
+          } ${column.width ?? ""}`}
         >
-          <span className="text-text-secondary">
+          <span className="text-text-secondary text-xs">
             {item.extras?.[column.key] ?? "\u00A0"}
           </span>
         </td>
       ))}
-      <td className="px-4 py-4 text-right">
-        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <td className={`${rowCellClass} text-right`}>
+        <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
           {item.viewHref && (
             <a
               href={item.viewHref}
               className={actionLinkClass}
               title={translations["admin.view"] ?? "View"}
             >
-              <ViewIcon />
+              <Eye className="w-4 h-4" />
             </a>
           )}
           <a href={item.href} className={actionLinkClass} title="Edit">
-            <EditIcon />
+            <Pencil className="w-4 h-4" />
           </a>
           <button
             type="button"
@@ -199,10 +237,14 @@ export function AdminListRow({
             title="Delete"
             aria-label="Delete"
           >
-            <TrashIcon />
+            <Trash2 className="w-4 h-4" />
           </button>
         </div>
       </td>
     </tr>
   );
+}
+
+export function DragHandleIcon() {
+  return <GripVertical className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-text-muted" />;
 }

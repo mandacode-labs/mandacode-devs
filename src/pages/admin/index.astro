@@ -1,18 +1,18 @@
 ---
-import AdminLayout from "@/components/layouts/AdminLayout.astro";
-import AdminSidebar from "@/components/admin/AdminSidebar.astro";
-import AdminHeader from "@/components/admin/AdminHeader.astro";
+import AdminPageLayout from "@/components/admin/AdminPageLayout.astro";
 import AdminCard from "@/components/admin/AdminCard.astro";
 import StatusBadge from "@/components/admin/StatusBadge.astro";
 import LocaleChip from "@/components/admin/LocaleChip.astro";
+import StatCard from "@/components/admin/StatCard.astro";
+import Icon from "@/components/icons/Icon.astro";
 import { requireAuth } from "@/lib/auth";
 import { useTranslations } from "@/lib/i18n/utils";
 import { DEFAULT_LANGUAGE, MAIN_DEVELOPER_ID } from "@/lib/config/languages";
 import { getPosts } from "@/lib/db/posts";
 import { getProjects } from "@/lib/db/projects";
 import { getDevelopers } from "@/lib/db/developers";
-import type { PostWithTranslation } from "@/lib/db/posts";
-import type { ProjectWithTranslation } from "@/lib/db/projects";
+import { Plus } from "lucide-react";
+import { getDashboardStats } from "@/components/admin/dashboard-stats";
 
 requireAuth(Astro);
 const t = useTranslations(DEFAULT_LANGUAGE);
@@ -23,19 +23,10 @@ const [posts, projects, developers] = await Promise.all([
   getDevelopers(DEFAULT_LANGUAGE, { includeUnpublished: true }),
 ]);
 
-const publishedPosts = posts.filter((p) => p.publish_status === "published");
-const archivedPosts = posts.filter((p) => p.publish_status === "archived");
-const draftPosts = posts.filter((p) => p.publish_status === "draft");
-
-const publishedProjects = projects.filter(
-  (p) => p.publish_status === "published",
-);
-const archivedProjects = projects.filter(
-  (p) => p.publish_status === "archived",
-);
-
 const developerName =
   developers.find((d) => d.id === MAIN_DEVELOPER_ID)?.name ?? "—";
+
+const stats = getDashboardStats(posts, projects, developerName);
 
 interface RecentItem {
   id: string;
@@ -47,7 +38,7 @@ interface RecentItem {
 }
 
 const recentItems: RecentItem[] = [
-  ...posts.map((p: PostWithTranslation) => ({
+  ...posts.map((p) => ({
     id: p.id,
     locale: p.original_locale,
     title: p.title,
@@ -55,7 +46,7 @@ const recentItems: RecentItem[] = [
     publish_status: p.publish_status,
     updated: p.updated_at,
   })),
-  ...projects.map((p: ProjectWithTranslation) => ({
+  ...projects.map((p) => ({
     id: p.id,
     locale: p.original_locale,
     title: p.title,
@@ -76,194 +67,112 @@ function formatDate(iso: string): string {
 }
 ---
 
-<AdminLayout title={t("admin.dashboard")}>
-  <div class="flex min-h-screen">
-    <AdminSidebar currentPath={Astro.url.pathname} />
-
-    <div class="flex-1 md:ml-64">
-      <AdminHeader
-        title={t("admin.dashboard")}
-        subtitle="Overview of your content"
-      />
-
-      <main class="p-4 sm:p-6 lg:p-8">
-        <!-- Stats -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <AdminCard class="p-5">
-            <p class="text-sm text-text-secondary mb-1">Total Posts</p>
-            <p class="text-3xl font-bold text-text-primary">{posts.length}</p>
-            <div class="mt-3 flex items-center gap-2 text-xs">
-              <span class="text-green-600 font-medium"
-                >{publishedPosts.length} published</span
-              >
-              <span class="text-text-muted">·</span>
-              <span class="text-yellow-600 font-medium"
-                >{draftPosts.length} draft</span
-              >
-            </div>
-          </AdminCard>
-
-          <AdminCard class="p-5">
-            <p class="text-sm text-text-secondary mb-1">Total Projects</p>
-            <p class="text-3xl font-bold text-text-primary">
-              {projects.length}
-            </p>
-            <div class="mt-3 flex items-center gap-2 text-xs">
-              <span class="text-green-600 font-medium"
-                >{publishedProjects.length} published</span
-              >
-            </div>
-          </AdminCard>
-
-          <AdminCard class="p-5">
-            <p class="text-sm text-text-secondary mb-1">Archived Items</p>
-            <p class="text-3xl font-bold text-text-primary">
-              {archivedPosts.length + archivedProjects.length}
-            </p>
-            <div class="mt-3 flex items-center gap-2 text-xs text-text-muted">
-              <span>{archivedPosts.length} posts</span>
-              <span>·</span>
-              <span>{archivedProjects.length} projects</span>
-            </div>
-          </AdminCard>
-
-          <AdminCard class="p-5">
-            <p class="text-sm text-text-secondary mb-1">Developer Profile</p>
-            <p class="text-lg font-semibold text-text-primary truncate">
-              {developerName}
-            </p>
-            <div class="mt-3">
-              <a
-                href="/admin/developers/new"
-                class="text-xs font-medium text-accent hover:text-accent-hover"
-              >
-                Edit profile →
-              </a>
-            </div>
-          </AdminCard>
-        </div>
-
-        <!-- Quick actions -->
-        <AdminCard class="p-5 mb-8">
-          <h2
-            class="text-sm font-semibold text-text-secondary uppercase tracking-wide mb-4"
-          >
-            Quick Actions
-          </h2>
-          <div class="flex flex-wrap gap-3">
-            <a
-              href="/admin/posts/new"
-              class="inline-flex items-center gap-2 px-4 py-2.5 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover transition-colors"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                class="w-4 h-4"
-              >
-                <path d="M12 5v14M5 12h14"></path>
-              </svg>
-              {t("admin.newPost")}
-            </a>
-            <a
-              href="/admin/projects/new"
-              class="inline-flex items-center gap-2 px-4 py-2.5 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover transition-colors"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                class="w-4 h-4"
-              >
-                <path d="M12 5v14M5 12h14"></path>
-              </svg>
-              {t("admin.newProject")}
-            </a>
-            <a
-              href="/admin/developers/new"
-              class="inline-flex items-center gap-2 px-4 py-2.5 border border-border text-text-primary text-sm font-medium rounded-lg hover:bg-bg-secondary transition-colors"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                class="w-4 h-4"
-              >
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-              {t("admin.newProfile")}
-            </a>
-          </div>
-        </AdminCard>
-
-        <!-- Recent activity -->
-        <AdminCard class="overflow-hidden">
-          <div
-            class="px-5 py-4 border-b border-border flex items-center justify-between"
-          >
-            <h2
-              class="text-sm font-semibold text-text-secondary uppercase tracking-wide"
-            >
-              Recently Updated
-            </h2>
-            <a
-              href="/admin/posts"
-              class="text-xs text-accent hover:text-accent-hover font-medium"
-              >View all →</a
-            >
-          </div>
-
-          {
-            recentItems.length === 0 ? (
-              <div class="px-5 py-12 text-center">
-                <p class="text-sm text-text-secondary">No recent activity</p>
-              </div>
-            ) : (
-              <table class="w-full text-sm">
-                <tbody class="divide-y divide-border">
-                  {recentItems.map((item) => (
-                    <tr class="hover:bg-bg-secondary/50 transition-colors">
-                      <td class="px-5 py-3.5">
-                        <div class="flex items-center gap-3">
-                          <span
-                            class={`w-2 h-2 rounded-full ${
-                              item.type === "post" ? "bg-accent" : "bg-blue-500"
-                            }`}
-                          />
-                          <div>
-                            <p class="font-medium text-text-primary">
-                              {item.title}
-                            </p>
-                            <p class="text-xs text-text-muted">{item.id}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td class="px-5 py-3.5">
-                        <span class="text-xs text-text-secondary capitalize">
-                          {item.type}
-                        </span>
-                      </td>
-                      <td class="px-5 py-3.5">
-                        <LocaleChip locale={item.locale} />
-                      </td>
-                      <td class="px-5 py-3.5">
-                        <StatusBadge status={item.publish_status} />
-                      </td>
-                      <td class="px-5 py-3.5 text-right text-text-muted">
-                        {formatDate(item.updated)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )
-          }
-        </AdminCard>
-      </main>
-    </div>
+<AdminPageLayout
+  title={t("admin.dashboard")}
+  headerTitle={t("admin.dashboard")}
+  headerSubtitle="Overview of your content"
+  currentPath={Astro.url.pathname}
+>
+  <!-- Stats -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+    {stats.map((stat) => <StatCard {...stat} />)}
   </div>
-</AdminLayout>
+
+  <!-- Quick actions -->
+  <AdminCard class="p-4 sm:p-5 mb-6 sm:mb-8">
+    <h2
+      class="text-xs sm:text-sm font-semibold text-text-secondary uppercase tracking-wide mb-3 sm:mb-4"
+    >
+      Quick Actions
+    </h2>
+    <div class="flex flex-wrap gap-2 sm:gap-3">
+      <a
+        href="/admin/posts/new"
+        class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-accent text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-accent-hover transition-colors"
+      >
+        <Icon icon={Plus} class="w-4 h-4" />
+        {t("admin.newPost")}
+      </a>
+      <a
+        href="/admin/projects/new"
+        class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-accent text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-accent-hover transition-colors"
+      >
+        <Icon icon={Plus} class="w-4 h-4" />
+        {t("admin.newProject")}
+      </a>
+      <a
+        href="/admin/developers/new"
+        class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 border border-border text-text-primary text-xs sm:text-sm font-medium rounded-lg hover:bg-bg-secondary transition-colors"
+      >
+        <Icon icon={Plus} class="w-4 h-4" />
+        {t("admin.newProfile")}
+      </a>
+    </div>
+  </AdminCard>
+
+  <!-- Recent activity -->
+  <AdminCard class="overflow-hidden">
+    <div
+      class="px-4 sm:px-5 py-3 sm:py-4 border-b border-border flex items-center justify-between"
+    >
+      <h2
+        class="text-xs sm:text-sm font-semibold text-text-secondary uppercase tracking-wide"
+      >
+        Recently Updated
+      </h2>
+      <a
+        href="/admin/posts"
+        class="text-xs text-accent hover:text-accent-hover font-medium"
+        >View all →</a
+      >
+    </div>
+
+    {
+      recentItems.length === 0 ? (
+        <div class="px-4 sm:px-5 py-12 text-center">
+          <p class="text-sm text-text-secondary">No recent activity</p>
+        </div>
+      ) : (
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <tbody class="divide-y divide-border">
+              {recentItems.map((item) => (
+                <tr class="hover:bg-bg-secondary/50 transition-colors">
+                  <td class="px-4 sm:px-5 py-3 sm:py-3.5">
+                    <div class="flex items-center gap-3">
+                      <span
+                        class={`w-2 h-2 rounded-full ${
+                          item.type === "post" ? "bg-accent" : "bg-blue-500"
+                        }`}
+                      />
+                      <div class="min-w-0">
+                        <p class="font-medium text-text-primary truncate">
+                          {item.title}
+                        </p>
+                        <p class="text-xs text-text-muted">{item.id}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-4 sm:px-5 py-3 sm:py-3.5">
+                    <span class="text-xs text-text-secondary capitalize">
+                      {item.type}
+                    </span>
+                  </td>
+                  <td class="px-4 sm:px-5 py-3 sm:py-3.5">
+                    <LocaleChip locale={item.locale} />
+                  </td>
+                  <td class="px-4 sm:px-5 py-3 sm:py-3.5">
+                    <StatusBadge status={item.publish_status} />
+                  </td>
+                  <td class="px-4 sm:px-5 py-3 sm:py-3.5 text-right text-text-muted whitespace-nowrap">
+                    {formatDate(item.updated)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )
+    }
+  </AdminCard>
+</AdminPageLayout>

@@ -2,6 +2,16 @@
 import { useTranslations } from "@/lib/i18n/utils";
 import { DEFAULT_LANGUAGE } from "@/lib/config/languages";
 import { getStaticAssetUrl } from "@/lib/config/site";
+import Icon from "@/components/icons/Icon.astro";
+import {
+  LayoutDashboard,
+  FileText,
+  Kanban,
+  User,
+  Tag,
+  Home,
+  X,
+} from "lucide-react";
 
 interface Props {
   currentPath: string;
@@ -12,11 +22,11 @@ const t = useTranslations(DEFAULT_LANGUAGE);
 const logoUrl = getStaticAssetUrl("mandacode.webp");
 
 const navItems = [
-  { href: "/admin", label: t("admin.dashboard"), icon: "dashboard" },
-  { href: "/admin/posts", label: t("admin.posts"), icon: "post" },
-  { href: "/admin/projects", label: t("admin.projects"), icon: "project" },
-  { href: "/admin/developers", label: t("admin.developer"), icon: "developer" },
-  { href: "/admin/tags", label: t("admin.tags"), icon: "tag" },
+  { href: "/admin", label: t("admin.dashboard"), icon: LayoutDashboard },
+  { href: "/admin/posts", label: t("admin.posts"), icon: FileText },
+  { href: "/admin/projects", label: t("admin.projects"), icon: Kanban },
+  { href: "/admin/developers", label: t("admin.developer"), icon: User },
+  { href: "/admin/tags", label: t("admin.tags"), icon: Tag },
 ];
 
 function isActive(href: string): boolean {
@@ -56,72 +66,7 @@ function isActive(href: string): boolean {
           class={`admin-sidebar-link ${isActive(item.href) ? "active" : ""}`}
         >
           <span class="w-5 h-5 flex items-center justify-center">
-            {item.icon === "dashboard" && (
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                class="w-[18px] h-[18px]"
-              >
-                <rect x="3" y="3" width="7" height="7" rx="1" />
-                <rect x="14" y="3" width="7" height="7" rx="1" />
-                <rect x="14" y="14" width="7" height="7" rx="1" />
-                <rect x="3" y="14" width="7" height="7" rx="1" />
-              </svg>
-            )}
-            {item.icon === "post" && (
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                class="w-[18px] h-[18px]"
-              >
-                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-                <line x1="10" y1="9" x2="8" y2="9" />
-              </svg>
-            )}
-            {item.icon === "project" && (
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                class="w-[18px] h-[18px]"
-              >
-                <path d="M3 3h18v18H3z" />
-                <path d="M3 9h18" />
-                <path d="M9 21V9" />
-              </svg>
-            )}
-            {item.icon === "developer" && (
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                class="w-[18px] h-[18px]"
-              >
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            )}
-            {item.icon === "tag" && (
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                class="w-[18px] h-[18px]"
-              >
-                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-                <line x1="7" y1="7" x2="7.01" y2="7" />
-              </svg>
-            )}
+            <Icon icon={item.icon} class="w-[18px] h-[18px]" />
           </span>
           {item.label}
         </a>
@@ -132,16 +77,7 @@ function isActive(href: string): boolean {
   <div class="p-4 border-t border-border">
     <a href="/" class="admin-sidebar-link">
       <span class="w-5 h-5 flex items-center justify-center">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          class="w-[18px] h-[18px]"
-        >
-          <path d="M3 12l9-9 9 9"></path>
-          <path d="M9 21V9h6v12"></path>
-        </svg>
+        <Icon icon={Home} class="w-[18px] h-[18px]" />
       </span>
       View site
     </a>
@@ -185,15 +121,7 @@ function isActive(href: string): boolean {
       data-admin-close-sidebar
       aria-label="Close menu"
     >
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        class="w-5 h-5"
-      >
-        <path d="M18 6L6 18M6 6l12 12"></path>
-      </svg>
+      <Icon icon={X} class="w-5 h-5" />
     </button>
   </div>
 
@@ -205,72 +133,7 @@ function isActive(href: string): boolean {
           class={`admin-sidebar-link ${isActive(item.href) ? "active" : ""}`}
         >
           <span class="w-5 h-5 flex items-center justify-center">
-            {item.icon === "dashboard" && (
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                class="w-[18px] h-[18px]"
-              >
-                <rect x="3" y="3" width="7" height="7" rx="1" />
-                <rect x="14" y="3" width="7" height="7" rx="1" />
-                <rect x="14" y="14" width="7" height="7" rx="1" />
-                <rect x="3" y="14" width="7" height="7" rx="1" />
-              </svg>
-            )}
-            {item.icon === "post" && (
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                class="w-[18px] h-[18px]"
-              >
-                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-                <line x1="10" y1="9" x2="8" y2="9" />
-              </svg>
-            )}
-            {item.icon === "project" && (
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                class="w-[18px] h-[18px]"
-              >
-                <path d="M3 3h18v18H3z" />
-                <path d="M3 9h18" />
-                <path d="M9 21V9" />
-              </svg>
-            )}
-            {item.icon === "developer" && (
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                class="w-[18px] h-[18px]"
-              >
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            )}
-            {item.icon === "tag" && (
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                class="w-[18px] h-[18px]"
-              >
-                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-                <line x1="7" y1="7" x2="7.01" y2="7" />
-              </svg>
-            )}
+            <Icon icon={item.icon} class="w-[18px] h-[18px]" />
           </span>
           {item.label}
         </a>
@@ -281,16 +144,7 @@ function isActive(href: string): boolean {
   <div class="p-4 border-t border-border">
     <a href="/" class="admin-sidebar-link">
       <span class="w-5 h-5 flex items-center justify-center">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          class="w-[18px] h-[18px]"
-        >
-          <path d="M3 12l9-9 9 9"></path>
-          <path d="M9 21V9h6v12"></path>
-        </svg>
+        <Icon icon={Home} class="w-[18px] h-[18px]" />
       </span>
       View site
     </a>

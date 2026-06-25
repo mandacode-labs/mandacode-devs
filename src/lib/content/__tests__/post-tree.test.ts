@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildPostTree, isPathActive } from "@/lib/content/post-tree";
+import {
+  buildPostTree,
+  isPathActive,
+  isPathInBranch,
+} from "@/lib/content/post-tree";
 
 describe("buildPostTree", () => {
   it("returns empty tree for no paths", () => {
@@ -50,14 +54,33 @@ describe("isPathActive", () => {
     expect(isPathActive("/ai", "/ai/")).toBe(true);
   });
 
-  it("matches ancestor folders", () => {
-    expect(isPathActive("/ai/platform/", "/ai/")).toBe(true);
-    expect(isPathActive("/ai/platform/deep/thing/", "/ai/")).toBe(true);
-    expect(isPathActive("/ai/platform/deep/thing/", "/")).toBe(true);
+  it("does not match ancestor folders", () => {
+    expect(isPathActive("/ai/platform/", "/ai/")).toBe(false);
+    expect(isPathActive("/ai/platform/deep/thing/", "/ai/")).toBe(false);
+    expect(isPathActive("/ai/platform/deep/thing/", "/")).toBe(false);
   });
 
   it("does not match siblings", () => {
     expect(isPathActive("/blog/", "/ai/")).toBe(false);
     expect(isPathActive("/air/", "/ai/")).toBe(false);
+  });
+});
+
+describe("isPathInBranch", () => {
+  it("matches exact folder", () => {
+    expect(isPathInBranch("/ai/", "/ai/")).toBe(true);
+  });
+
+  it("matches descendants", () => {
+    expect(isPathInBranch("/ai/platform/", "/ai/")).toBe(true);
+    expect(isPathInBranch("/ai/platform/deep/thing/", "/ai/")).toBe(true);
+  });
+
+  it("does not match root", () => {
+    expect(isPathInBranch("/ai/", "/")).toBe(false);
+  });
+
+  it("does not match siblings", () => {
+    expect(isPathInBranch("/blog/", "/ai/")).toBe(false);
   });
 });

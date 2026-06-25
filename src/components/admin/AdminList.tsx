@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { GripVertical, Loader2 } from "lucide-react";
 import { apiFetch } from "@/lib/api/client";
 import {
   DndContext,
@@ -14,7 +15,6 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
-  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import DeleteModal from "./DeleteModal";
@@ -22,6 +22,7 @@ import type { TranslationContentType } from "@/lib/db/schema";
 import type { AdminTranslations } from "./use-admin-translations";
 import {
   AdminListRow,
+  AdminListMobileCard,
   type AdminListColumn,
   type AdminListItem,
 } from "./AdminListRow";
@@ -241,6 +242,7 @@ export function AdminList({
                 disabled={!hasChanges || isSaving || !reorderEndpoint}
                 className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
+                {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
                 {isSaving ? reorderLabels.saving : reorderLabels.save}
               </button>
             </div>
@@ -250,68 +252,79 @@ export function AdminList({
               onClick={() => setIsReorderMode(true)}
               className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-bg-tertiary text-text-primary text-sm font-medium rounded-lg hover:bg-bg-secondary border border-border transition-colors"
             >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className="w-4 h-4"
-              >
-                <circle cx="9" cy="6" r="1.5" />
-                <circle cx="9" cy="12" r="1.5" />
-                <circle cx="9" cy="18" r="1.5" />
-                <circle cx="15" cy="6" r="1.5" />
-                <circle cx="15" cy="12" r="1.5" />
-                <circle cx="15" cy="18" r="1.5" />
-              </svg>
+              <GripVertical className="w-4 h-4" />
               {reorderLabels.start}
             </button>
           )}
         </div>
       )}
 
-      <div className="bg-bg-primary border border-border rounded-xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          {isReorderMode ? (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={items.map((item) => item.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <table className="w-full text-sm">
-                  <thead className="bg-bg-secondary border-b border-border">
-                    <tr>
-                      <th className="px-4 py-3 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide w-16">
-                        #
-                      </th>
-                      <th className="px-4 py-3 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
-                        Title
-                      </th>
-                      <th className="px-4 py-3 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
-                        {statusLabel}
-                      </th>
-                      {columns.map((column) => (
-                        <th
-                          key={column.key}
-                          className={`px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wide ${
-                            column.align === "right"
-                              ? "text-right"
-                              : column.align === "center"
-                                ? "text-center"
-                                : "text-left"
-                          } ${column.width ?? ""}`}
-                        >
-                          {column.label}
-                        </th>
-                      ))}
-                      <th className="px-4 py-3 text-right font-semibold text-text-secondary text-xs uppercase tracking-wide w-20"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
+      <div className="sm:bg-bg-primary sm:border sm:border-border sm:rounded-xl sm:shadow-sm sm:overflow-hidden">
+        <div className="sm:overflow-x-auto">
+          <div className="sm:hidden divide-y divide-border border border-border rounded-xl overflow-hidden bg-bg-primary shadow-sm">
+            {items.map((item) => (
+              <AdminListMobileCard
+                key={item.id}
+                item={item}
+                columns={columns}
+                contentType={contentType}
+                translations={translations}
+                regeneratingId={regeneratingId}
+                onRegenerate={handleRegenerate}
+                onDelete={(item) => setDeleteItem(item)}
+              />
+            ))}
+          </div>
+
+          <table className="hidden sm:table w-full text-xs table-fixed">
+            <colgroup>
+              <col className="w-14" />
+              <col className="w-[40%]" />
+              <col className="w-auto" />
+              {columns.map((column) => (
+                <col
+                  key={column.key}
+                  className={column.width ? column.width : "w-auto"}
+                />
+              ))}
+              <col className="w-24" />
+            </colgroup>
+            <thead className="bg-bg-secondary border-b border-border">
+              <tr>
+                <th className="px-3 py-2.5 text-left font-semibold text-text-secondary text-[11px] uppercase tracking-wide w-14">
+                  #
+                </th>
+                <th className="px-3 py-2.5 text-left font-semibold text-text-secondary text-[11px] uppercase tracking-wide">
+                  Title
+                </th>
+                <th className="px-3 py-2.5 text-left font-semibold text-text-secondary text-[11px] uppercase tracking-wide">
+                  {statusLabel}
+                </th>
+                {columns.map((column) => (
+                  <th
+                    key={column.key}
+                    className={`px-3 py-2.5 font-semibold text-text-secondary text-[11px] uppercase tracking-wide ${
+                      column.align === "right"
+                        ? "text-right"
+                        : column.align === "center"
+                          ? "text-center"
+                          : "text-left"
+                    } ${column.width ?? ""}`}
+                  >
+                    {column.label}
+                  </th>
+                ))}
+                <th className="px-3 py-2.5 text-right font-semibold text-text-secondary text-[11px] uppercase tracking-wide w-24"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {isReorderMode ? (
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext items={items.map((item) => item.id)}>
                     {items.map((item, index) => (
                       <SortableRow
                         key={item.id}
@@ -325,42 +338,10 @@ export function AdminList({
                         onDelete={(item) => setDeleteItem(item)}
                       />
                     ))}
-                  </tbody>
-                </table>
-              </SortableContext>
-            </DndContext>
-          ) : (
-            <table className="w-full text-sm">
-              <thead className="bg-bg-secondary border-b border-border">
-                <tr>
-                  <th className="px-4 py-3 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide w-16">
-                    #
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
-                    Title
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold text-text-secondary text-xs uppercase tracking-wide">
-                    {statusLabel}
-                  </th>
-                  {columns.map((column) => (
-                    <th
-                      key={column.key}
-                      className={`px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wide ${
-                        column.align === "right"
-                          ? "text-right"
-                          : column.align === "center"
-                            ? "text-center"
-                            : "text-left"
-                      } ${column.width ?? ""}`}
-                    >
-                      {column.label}
-                    </th>
-                  ))}
-                  <th className="px-4 py-3 text-right font-semibold text-text-secondary text-xs uppercase tracking-wide w-20"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {items.map((item, index) => (
+                  </SortableContext>
+                </DndContext>
+              ) : (
+                items.map((item, index) => (
                   <AdminListRow
                     key={item.id}
                     item={item}
@@ -372,10 +353,10 @@ export function AdminList({
                     onRegenerate={handleRegenerate}
                     onDelete={(item) => setDeleteItem(item)}
                   />
-                ))}
-              </tbody>
-            </table>
-          )}
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -463,20 +444,7 @@ function SortableRow({
           className="p-1.5 text-text-muted hover:text-text-primary cursor-grab active:cursor-grabbing rounded-md hover:bg-bg-tertiary"
           aria-label="Drag to reorder"
         >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="w-4 h-4"
-          >
-            <circle cx="9" cy="6" r="1.5" />
-            <circle cx="9" cy="12" r="1.5" />
-            <circle cx="9" cy="18" r="1.5" />
-            <circle cx="15" cy="6" r="1.5" />
-            <circle cx="15" cy="12" r="1.5" />
-            <circle cx="15" cy="18" r="1.5" />
-          </svg>
+          <GripVertical className="w-4 h-4" />
         </button>
       }
     />

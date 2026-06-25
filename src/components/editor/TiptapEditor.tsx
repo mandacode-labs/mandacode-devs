@@ -15,12 +15,8 @@ import {
 } from "@/components/tiptap-ui-primitive/toolbar";
 
 import { ImageUploadNode } from "@/components/tiptap-node/image-upload-node/image-upload-node-extension";
-import "@/components/tiptap-node/blockquote-node/blockquote-node.scss";
-import "@/components/tiptap-node/code-block-node/code-block-node.scss";
-import "@/components/tiptap-node/horizontal-rule-node/horizontal-rule-node.scss";
 import "@/components/tiptap-node/list-node/list-node.scss";
 import "@/components/tiptap-node/image-node/image-node.scss";
-import "@/components/tiptap-node/heading-node/heading-node.scss";
 import "@/components/tiptap-node/paragraph-node/paragraph-node.scss";
 import "@/components/tiptap-node/table-node/table-node.scss";
 
@@ -36,6 +32,7 @@ import { MarkButton } from "@/components/tiptap-ui/mark-button";
 import { TextAlignButton } from "@/components/tiptap-ui/text-align-button";
 import { UndoRedoButton } from "@/components/tiptap-ui/undo-redo-button";
 import { TableDropdownMenu } from "@/components/tiptap-ui/table-dropdown-menu";
+import { FontSizeButton } from "@/components/tiptap-ui/font-size-button/font-size-button";
 
 import {
   createHandleImageUpload,
@@ -89,6 +86,7 @@ const MainToolbarContent = () => {
         <MarkButton type="italic" />
         <MarkButton type="strike" />
         <MarkButton type="code" />
+        <FontSizeButton />
         <ColorHighlightPopover />
         <LinkPopover />
       </ToolbarGroup>

@@ -14,6 +14,6 @@ const { content, html: preHtml, class: className } = Astro.props;
 const html = preHtml ?? (content ? renderTiptapJson(content) : null);
 ---
 
-<div class:list={["prose prose-neutral max-w-none content-body", className]}>
+<div class:list={["max-w-none content-body", className]}>
   {html ? <div set:html={html} /> : null}
 </div>

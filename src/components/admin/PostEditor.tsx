@@ -4,6 +4,8 @@ import ImageUploadButton from "@/components/editor/ImageUploadButton";
 import { AdminSection } from "@/components/admin/AdminSection";
 import { TranslationsSection } from "@/components/admin/TranslationsSection";
 import { StickyEditorActions } from "@/components/admin/StickyEditorActions";
+import { AdminDangerZone } from "@/components/admin/AdminDangerZone";
+import DeleteModal from "@/components/admin/DeleteModal";
 import { LANGUAGE_CONFIGS } from "@/lib/config/languages";
 import { useAdminEditor } from "@/components/admin/use-admin-editor";
 import { useClickOutside } from "@/hooks/use-click-outside";
@@ -291,12 +293,12 @@ export default function PostEditor({
           <span className="text-sm font-medium text-text-primary">
             {t("admin.coverImage", "Cover Image URL")}
           </span>
-          <div className="flex gap-2 mt-1.5">
+          <div className="flex flex-wrap gap-2 mt-1.5">
             <input
               type="url"
               value={coverImageUrl}
               onChange={(e) => setCoverImageUrl(e.target.value)}
-              className="flex-1 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+              className="flex-1 min-w-0 px-3 py-2 border border-border rounded-lg bg-bg-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
             />
             <ImageUploadButton
               onUpload={setCoverImageUrl}
@@ -489,26 +491,39 @@ export default function PostEditor({
         runningLabel={t("admin.running", "진행 중...")}
       />
 
+      {isEditMode && (
+        <AdminDangerZone
+          title={t("admin.dangerZone", "Danger zone")}
+          description={t(
+            "admin.deletePostDescription",
+            "Deleting this post removes all its language versions. This action cannot be undone.",
+          )}
+          buttonLabel={t("admin.delete", "Delete")}
+          deleting={isDeleting}
+          onDelete={() => setShowDeleteModal(true)}
+        />
+      )}
+
       <StickyEditorActions
-        isEditMode={isEditMode}
         isSubmitting={isSubmitting}
-        isDeleting={isDeleting}
-        showDeleteModal={showDeleteModal}
         cancelHref="/admin/posts"
-        itemName={title || id}
-        locale={locale}
-        translations={translations}
-        onSubmit={() => {}}
-        onShowDelete={() => setShowDeleteModal(true)}
-        onHideDelete={() => setShowDeleteModal(false)}
-        onConfirmDelete={handleDelete}
-        deleteModalTitle={t("admin.deletePost", "Delete post?")}
-        deleteButtonLabel={t("admin.delete", "Delete")}
         submitLabel={t("admin.updatePost", "Update Post")}
         saveLabel={t("admin.savePost", "Save Post")}
         savingLabel={t("admin.saving", "Saving...")}
         cancelLabel={t("admin.cancel", "Cancel")}
+        onSubmit={() => {}}
       />
+
+      {showDeleteModal && (
+        <DeleteModal
+          title={t("admin.deletePost", "Delete post?")}
+          itemName={title || id}
+          locale={locale}
+          translations={translations}
+          onConfirm={handleDelete}
+          onCancel={() => setShowDeleteModal(false)}
+        />
+      )}
     </form>
   );
 }

@@ -58,7 +58,20 @@ function rollupCounts(node: FolderNode): number {
 }
 
 export function isPathActive(currentPath: string, folderPath: string): boolean {
-  if (folderPath === "/" || folderPath === "") return true;
+  if (folderPath === "/" || folderPath === "") {
+    return currentPath === "/" || currentPath === "";
+  }
+  const c = stripSlashes(currentPath);
+  const f = stripSlashes(folderPath);
+  if (c === "") return false;
+  return c === f;
+}
+
+export function isPathInBranch(
+  currentPath: string,
+  folderPath: string,
+): boolean {
+  if (folderPath === "/" || folderPath === "") return false;
   const c = stripSlashes(currentPath);
   const f = stripSlashes(folderPath);
   if (c === "") return false;

@@ -7,7 +7,7 @@ const { class: className = "" } = Astro.props;
 ---
 
 <div
-  class={`bg-bg-primary border border-border rounded-xl shadow-sm ${className}`}
+  class={`bg-bg-primary border border-border rounded-xl shadow-sm transition-shadow hover:shadow-md ${className}`}
 >
   <slot />
 </div>

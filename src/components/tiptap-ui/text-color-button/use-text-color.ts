@@ -115,7 +115,6 @@ export function getTextColorValue(
 export function canTextColor(editor: Editor | null): boolean {
   if (!editor || !editor.isEditable) return false;
   if (!isMarkInSchema("textStyle", editor)) return false;
-  if (isNodeTypeSelected(editor, ["image"])) return false;
 
   return editor.can().setMark("textStyle");
 }

@@ -1,5 +1,7 @@
 ---
 import { getAuthenticatedUser } from "@/lib/auth";
+import Icon from "@/components/icons/Icon.astro";
+import { Menu } from "lucide-react";
 
 interface Props {
   title: string;
@@ -19,15 +21,7 @@ const user = getAuthenticatedUser(Astro);
         data-admin-open-sidebar
         aria-label="Open menu"
       >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          class="w-5 h-5"
-        >
-          <path d="M3 12h18M3 6h18M3 18h18"></path>
-        </svg>
+        <Icon icon={Menu} class="w-5 h-5" />
       </button>
       <span class="font-semibold text-text-primary truncate">{title}</span>
     </div>

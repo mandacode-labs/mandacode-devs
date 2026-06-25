@@ -1,8 +1,7 @@
 ---
-import AdminLayout from "@/components/layouts/AdminLayout.astro";
-import AdminSidebar from "@/components/admin/AdminSidebar.astro";
-import AdminHeader from "@/components/admin/AdminHeader.astro";
+import AdminPageLayout from "@/components/admin/AdminPageLayout.astro";
 import { AdminList } from "@/components/admin/AdminList";
+import Icon from "@/components/icons/Icon.astro";
 import { requireAuth } from "@/lib/auth";
 import {
   getPosts,
@@ -13,6 +12,7 @@ import {
 import { useTranslations } from "@/lib/i18n/utils";
 import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@/lib/config/languages";
 import { formatShortDate } from "@/lib/utils/date";
+import { Plus } from "lucide-react";
 import type { AdminListItem } from "@/components/admin/AdminList";
 
 requireAuth(Astro);
@@ -84,61 +84,45 @@ const totalLocales = itemsWithLocales.reduce(
 const translations: Record<string, string> = {};
 ---
 
-<AdminLayout title={t("admin.posts")}>
-  <div class="flex min-h-screen">
-    <AdminSidebar currentPath={Astro.url.pathname} />
-
-    <div class="flex-1 md:ml-64">
-      <AdminHeader
-        title={t("admin.posts")}
-        subtitle="Manage blog posts across languages"
-      />
-
-      <main class="p-4 sm:p-6 lg:p-8">
-        <div
-          class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6"
-        >
-          <div>
-            <h1 class="text-2xl font-bold text-text-primary">
-              {t("admin.posts")}
-            </h1>
-            <p class="text-sm text-text-secondary mt-1">
-              {posts.length} posts · {totalLocales} language versions
-            </p>
-          </div>
-          <a
-            href="/admin/posts/new"
-            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover transition-colors"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              class="w-4 h-4"
-            >
-              <path d="M12 5v14M5 12h14"></path>
-            </svg>
-            {t("admin.newPost")}
-          </a>
-        </div>
-
-        <AdminList
-          items={items}
-          contentType="post"
-          entityType="posts"
-          statusLabel={t("admin.statusColumn")}
-          columns={[
-            { key: "date", label: t("admin.publishDate") },
-            { key: "updated", label: t("admin.updated") },
-          ]}
-          emptyTitle={t("admin.noItems")}
-          emptyMessage="Create your first post to get started."
-          deleteModalTitle={t("admin.deletePost")}
-          translations={translations}
-          client:only="react"
-        />
-      </main>
+<AdminPageLayout
+  title={t("admin.posts")}
+  headerTitle={t("admin.posts")}
+  headerSubtitle="Manage blog posts across languages"
+  currentPath={Astro.url.pathname}
+>
+  <div
+    class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6"
+  >
+    <div>
+      <h1 class="text-2xl font-bold text-text-primary">
+        {t("admin.posts")}
+      </h1>
+      <p class="text-sm text-text-secondary mt-1">
+        {posts.length} posts · {totalLocales} language versions
+      </p>
     </div>
+    <a
+      href="/admin/posts/new"
+      class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover transition-colors"
+    >
+      <Icon icon={Plus} class="w-4 h-4" />
+      {t("admin.newPost")}
+    </a>
   </div>
-</AdminLayout>
+
+  <AdminList
+    items={items}
+    contentType="post"
+    entityType="posts"
+    statusLabel={t("admin.statusColumn")}
+    columns={[
+      { key: "date", label: t("admin.publishDate") },
+      { key: "updated", label: t("admin.updated") },
+    ]}
+    emptyTitle={t("admin.noItems")}
+    emptyMessage="Create your first post to get started."
+    deleteModalTitle={t("admin.deletePost")}
+    translations={translations}
+    client:only="react"
+  />
+</AdminPageLayout>
