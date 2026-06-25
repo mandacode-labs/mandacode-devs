@@ -57,35 +57,6 @@ function rollupCounts(node: FolderNode): number {
   return total;
 }
 
-export function getImmediateChildren(
-  tree: FolderNode[],
-  folderPath: string,
-): FolderNode[] {
-  const normalized = folderPath === "/" ? "" : stripSlashes(folderPath);
-  if (normalized === "") {
-    return tree.map((node) => ({
-      name: node.name,
-      path: node.path,
-      count: node.count - sumDescendantLeaves(node),
-      children: [],
-    }));
-  }
-  const segments = normalized.split("/");
-  let cursor: FolderNode | undefined = tree.find((n) => n.name === segments[0]);
-  for (let i = 1; i < segments.length && cursor; i++) {
-    cursor = cursor.children.find((n) => n.name === segments[i]);
-  }
-  if (!cursor) return [];
-  return cursor.children;
-}
-
-function sumDescendantLeaves(node: FolderNode): number {
-  if (node.children.length === 0) return node.count;
-  let sum = 0;
-  for (const c of node.children) sum += sumDescendantLeaves(c);
-  return sum;
-}
-
 export function isPathActive(currentPath: string, folderPath: string): boolean {
   if (folderPath === "/" || folderPath === "") return true;
   const c = stripSlashes(currentPath);

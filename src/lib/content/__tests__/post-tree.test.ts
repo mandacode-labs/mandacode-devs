@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  buildPostTree,
-  getImmediateChildren,
-  isPathActive,
-  type PostPath,
-} from "@/lib/content/post-tree";
+import { buildPostTree, isPathActive } from "@/lib/content/post-tree";
 
 describe("buildPostTree", () => {
   it("returns empty tree for no paths", () => {
@@ -42,36 +37,6 @@ describe("buildPostTree", () => {
       { path: "/m/", count: 1 },
     ]);
     expect(tree.map((n) => n.name)).toEqual(["a", "m", "z"]);
-  });
-});
-
-describe("getImmediateChildren", () => {
-  const tree = buildPostTree([
-    { path: "/ai/", count: 2 },
-    { path: "/ai/platform/", count: 5 },
-    { path: "/blog/", count: 3 },
-  ]);
-
-  it("returns top-level folders for root, with leaf counts only", () => {
-    const children = getImmediateChildren(tree, "/");
-    expect(children.map((c) => c.name)).toEqual(["ai", "blog"]);
-    expect(children[0]?.count).toBe(2);
-  });
-
-  it("returns direct subfolders for a nested folder", () => {
-    const children = getImmediateChildren(tree, "/ai/");
-    expect(children).toHaveLength(1);
-    expect(children[0]?.name).toBe("platform");
-    expect(children[0]?.count).toBe(5);
-  });
-
-  it("returns empty array for unknown folder", () => {
-    expect(getImmediateChildren(tree, "/nope/")).toEqual([]);
-  });
-
-  it("returns empty array for leaf folder", () => {
-    const children = getImmediateChildren(tree, "/ai/platform/");
-    expect(children).toEqual([]);
   });
 });
 
