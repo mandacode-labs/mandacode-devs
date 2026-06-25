@@ -35,6 +35,7 @@ function mapD1Post(
       ? new Date(post.published_at)
       : new Date(post.created_at),
     coverImage: post.cover_image_url,
+    path: post.path,
     tags,
     hidden: post.publish_status === "archived",
     publishStatus: post.publish_status,
@@ -113,9 +114,15 @@ function mapD1Developer(
   };
 }
 
-export async function getPosts(lang: Language): Promise<UnifiedPost[]> {
+export async function getPosts(
+  lang: Language,
+  options: { pathPrefix?: string } = {},
+): Promise<UnifiedPost[]> {
   const d1Posts = await postsRepo
-    .getPosts(lang, { publishStatus: "published" })
+    .getPosts(lang, {
+      publishStatus: "published",
+      pathPrefix: options.pathPrefix,
+    })
     .then((posts) =>
       Promise.all(
         posts.map(async (post) => {
@@ -226,6 +233,12 @@ export async function getDeveloperForAdminPreview(
     getDeveloperTags(id),
   ]);
   return mapD1Developer(developer, techStack, certs, edu, lang);
+}
+
+export async function getPostPaths(): Promise<
+  Array<{ path: string; count: number }>
+> {
+  return postsRepo.listPostPaths();
 }
 
 export async function getDevelopers(

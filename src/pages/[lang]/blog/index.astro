@@ -2,9 +2,11 @@
 import Layout from "@/components/layouts/Layout.astro";
 import BlogCard from "@/components/blog/BlogCard.astro";
 import EmptyBlog from "@/components/blog/EmptyBlog.astro";
-import { getPosts } from "@/lib/content/service";
+import BlogSidebar from "@/components/blog/BlogSidebar.astro";
+import { getPosts, getPostPaths } from "@/lib/content/service";
 import { useTranslations } from "@/lib/i18n/utils";
 import { isValidLanguage, getLocaleFromRequest } from "@/lib/config/languages";
+import type { Lang } from "@/types";
 
 const { lang } = Astro.params;
 
@@ -14,7 +16,9 @@ if (!lang || !isValidLanguage(lang)) {
 }
 
 const t = useTranslations(lang);
-const posts = await getPosts(lang);
+const typedLang = lang as Lang;
+
+const [posts, paths] = await Promise.all([getPosts(typedLang), getPostPaths()]);
 ---
 
 <Layout title={t("blog.title")} description={t("blog.subtitle")}>
@@ -24,18 +28,24 @@ const posts = await getPosts(lang);
       <p class="text-lg text-text-secondary">{t("blog.subtitle")}</p>
     </header>
 
-    {
-      posts.length > 0 ? (
-        <ul class="flex flex-col gap-6">
-          {posts.map((post) => (
-            <li>
-              <BlogCard post={post} lang={lang} />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <EmptyBlog lang={lang} />
-      )
-    }
+    <div class="grid grid-cols-1 md:grid-cols-[14rem_1fr] gap-8">
+      <BlogSidebar lang={typedLang} currentPath="/" paths={paths} />
+
+      <div>
+        {
+          posts.length > 0 ? (
+            <ul class="flex flex-col gap-6">
+              {posts.map((post) => (
+                <li>
+                  <BlogCard post={post} lang={typedLang} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <EmptyBlog lang={typedLang} />
+          )
+        }
+      </div>
+    </div>
   </section>
 </Layout>

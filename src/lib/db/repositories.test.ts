@@ -252,3 +252,53 @@ describe("rowToDeveloperWithTranslation", () => {
     expect(result.is_fallback).toBe(true);
   });
 });
+describe("post path normalization", () => {
+  const PATH_REGEX = /^\/(?:[\w-]+\/)*\/?$/;
+
+  it("accepts the root path", () => {
+    expect(PATH_REGEX.test("/")).toBe(true);
+  });
+
+  it("accepts nested paths", () => {
+    expect(PATH_REGEX.test("/ai/")).toBe(true);
+    expect(PATH_REGEX.test("/ai/platform/")).toBe(true);
+    expect(PATH_REGEX.test("/foo-bar/baz_qux/")).toBe(true);
+  });
+
+  it("rejects paths with invalid characters", () => {
+    expect(PATH_REGEX.test("/ai/../etc/")).toBe(false);
+    expect(PATH_REGEX.test("/foo bar/")).toBe(false);
+    expect(PATH_REGEX.test("//double//")).toBe(false);
+    expect(PATH_REGEX.test("no-leading-slash/")).toBe(false);
+  });
+
+  it("escapes LIKE wildcards for path prefix matching", () => {
+    const escapeLike = (v: string) => v.replace(/[\\%_]/g, (c) => "\\" + c);
+    expect(escapeLike("/ai")).toBe("/ai");
+    expect(escapeLike("50%_off")).toBe("50\\%\\_off");
+    expect(escapeLike("path\\foo")).toBe("path\\\\foo");
+  });
+
+  it("normalizePostPath always appends a trailing slash", () => {
+    const normalizePostPath = (raw: string | undefined | null) => {
+      if (!raw || raw.trim() === "") return "/";
+      const trimmed = raw.trim();
+      const normalized = trimmed.startsWith("/") ? trimmed : "/" + trimmed;
+      const cleaned = normalized
+        .split("/")
+        .filter((seg) => seg.length > 0 && /^[\w-]+$/.test(seg))
+        .join("/");
+      if (cleaned === "") return "/";
+      return "/" + cleaned + "/";
+    };
+    expect(normalizePostPath("/")).toBe("/");
+    expect(normalizePostPath("/ai")).toBe("/ai/");
+    expect(normalizePostPath("/ai/")).toBe("/ai/");
+    expect(normalizePostPath("/ai/platform")).toBe("/ai/platform/");
+    expect(normalizePostPath("ai")).toBe("/ai/");
+    expect(normalizePostPath("//double//")).toBe("/double/");
+    expect(normalizePostPath("/foo bar/")).toBe("/");
+    expect(normalizePostPath("")).toBe("/");
+    expect(normalizePostPath(undefined)).toBe("/");
+  });
+});

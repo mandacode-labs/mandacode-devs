@@ -8,6 +8,8 @@ import { LANGUAGE_CONFIGS } from "@/lib/config/languages";
 import { useAdminEditor } from "@/components/admin/use-admin-editor";
 import { useClickOutside } from "@/hooks/use-click-outside";
 import { useTagSuggestions } from "@/hooks/use-tag-suggestions";
+import { usePathSuggestions } from "@/hooks/use-path-suggestions";
+import { normalizePostPath } from "@/lib/api/validation";
 import {
   useAdminTranslations,
   type AdminTranslations,
@@ -21,6 +23,7 @@ export interface PostEditorInitialData {
   title: string;
   description: string | null;
   body: string;
+  path: string;
   publish_status: string;
   cover_image_url: string | null;
   tags: string[];
@@ -46,6 +49,10 @@ export default function PostEditor({
   const [coverImageUrl, setCoverImageUrl] = useState(
     initialData?.cover_image_url ?? "",
   );
+  const [path, setPath] = useState(initialData?.path ?? "/");
+  const [pathInput, setPathInput] = useState("");
+  const [showPathSuggestions, setShowPathSuggestions] = useState(false);
+  const pathWrapperRef = useRef<HTMLDivElement>(null);
   const [tags, setTags] = useState<string[]>(initialData?.tags ?? []);
   const [tagInput, setTagInput] = useState("");
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
@@ -86,6 +93,7 @@ export default function PostEditor({
       title,
       description: description || null,
       body: body,
+      path: normalizePostPath(path || pathInput),
       publish_status: publishStatus,
       cover_image_url: coverImageUrl || null,
       tags,
@@ -101,6 +109,7 @@ export default function PostEditor({
       setDescription(initialData.description ?? "");
       setIntro(initialData.body);
       setCoverImageUrl(initialData.cover_image_url ?? "");
+      setPath(initialData.path ?? "/");
       setTags(initialData.tags ?? []);
       setPublishStatus(initialData.publish_status);
     }
@@ -113,8 +122,10 @@ export default function PostEditor({
   }, [isEditMode, locale, setOriginalLocale]);
 
   const [tagSuggestions, setTagSuggestions] = useTagSuggestions(tagInput);
+  const [pathSuggestions, setPathSuggestions] = usePathSuggestions(pathInput);
 
   useClickOutside(tagWrapperRef, () => setShowSuggestions(false));
+  useClickOutside(pathWrapperRef, () => setShowPathSuggestions(false));
 
   function addTag(value?: string) {
     const normalized = (value ?? tagInput).trim();
@@ -293,6 +304,63 @@ export default function PostEditor({
               entityId={id}
             />
           </div>
+        </label>
+      </AdminSection>
+
+      <AdminSection title={t("admin.path", "Path")}>
+        <label className="block relative">
+          <span className="text-sm font-medium text-text-primary">
+            {t("admin.path", "Path")}
+          </span>
+          <div
+            ref={pathWrapperRef}
+            className="relative flex items-center gap-2 mt-1.5 px-3 py-2 border border-border rounded-lg bg-bg-primary focus-within:ring-2 focus-within:ring-accent focus-within:border-transparent"
+          >
+            <input
+              type="text"
+              value={pathInput || path}
+              onChange={(e) => {
+                setPathInput(e.target.value);
+                setShowPathSuggestions(true);
+              }}
+              onFocus={() => setShowPathSuggestions(true)}
+              onBlur={() => {
+                setTimeout(() => setShowPathSuggestions(false), 150);
+                if (pathInput) {
+                  setPath(normalizePostPath(pathInput));
+                  setPathInput("");
+                }
+              }}
+              placeholder={t("admin.pathPlaceholder", "/ai/platform/")}
+              className="flex-1 min-w-[120px] bg-transparent outline-none text-sm font-mono"
+            />
+            {showPathSuggestions && pathSuggestions.length > 0 && (
+              <ul className="absolute left-0 right-0 top-full z-10 mt-1 max-h-48 overflow-auto rounded-lg border border-border bg-bg-primary shadow-lg">
+                {pathSuggestions.map((suggestion) => (
+                  <li key={suggestion.path}>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setPath(suggestion.path);
+                        setPathInput("");
+                        setShowPathSuggestions(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm font-mono hover:bg-bg-tertiary"
+                    >
+                      {suggestion.path}
+                      <span className="ml-2 text-xs text-text-muted">
+                        ({suggestion.count})
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <p className="mt-1 text-xs text-text-secondary">
+            {t("admin.pathHint", "e.g. /ai/platform/something/")}
+          </p>
         </label>
       </AdminSection>
 

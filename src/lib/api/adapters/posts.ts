@@ -1,7 +1,11 @@
 import { ulid } from "ulid";
 import * as postsRepo from "@/lib/db/posts";
 import * as tagsRepo from "@/lib/db/tags";
-import { createPostSchema, updatePostSchema } from "@/lib/api/validation";
+import {
+  createPostSchema,
+  updatePostSchema,
+  normalizePostPath,
+} from "@/lib/api/validation";
 import { ApiError } from "@/lib/api/response";
 import type { AdminCrudAdapter } from "@/lib/api/admin-crud";
 import { hashContent } from "@/lib/hash";
@@ -30,6 +34,7 @@ export const postAdapter: AdminCrudAdapter<
       id: body.id,
       author_id: user.email,
       original_locale: originalLocale,
+      path: normalizePostPath(body.path ?? "/"),
     });
 
     await postsRepo.createPostTranslation({
@@ -77,8 +82,11 @@ export const postAdapter: AdminCrudAdapter<
 
     await postsRepo.updatePostTranslation(id, locale, updateData);
 
-    if (body.original_locale !== undefined) {
-      await postsRepo.updatePost(id, { original_locale: body.original_locale });
+    if (body.original_locale !== undefined || body.path !== undefined) {
+      await postsRepo.updatePost(id, {
+        original_locale: body.original_locale,
+        path: normalizePostPath(body.path ?? "/"),
+      });
     }
 
     if (body.tags !== undefined) {

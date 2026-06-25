@@ -4,32 +4,29 @@ import CoverImage from "@/components/ui/CoverImage.astro";
 import BackLink from "@/components/shared/BackLink.astro";
 import BlogHeader from "@/components/blog/BlogHeader.astro";
 import ContentRenderer from "@/components/shared/ContentRenderer.astro";
-import { getPost } from "@/lib/content/service";
 import { useTranslations } from "@/lib/i18n/utils";
-import { isValidLanguage, getLocaleFromRequest } from "@/lib/config/languages";
+import type { Lang } from "@/types";
+import type { UnifiedPost } from "@/lib/content/types";
 
-const { lang, slug } = Astro.params;
-
-if (!lang || !isValidLanguage(lang) || !slug) {
-  const locale = getLocaleFromRequest(Astro.request, Astro.url.pathname);
-  return Astro.redirect(`/${locale}/blog`);
+interface Props {
+  post: UnifiedPost;
+  lang: Lang;
+  backPath: string;
 }
 
+const { post, lang, backPath } = Astro.props;
 const t = useTranslations(lang);
-const post = await getPost(slug, lang);
-
-if (!post) {
-  return Astro.redirect(`/${lang}/blog`);
-}
 
 const title = post.title;
 const description = post.description ?? "";
 const image = post.coverImage;
+const backHref = `/blog${backPath === "/" ? "" : backPath}`;
+const backLabel = backPath === "/" ? t("blog.title") : backPath;
 ---
 
 <Layout title={title} description={description} ogImage={image ?? undefined}>
   <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-    <BackLink href={`/${lang}/blog`} label={t("blog.title")} />
+    <BackLink href={backHref} label={backLabel} />
 
     {
       image && (

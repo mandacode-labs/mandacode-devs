@@ -20,6 +20,8 @@ export interface TransTableConfig {
 export interface ListOptions {
   includeUnpublished?: boolean;
   publishStatus?: PublishStatus;
+  pathPrefix?: string;
+  pathColumn?: string;
 }
 
 function buildSelectColumns(
@@ -75,6 +77,24 @@ export function buildListQuery(
   if (options.publishStatus) {
     conditions.push(`${transCfg.alias}.publish_status = ?`);
     params.push(options.publishStatus);
+  }
+  if (options.pathPrefix !== undefined && options.pathColumn) {
+    const prefix = options.pathPrefix.replace(/'/g, "''");
+    const pathCol = `${mainCfg.alias}.${options.pathColumn}`;
+    if (prefix === "/") {
+      // root — no extra filter
+    } else if (prefix.endsWith("/")) {
+      // exact folder match + descendants: /a/ matches /a and /a/b
+      const like = prefix + "%";
+      conditions.push(`(${pathCol} = ? OR ${pathCol} LIKE ? ESCAPE '\\')`);
+      params.push(prefix, like);
+    } else {
+      // treat as folder (auto-add trailing slash)
+      const normalized = prefix + "/";
+      const like = normalized + "%";
+      conditions.push(`(${pathCol} = ? OR ${pathCol} LIKE ? ESCAPE '\\')`);
+      params.push(normalized, like);
+    }
   }
   if (conditions.length > 0) {
     query += ` WHERE ${conditions.join(" AND ")}`;

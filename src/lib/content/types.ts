@@ -14,6 +14,7 @@ export interface UnifiedPost extends BaseUnifiedContent {
   description: string | null;
   pubDate: Date;
   coverImage: string | null;
+  path: string;
   tags: string[];
   hidden: boolean;
 }
