@@ -34,6 +34,7 @@ export interface Post {
   id: string;
   author_id: string;
   original_locale: string;
+  path: string;
   created_at: string;
   updated_at: string;
 }

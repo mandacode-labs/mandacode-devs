@@ -30,6 +30,7 @@ const MAIN_CFG: MainTableConfig = {
     "id",
     "author_id",
     "original_locale",
+    "path",
     "created_at",
     "updated_at",
   ],
@@ -53,6 +54,7 @@ export interface CreatePostInput {
   id: string;
   author_id: string;
   original_locale: string;
+  path?: string;
 }
 
 export interface CreatePostTranslationInput {
@@ -80,9 +82,12 @@ export interface UpdatePostTranslationInput {
 
 export interface UpdatePostInput {
   original_locale?: string;
+  path?: string;
 }
 
-export interface GetPostsOptions extends ListOptions {}
+export interface GetPostsOptions extends ListOptions {
+  pathPrefix?: string;
+}
 
 export interface PostWithTranslation extends Post {
   title: string;
@@ -100,6 +105,7 @@ function mapPostRow(row: Record<string, unknown>): PostWithTranslation {
     id: String(row.id),
     author_id: String(row.author_id),
     original_locale: String(row.original_locale),
+    path: String(row.path ?? "/"),
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
     title: String(hasTranslation ? row.translation_title : row.original_title),
@@ -132,7 +138,7 @@ export async function getPosts(
     MAIN_CFG,
     TRANS_CFG,
     locale,
-    options,
+    { ...options, pathColumn: "path" },
     mapPostRow,
   );
 }
@@ -199,6 +205,32 @@ function escapeLike(value: string): string {
   return value.replace(/[\\%_]/g, "\\$&");
 }
 
+export async function listPostPaths(
+  prefix: string | null = null,
+  limit = 50,
+): Promise<Array<{ path: string; count: number }>> {
+  const db = getDatabase();
+  const trimmed = prefix?.trim() ?? "";
+  const like = trimmed ? `${escapeLike(trimmed)}%` : "%";
+  const result = await db
+    .prepare(
+      `
+      SELECT path, COUNT(*) AS cnt
+      FROM posts
+      WHERE path != '' AND path LIKE ? ESCAPE '\\'
+      GROUP BY path
+      ORDER BY path ASC
+      LIMIT ?
+      `,
+    )
+    .bind(like, limit)
+    .all<{ path: string; cnt: number }>();
+  return (result.results ?? []).map((row) => ({
+    path: row.path,
+    count: row.cnt,
+  }));
+}
+
 export async function getPostTranslationById(
   id: string,
   locale: string,
@@ -215,9 +247,9 @@ export async function createPost(input: CreatePostInput): Promise<void> {
   const db = getDatabase();
   await db
     .prepare(
-      "INSERT INTO posts (id, author_id, original_locale) VALUES (?, ?, ?)",
+      "INSERT INTO posts (id, author_id, original_locale, path) VALUES (?, ?, ?, ?)",
     )
-    .bind(input.id, input.author_id, input.original_locale)
+    .bind(input.id, input.author_id, input.original_locale, input.path ?? "/")
     .run();
 }
 
@@ -258,6 +290,7 @@ export async function updatePost(
   const values: unknown[] = [];
 
   for (const [key, value] of Object.entries(input)) {
+    if (value === undefined) continue;
     fields.push(`${key} = ?`);
     values.push(value);
   }

@@ -5,6 +5,24 @@ const localeValues = [...SUPPORTED_LANGUAGES] as [string, ...string[]];
 const localeSchema = z.enum(localeValues);
 
 const publishStatusSchema = z.enum(["draft", "published", "archived"]);
+
+export const postPathSchema = z
+  .string()
+  .regex(/^\/(?:[\w-]+\/)*\/?$/, "Path must look like / or /foo or /foo/bar/");
+
+export function normalizePostPath(raw: string | undefined | null): string {
+  if (!raw || raw.trim() === "") return "/";
+  const trimmed = raw.trim();
+  let normalized = trimmed.startsWith("/") ? trimmed : "/" + trimmed;
+  // Collapse repeated slashes, strip invalid characters per segment
+  const cleaned = normalized
+    .split("/")
+    .filter((seg) => seg.length > 0 && /^[\w-]+$/.test(seg))
+    .join("/");
+  // Always end with a trailing slash for non-root paths
+  if (cleaned === "") return "/";
+  return "/" + cleaned + "/";
+}
 const projectStatusSchema = z.enum([
   "production",
   "development",
@@ -53,12 +71,14 @@ export const createPostSchema = z.object({
   cover_image_url: urlOrPathSchema.nullable().optional(),
   tags: z.array(z.string()).default([]),
   target_locales: z.array(localeSchema).default([]),
+  path: postPathSchema.default("/"),
 });
 
 export const updatePostSchema = postTranslationSchema.partial().extend({
   original_locale: localeSchema.optional(),
   tags: z.array(z.string()).optional(),
   target_locales: z.array(localeSchema).optional(),
+  path: postPathSchema.optional(),
 });
 
 export const createProjectSchema = z.object({

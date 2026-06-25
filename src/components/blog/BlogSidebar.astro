@@ -1,0 +1,123 @@
+---
+import type { Lang } from "@/types";
+import { useTranslations } from "@/lib/i18n/utils";
+
+interface PostPath {
+  path: string;
+  count: number;
+}
+
+interface Props {
+  lang: Lang;
+  currentPath: string;
+  paths: PostPath[];
+}
+
+interface FolderNode {
+  name: string;
+  path: string;
+  count: number;
+  children: FolderNode[];
+}
+
+const { lang, currentPath, paths } = Astro.props;
+const t = useTranslations(lang);
+
+function buildTree(items: PostPath[]): FolderNode[] {
+  const root: FolderNode = { name: "", path: "", count: 0, children: [] };
+  for (const item of items) {
+    if (item.path === "/" || item.path === "") continue;
+    const trimmed = item.path.replace(/^\/|\/$/g, "");
+    if (!trimmed) continue;
+    const segments = trimmed.split("/");
+    let cursor = root;
+    let acc = "";
+    for (let i = 0; i < segments.length; i++) {
+      const seg = segments[i]!;
+      acc += "/" + seg;
+      const isLeaf = i === segments.length - 1;
+      let child = cursor.children.find((c) => c.name === seg);
+      if (!child) {
+        child = { name: seg, path: acc + "/", count: 0, children: [] };
+        cursor.children.push(child);
+      }
+      if (isLeaf) child.count = item.count;
+      cursor = child;
+    }
+  }
+  // roll up counts (folder count = own + descendants)
+  function rollup(node: FolderNode): number {
+    let total = node.count;
+    for (const c of node.children) total += rollup(c);
+    node.count = total;
+    return total;
+  }
+  for (const c of root.children) rollup(c);
+  return root.children;
+}
+
+const tree = buildTree(paths);
+
+const isActive = (folderPath: string) =>
+  currentPath === folderPath.replace(/\/$/, "") || currentPath === folderPath;
+---
+
+<aside class="text-sm">
+  <nav>
+    <a
+      href={`/${lang}/blog`}
+      class={`block px-3 py-1.5 rounded-md transition-colors ${
+        currentPath === "/" || currentPath === ""
+          ? "bg-accent-subtle text-accent font-medium"
+          : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
+      }`}
+    >
+      {t("blog.allPosts")}
+    </a>
+
+    {
+      tree.length > 0 && (
+        <ul class="mt-3 space-y-1">
+          {tree.map((node) => (
+            <li>
+              <a
+                href={`/${lang}/blog${node.path}`}
+                class={`flex items-center justify-between gap-2 px-3 py-1.5 rounded-md transition-colors ${
+                  isActive(node.path)
+                    ? "bg-accent-subtle text-accent font-medium"
+                    : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
+                }`}
+              >
+                <span class="truncate font-mono">{node.name}</span>
+                <span class="shrink-0 text-xs text-text-muted">
+                  {node.count}
+                </span>
+              </a>
+              {node.children.length > 0 && (
+                <ul class="ml-3 mt-1 space-y-1 border-l border-border pl-2">
+                  {node.children.map((child) => (
+                    <li>
+                      <a
+                        href={`/${lang}/blog${child.path}`}
+                        class={`flex items-center justify-between gap-2 px-2 py-1 rounded-md transition-colors text-xs ${
+                          isActive(child.path)
+                            ? "bg-accent-subtle text-accent font-medium"
+                            : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
+                        }`}
+                      >
+                        <span class="truncate font-mono">{child.name}</span>
+                        <span class="shrink-0 text-text-muted">
+                          {child.count}
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </nav>
+</aside>
