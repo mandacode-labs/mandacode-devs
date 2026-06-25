@@ -7,12 +7,8 @@ export const SECURITY_HEADERS = {
     "camera=(), microphone=(), geolocation=(), interest-cohort=()",
 } as const;
 
-// Short edge-cache TTL for HTML. After this expires, Cloudflare's
-// CDN re-hits the Worker which re-runs the build-id versioned Worker
-// Cache API, so a deploy becomes visible within this many seconds
-// (no manual purge needed). Worker Cache API entries from the prior
-// build are unreachable because their build-id prefix no longer matches.
-export const HTML_CACHE_CONTROL = "public, max-age=0, s-maxage=60";
+export const HTML_CACHE_CONTROL =
+  "public, max-age=0, s-maxage=300, stale-while-revalidate=86400";
 
 export type SecurityHeaderName = keyof typeof SECURITY_HEADERS;
 

@@ -45,11 +45,6 @@ const [pageResult, paths] = await Promise.all([
       <BlogSidebar lang={typedLang} currentPath="/" paths={paths} />
 
       <div>
-        <h3
-          class="text-sm font-medium text-text-muted uppercase tracking-wider mb-3"
-        >
-          {t("blog.posts")}
-        </h3>
         {
           pageResult.posts.length > 0 ? (
             <>
