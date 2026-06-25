@@ -16,9 +16,10 @@
    colors (.hljs-keyword, .hljs-string, ...) are kept as-is. */
 
 .content-body,
-.tiptap.ProseMirror {
+.tiptap.ProseMirror,
+.simple-editor-content .tiptap.ProseMirror {
   hr {
-    margin: 1rem 0;
+    margin: 1rem 0 !important;
     border-color: var(--color-border, #e5e5e5);
   }
 
