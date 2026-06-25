@@ -7,16 +7,17 @@ function getCache(): Cache {
 }
 
 export function getCacheKey(request: Request): Request {
-  // Prefix every cache entry with the per-build identifier baked in at
-  // build time (`__BUILD_ID__`). A new deployment changes the prefix,
-  // so old HTML/JSON responses become unreachable and won't serve
-  // stale content with broken asset references.
+  // Cloudflare's Cache API matches entries by URL — setting extra
+  // headers on the Request does not change the key. To make each
+  // deploy's cache entries independent of previous deploys, append
+  // `?_b=<buildId>` to the URL. The user-facing request URL is
+  // unchanged (we never expose this), so existing links keep working.
   const buildId = typeof __BUILD_ID__ !== "undefined" ? __BUILD_ID__ : "dev";
-  const headers = new Headers(request.headers);
-  headers.set("x-build-id", buildId);
-  return new Request(request.url, {
+  const url = new URL(request.url);
+  url.searchParams.set("_b", buildId);
+  return new Request(url.toString(), {
     method: request.method,
-    headers,
+    headers: request.headers,
   });
 }
 
