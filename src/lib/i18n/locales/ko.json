@@ -21,6 +21,7 @@
   "blog.prevPage": "이전",
   "blog.nextPage": "다음",
   "blog.paginationSummary": "총 {total}개 · {page}/{totalPages} 페이지",
+  "blog.back": "뒤로가기",
   "footer.copyright": "© {year} Mandacode. All rights reserved.",
   "status.production": "운영중",
   "status.development": "개발중",

@@ -158,6 +158,7 @@ export type UIKey =
   | "blog.prevPage"
   | "blog.nextPage"
   | "blog.paginationSummary"
+  | "blog.back"
   | "blog.subtitle"
   | "blog.title"
   | "certifications"
