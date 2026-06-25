@@ -11,17 +11,17 @@ import type { UnifiedPost } from "@/lib/content/types";
 interface Props {
   post: UnifiedPost;
   lang: Lang;
-  backPath: string;
+  folderPath: string;
 }
 
-const { post, lang, backPath } = Astro.props;
+const { post, lang, folderPath } = Astro.props;
 const t = useTranslations(lang);
 
 const title = post.title;
 const description = post.description ?? "";
 const image = post.coverImage;
-const backHref = `/blog${backPath === "/" ? "" : backPath}`;
-const backLabel = backPath === "/" ? t("blog.title") : backPath;
+const backHref = `/${lang}/blog${folderPath === "/" ? "" : folderPath}`;
+const backLabel = folderPath === "/" ? t("blog.title") : folderPath;
 ---
 
 <Layout title={title} description={description} ogImage={image ?? undefined}>

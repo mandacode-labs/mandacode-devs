@@ -14,7 +14,16 @@ import type {
   UnifiedProject,
   UnifiedDeveloper,
 } from "@/lib/content/types";
+import type { PaginatedResult } from "@/lib/db/translation-repo";
 import { type Language } from "@/lib/config/languages";
+
+export interface PostPage {
+  posts: UnifiedPost[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
 
 function getDeveloperTags(developerId: string): Promise<string[]> {
   return tagsRepo.getDeveloperTags(developerId);
@@ -137,6 +146,39 @@ export async function getPosts(
     .sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime());
 }
 
+export async function getPostsPaginated(
+  lang: Language,
+  options: { pathPrefix?: string; page?: number; pageSize?: number } = {},
+): Promise<PostPage> {
+  const result = await postsRepo.getPostsPaginated(lang, {
+    publishStatus: "published",
+    pathPrefix: options.pathPrefix,
+    page: options.page,
+    pageSize: options.pageSize,
+  });
+  const unified = await Promise.all(
+    result.items.map((p) =>
+      tagsRepo.getPostTags(p.id).then((tags) => mapD1Post(p, lang, tags)),
+    ),
+  );
+  const visible = unified
+    .filter((post) => !post.hidden)
+    .sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime());
+  return {
+    posts: visible,
+    total: result.total,
+    page: result.page,
+    pageSize: result.pageSize,
+    totalPages: result.totalPages,
+  };
+}
+
+export async function getPostPaths(): Promise<
+  Array<{ path: string; count: number }>
+> {
+  return postsRepo.listPostPaths();
+}
+
 export async function getPost(
   slug: string,
   lang: Language,
@@ -233,12 +275,6 @@ export async function getDeveloperForAdminPreview(
     getDeveloperTags(id),
   ]);
   return mapD1Developer(developer, techStack, certs, edu, lang);
-}
-
-export async function getPostPaths(): Promise<
-  Array<{ path: string; count: number }>
-> {
-  return postsRepo.listPostPaths();
 }
 
 export async function getDevelopers(

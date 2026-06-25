@@ -22,6 +22,16 @@ export interface ListOptions {
   publishStatus?: PublishStatus;
   pathPrefix?: string;
   pathColumn?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 
 function buildSelectColumns(
@@ -45,8 +55,8 @@ export function buildListQuery(
   transCfg: TransTableConfig,
   locale: string,
   options: ListOptions = {},
-): { query: string; params: (string | PublishStatus)[] } {
-  const params: (string | PublishStatus)[] = [];
+): { query: string; params: (string | number | PublishStatus)[] } {
+  const params: (string | number | PublishStatus)[] = [];
   const cols = buildSelectColumns(mainCfg, transCfg);
   const joinClause = `
     LEFT JOIN ${transCfg.table} ${transCfg.alias}
@@ -105,6 +115,13 @@ export function buildListQuery(
     `COALESCE(${transCfg.alias}.published_at, ${transCfg.alias}.created_at) DESC`;
   query += ` ORDER BY ${orderBy}`;
 
+  if (options.page !== undefined && options.pageSize !== undefined) {
+    const page = Math.max(1, options.page);
+    const pageSize = Math.min(Math.max(options.pageSize, 1), 100);
+    query += ` LIMIT ? OFFSET ?`;
+    params.push(pageSize, (page - 1) * pageSize);
+  }
+
   return { query, params };
 }
 
@@ -130,6 +147,55 @@ export function buildByIdQuery(
   return { query };
 }
 
+export function buildCountQuery(
+  mainCfg: MainTableConfig,
+  transCfg: TransTableConfig,
+  options: ListOptions = {},
+): { query: string; params: (string | PublishStatus)[] } {
+  const params: (string | PublishStatus)[] = [];
+  const conditions: string[] = [];
+  // Visibility is determined by the post's original translation, same as
+  // buildListQuery — join the translation table for the same predicate.
+  const joinClause = `
+    INNER JOIN ${transCfg.table} ${transCfg.alias}
+      ON ${mainCfg.alias}.${mainCfg.idColumn} = ${transCfg.alias}.${transCfg.idColumn}
+      AND ${transCfg.alias}.locale = ${mainCfg.alias}.original_locale
+  `;
+  if (!options.includeUnpublished) {
+    conditions.push(`${transCfg.alias}.publish_status = ?`);
+    params.push("published");
+  }
+  if (options.publishStatus) {
+    conditions.push(`${transCfg.alias}.publish_status = ?`);
+    params.push(options.publishStatus);
+  }
+  if (options.pathPrefix !== undefined && options.pathColumn) {
+    const prefix = options.pathPrefix.replace(/'/g, "''");
+    const pathCol = `${mainCfg.alias}.${options.pathColumn}`;
+    if (prefix === "/") {
+      // root — no extra filter
+    } else if (prefix.endsWith("/")) {
+      const like = prefix + "%";
+      conditions.push(`(${pathCol} = ? OR ${pathCol} LIKE ? ESCAPE '\\')`);
+      params.push(prefix, like);
+    } else {
+      const normalized = prefix + "/";
+      const like = normalized + "%";
+      conditions.push(`(${pathCol} = ? OR ${pathCol} LIKE ? ESCAPE '\\')`);
+      params.push(normalized, like);
+    }
+  }
+  let query = `
+    SELECT COUNT(*) AS cnt
+    FROM ${mainCfg.table} ${mainCfg.alias}
+    ${joinClause}
+  `;
+  if (conditions.length > 0) {
+    query += ` WHERE ${conditions.join(" AND ")}`;
+  }
+  return { query, params };
+}
+
 export async function getListWithTranslation<T>(
   mainCfg: MainTableConfig,
   transCfg: TransTableConfig,
@@ -144,6 +210,50 @@ export async function getListWithTranslation<T>(
     .bind(...params)
     .all();
   return ((result.results ?? []) as Record<string, unknown>[]).map(mapRow);
+}
+
+export async function getPaginatedListWithTranslation<T>(
+  mainCfg: MainTableConfig,
+  transCfg: TransTableConfig,
+  locale: string,
+  options: ListOptions,
+  mapRow: (row: Record<string, unknown>) => T,
+): Promise<PaginatedResult<T>> {
+  const db = getDatabase();
+  const page = Math.max(1, options.page ?? 1);
+  const pageSize = Math.min(Math.max(options.pageSize ?? 10, 1), 100);
+  const { query: countQuery, params: countParams } = buildCountQuery(
+    mainCfg,
+    transCfg,
+    options,
+  );
+  const countRow = (await db
+    .prepare(countQuery)
+    .bind(...countParams)
+    .first()) as { cnt?: number } | null;
+  const total = Number(countRow?.cnt ?? 0);
+  if (total === 0) {
+    return { items: [], total: 0, page, pageSize, totalPages: 0 };
+  }
+  const { query, params } = buildListQuery(mainCfg, transCfg, locale, {
+    ...options,
+    page,
+    pageSize,
+  });
+  const result = await db
+    .prepare(query)
+    .bind(...params)
+    .all();
+  const items = ((result.results ?? []) as Record<string, unknown>[]).map(
+    mapRow,
+  );
+  return {
+    items,
+    total,
+    page,
+    pageSize,
+    totalPages: Math.ceil(total / pageSize),
+  };
 }
 
 export async function getByIdWithTranslation<T>(

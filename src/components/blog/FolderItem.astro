@@ -1,0 +1,57 @@
+---
+import type { Lang } from "@/types";
+import { isPathActive, type FolderNode } from "@/lib/content/post-tree";
+import FolderItem from "@/components/blog/FolderItem.astro";
+
+interface Props {
+  node: FolderNode;
+  lang: Lang;
+  currentPath: string;
+  depth: number;
+}
+
+const { node, lang, currentPath, depth } = Astro.props;
+const active = isPathActive(currentPath, node.path);
+const indentClass = [
+  "ml-0",
+  "ml-3",
+  "ml-6",
+  "ml-9",
+  "ml-12",
+  "ml-15",
+  "ml-[4.5rem]",
+][Math.min(depth - 1, 6)]!;
+const textSize = depth === 1 ? "text-sm" : "text-xs";
+---
+
+<li class={depth > 1 ? "" : ""}>
+  <a
+    href={`/${lang}/blog${node.path}`}
+    aria-current={active ? "page" : undefined}
+    class={`flex items-center justify-between gap-2 px-2 py-1 rounded-md transition-colors ${textSize} ${
+      active
+        ? "text-accent font-medium"
+        : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
+    }`}
+  >
+    <span class="font-mono truncate">{node.name}</span>
+    <span class="shrink-0 text-text-muted">{node.count}</span>
+  </a>
+
+  {
+    node.children.length > 0 && (
+      <ul
+        class={`mt-0.5 space-y-0.5 border-l border-border ${indentClass} pl-2`}
+      >
+        {node.children.map((child) => (
+          <FolderItem
+            node={child}
+            lang={lang}
+            currentPath={currentPath}
+            depth={depth + 1}
+          />
+        ))}
+      </ul>
+    )
+  }
+</li>

@@ -12,10 +12,12 @@ import {
   getEntityOriginalHash,
   getEntityOriginalLocale,
   getListWithTranslation,
+  getPaginatedListWithTranslation,
   updateEntityTranslation,
   type ListOptions,
   type LocaleMeta,
   type MainTableConfig,
+  type PaginatedResult,
   type TransTableConfig,
 } from "@/lib/db/translation-repo";
 import type { Post, PostTranslation, PublishStatus } from "@/lib/db/schema";
@@ -143,6 +145,19 @@ export async function getPosts(
   );
 }
 
+export async function getPostsPaginated(
+  locale: string,
+  options: GetPostsOptions = {},
+): Promise<PaginatedResult<PostWithTranslation>> {
+  return getPaginatedListWithTranslation(
+    MAIN_CFG,
+    TRANS_CFG,
+    locale,
+    { ...options, pathColumn: "path" },
+    mapPostRow,
+  );
+}
+
 export async function getPostById(
   id: string,
   locale: string,
@@ -210,8 +225,11 @@ export async function listPostPaths(
   limit = 50,
 ): Promise<Array<{ path: string; count: number }>> {
   const db = getDatabase();
-  const trimmed = prefix?.trim() ?? "";
-  const like = trimmed ? `${escapeLike(trimmed)}%` : "%";
+  const trimmed = (prefix ?? "").trim();
+  // Normalize: user typically types "/ai" or "ai" and expects "/ai/" matches.
+  const normalized =
+    trimmed === "" ? "" : trimmed.startsWith("/") ? trimmed : "/" + trimmed;
+  const like = normalized ? `${escapeLike(normalized)}%` : "%";
   const result = await db
     .prepare(
       `
