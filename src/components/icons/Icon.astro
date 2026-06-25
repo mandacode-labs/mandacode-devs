@@ -1,0 +1,12 @@
+---
+import { type LucideIcon } from "lucide-react";
+
+interface Props {
+  icon: LucideIcon;
+  class?: string;
+}
+
+const { icon: Icon, class: className = "" } = Astro.props;
+---
+
+<Icon className={className} aria-hidden="true" />

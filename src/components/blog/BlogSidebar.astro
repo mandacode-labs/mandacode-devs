@@ -18,7 +18,7 @@ interface Props {
 const { lang, currentPath, paths } = Astro.props;
 const t = useTranslations(lang);
 const tree = buildPostTree(paths);
-const rootActive = isPathActive(currentPath, "/");
+const rootActive = currentPath === "/";
 ---
 
 <aside class="text-sm">

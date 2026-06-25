@@ -3,14 +3,16 @@ import AdminPageLayout from "@/components/admin/AdminPageLayout.astro";
 import AdminCard from "@/components/admin/AdminCard.astro";
 import StatusBadge from "@/components/admin/StatusBadge.astro";
 import LocaleChip from "@/components/admin/LocaleChip.astro";
+import StatCard from "@/components/admin/StatCard.astro";
+import Icon from "@/components/icons/Icon.astro";
 import { requireAuth } from "@/lib/auth";
 import { useTranslations } from "@/lib/i18n/utils";
 import { DEFAULT_LANGUAGE, MAIN_DEVELOPER_ID } from "@/lib/config/languages";
 import { getPosts } from "@/lib/db/posts";
 import { getProjects } from "@/lib/db/projects";
 import { getDevelopers } from "@/lib/db/developers";
-import type { PostWithTranslation } from "@/lib/db/posts";
-import type { ProjectWithTranslation } from "@/lib/db/projects";
+import { Plus } from "lucide-react";
+import { getDashboardStats } from "@/components/admin/dashboard-stats";
 
 requireAuth(Astro);
 const t = useTranslations(DEFAULT_LANGUAGE);
@@ -21,19 +23,10 @@ const [posts, projects, developers] = await Promise.all([
   getDevelopers(DEFAULT_LANGUAGE, { includeUnpublished: true }),
 ]);
 
-const publishedPosts = posts.filter((p) => p.publish_status === "published");
-const archivedPosts = posts.filter((p) => p.publish_status === "archived");
-const draftPosts = posts.filter((p) => p.publish_status === "draft");
-
-const publishedProjects = projects.filter(
-  (p) => p.publish_status === "published",
-);
-const archivedProjects = projects.filter(
-  (p) => p.publish_status === "archived",
-);
-
 const developerName =
   developers.find((d) => d.id === MAIN_DEVELOPER_ID)?.name ?? "—";
+
+const stats = getDashboardStats(posts, projects, developerName);
 
 interface RecentItem {
   id: string;
@@ -45,7 +38,7 @@ interface RecentItem {
 }
 
 const recentItems: RecentItem[] = [
-  ...posts.map((p: PostWithTranslation) => ({
+  ...posts.map((p) => ({
     id: p.id,
     locale: p.original_locale,
     title: p.title,
@@ -53,7 +46,7 @@ const recentItems: RecentItem[] = [
     publish_status: p.publish_status,
     updated: p.updated_at,
   })),
-  ...projects.map((p: ProjectWithTranslation) => ({
+  ...projects.map((p) => ({
     id: p.id,
     locale: p.original_locale,
     title: p.title,
@@ -82,62 +75,7 @@ function formatDate(iso: string): string {
 >
   <!-- Stats -->
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-    <AdminCard class="p-4 sm:p-5">
-      <p class="text-xs sm:text-sm text-text-secondary mb-1">Total Posts</p>
-      <p class="text-2xl sm:text-3xl font-bold text-text-primary">
-        {posts.length}
-      </p>
-      <div class="mt-2 sm:mt-3 flex items-center gap-2 text-xs">
-        <span class="text-green-600 font-medium"
-          >{publishedPosts.length} published</span
-        >
-        <span class="text-text-muted">·</span>
-        <span class="text-yellow-600 font-medium"
-          >{draftPosts.length} draft</span
-        >
-      </div>
-    </AdminCard>
-
-    <AdminCard class="p-4 sm:p-5">
-      <p class="text-xs sm:text-sm text-text-secondary mb-1">Total Projects</p>
-      <p class="text-2xl sm:text-3xl font-bold text-text-primary">
-        {projects.length}
-      </p>
-      <div class="mt-2 sm:mt-3 flex items-center gap-2 text-xs">
-        <span class="text-green-600 font-medium"
-          >{publishedProjects.length} published</span
-        >
-      </div>
-    </AdminCard>
-
-    <AdminCard class="p-4 sm:p-5">
-      <p class="text-xs sm:text-sm text-text-secondary mb-1">Archived Items</p>
-      <p class="text-2xl sm:text-3xl font-bold text-text-primary">
-        {archivedPosts.length + archivedProjects.length}
-      </p>
-      <div class="mt-2 sm:mt-3 flex items-center gap-2 text-xs text-text-muted">
-        <span>{archivedPosts.length} posts</span>
-        <span>·</span>
-        <span>{archivedProjects.length} projects</span>
-      </div>
-    </AdminCard>
-
-    <AdminCard class="p-4 sm:p-5">
-      <p class="text-xs sm:text-sm text-text-secondary mb-1">
-        Developer Profile
-      </p>
-      <p class="text-base sm:text-lg font-semibold text-text-primary truncate">
-        {developerName}
-      </p>
-      <div class="mt-2 sm:mt-3">
-        <a
-          href="/admin/developers/new"
-          class="text-xs font-medium text-accent hover:text-accent-hover"
-        >
-          Edit profile →
-        </a>
-      </div>
-    </AdminCard>
+    {stats.map((stat) => <StatCard {...stat} />)}
   </div>
 
   <!-- Quick actions -->
@@ -152,46 +90,21 @@ function formatDate(iso: string): string {
         href="/admin/posts/new"
         class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-accent text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-accent-hover transition-colors"
       >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          class="w-4 h-4"
-        >
-          <path d="M12 5v14M5 12h14"></path>
-        </svg>
+        <Icon icon={Plus} class="w-4 h-4" />
         {t("admin.newPost")}
       </a>
       <a
         href="/admin/projects/new"
         class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-accent text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-accent-hover transition-colors"
       >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          class="w-4 h-4"
-        >
-          <path d="M12 5v14M5 12h14"></path>
-        </svg>
+        <Icon icon={Plus} class="w-4 h-4" />
         {t("admin.newProject")}
       </a>
       <a
         href="/admin/developers/new"
         class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 border border-border text-text-primary text-xs sm:text-sm font-medium rounded-lg hover:bg-bg-secondary transition-colors"
       >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          class="w-4 h-4"
-        >
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-          <circle cx="12" cy="7" r="4"></circle>
-        </svg>
+        <Icon icon={Plus} class="w-4 h-4" />
         {t("admin.newProfile")}
       </a>
     </div>

@@ -1,6 +1,7 @@
 ---
 import AdminPageLayout from "@/components/admin/AdminPageLayout.astro";
 import { AdminList } from "@/components/admin/AdminList";
+import Icon from "@/components/icons/Icon.astro";
 import { requireAuth } from "@/lib/auth";
 import {
   getDevelopers,
@@ -11,6 +12,7 @@ import {
 import { useTranslations } from "@/lib/i18n/utils";
 import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@/lib/config/languages";
 import { formatShortDate } from "@/lib/utils/date";
+import { Plus } from "lucide-react";
 import type { AdminListItem } from "@/components/admin/AdminList";
 
 requireAuth(Astro);
@@ -117,15 +119,7 @@ const translations: Record<string, string> = {};
       href="/admin/developers/new"
       class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover transition-colors"
     >
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        class="w-4 h-4"
-      >
-        <path d="M12 5v14M5 12h14"></path>
-      </svg>
+      <Icon icon={Plus} class="w-4 h-4" />
       {t("admin.newProfile")}
     </a>
   </div>

@@ -1,0 +1,40 @@
+---
+interface Props {
+  label: string;
+  value: string | number;
+  icon: any;
+  meta?: string;
+  href?: string;
+}
+
+const { label, value, icon: Icon, meta, href } = Astro.props;
+const Wrapper = href ? "a" : "div";
+---
+
+<Wrapper
+  {...href ? { href } : {}}
+  class={`group relative flex items-center gap-3 sm:gap-4 rounded-xl border border-border bg-bg-primary p-3 sm:p-5 shadow-sm transition-all hover:shadow-md ${href ? "hover:border-accent/30" : ""}`}
+>
+  <div
+    class="shrink-0 flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-lg bg-accent-subtle text-accent"
+  >
+    <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+  </div>
+  <div class="min-w-0 flex-1">
+    <p class="text-[11px] sm:text-sm font-medium text-text-secondary truncate">
+      {label}
+    </p>
+    <p
+      class="text-lg sm:text-2xl font-bold text-text-primary tracking-tight truncate"
+    >
+      {value}
+    </p>
+    {
+      meta && (
+        <p class="hidden sm:block mt-1 text-xs text-text-muted truncate">
+          {meta}
+        </p>
+      )
+    }
+  </div>
+</Wrapper>

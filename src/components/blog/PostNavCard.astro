@@ -1,6 +1,5 @@
 ---
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { formatDate } from "@/lib/utils/date";
 import type { Lang } from "@/types";
 import type { UnifiedPost } from "@/lib/content/types";
 
@@ -18,47 +17,46 @@ const { prev, next, lang, prevLabel, nextLabel } = Astro.props;
 {
   (prev || next) && (
     <nav
-      class="grid grid-cols-1 sm:grid-cols-2 gap-3"
+      class="flex items-center justify-between gap-3"
       aria-label="Post navigation"
     >
-      {prev ? (
-        <a
-          href={`/${lang}/blog/${prev.id}`}
-          class="group flex items-center gap-3 px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg border border-border bg-bg-secondary/40 hover:bg-bg-secondary hover:border-border-hover transition-colors text-left"
-        >
-          <ArrowLeft size={16} className="text-text-muted shrink-0" />
-          <div class="min-w-0 flex-1">
-            <p class="text-xs text-text-muted">{prevLabel}</p>
-            <p class="text-sm font-medium text-text-primary group-hover:text-accent truncate transition-colors">
-              {prev.title}
-            </p>
-            <p class="text-xs text-text-muted mt-0.5 hidden sm:block">
-              {formatDate(prev.pubDate, lang)}
-            </p>
-          </div>
-        </a>
-      ) : (
-        <span class="hidden sm:block" />
-      )}
-      {next ? (
-        <a
-          href={`/${lang}/blog/${next.id}`}
-          class="group flex flex-row-reverse sm:flex-row items-center gap-3 px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg border border-border bg-bg-secondary/40 hover:bg-bg-secondary hover:border-border-hover transition-colors text-left sm:text-right"
-        >
-          <div class="min-w-0 flex-1">
-            <p class="text-xs text-text-muted">{nextLabel}</p>
-            <p class="text-sm font-medium text-text-primary group-hover:text-accent truncate transition-colors">
-              {next.title}
-            </p>
-            <p class="text-xs text-text-muted mt-0.5 hidden sm:block">
-              {formatDate(next.pubDate, lang)}
-            </p>
-          </div>
-          <ArrowRight size={16} className="text-text-muted shrink-0" />
-        </a>
-      ) : (
-        <span class="hidden sm:block" />
-      )}
+      <div class="min-w-0 flex-1">
+        {prev ? (
+          <a
+            href={`/${lang}/blog/${prev.id}`}
+            class="group flex items-center gap-2 px-2.5 sm:px-4 py-2 sm:py-3 rounded-lg border border-border bg-bg-secondary/40 hover:bg-bg-secondary hover:border-border-hover transition-colors min-w-0"
+          >
+            <ArrowLeft size={14} className="text-text-muted shrink-0" />
+            <div class="min-w-0 flex-1">
+              <p class="text-[10px] sm:text-xs text-text-muted">{prevLabel}</p>
+              <p class="text-xs sm:text-sm font-medium text-text-primary group-hover:text-accent truncate transition-colors">
+                {prev.title}
+              </p>
+            </div>
+          </a>
+        ) : (
+          <span class="block h-full min-h-[3.25rem] sm:min-h-[4.25rem]" />
+        )}
+      </div>
+
+      <div class="min-w-0 flex-1">
+        {next ? (
+          <a
+            href={`/${lang}/blog/${next.id}`}
+            class="group flex items-center justify-end gap-2 px-2.5 sm:px-4 py-2 sm:py-3 rounded-lg border border-border bg-bg-secondary/40 hover:bg-bg-secondary hover:border-border-hover transition-colors text-right min-w-0"
+          >
+            <div class="min-w-0 flex-1">
+              <p class="text-[10px] sm:text-xs text-text-muted">{nextLabel}</p>
+              <p class="text-xs sm:text-sm font-medium text-text-primary group-hover:text-accent truncate transition-colors">
+                {next.title}
+              </p>
+            </div>
+            <ArrowRight size={14} className="text-text-muted shrink-0" />
+          </a>
+        ) : (
+          <span class="block h-full min-h-[3.25rem] sm:min-h-[4.25rem]" />
+        )}
+      </div>
     </nav>
   )
 }

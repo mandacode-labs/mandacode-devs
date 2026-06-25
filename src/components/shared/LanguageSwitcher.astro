@@ -1,6 +1,8 @@
 ---
 import { type Lang } from "@/types";
 import { SUPPORTED_LANGUAGES, LANGUAGE_CONFIGS } from "@/lib/config/languages";
+import Icon from "@/components/icons/Icon.astro";
+import { ChevronDown } from "lucide-react";
 
 interface Props {
   currentLang: Lang;
@@ -36,22 +38,11 @@ const otherLangs = SUPPORTED_LANGUAGES.filter((lang) => lang !== currentLang);
     data-switcher-button
   >
     <span>{LANGUAGE_CONFIGS[currentLang].label}</span>
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      class="transition-transform"
-      aria-hidden="true"
+    <Icon
+      icon={ChevronDown}
+      class="w-3.5 h-3.5 transition-transform"
       data-chevron
-    >
-      <path d="m6 9 6 6 6-6"></path>
-    </svg>
+    />
   </button>
 
   <div

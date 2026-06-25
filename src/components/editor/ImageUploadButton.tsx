@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { Upload, Loader2 } from "lucide-react";
 import { uploadEntityFile } from "@/lib/api/upload";
 
 export type ImageUploadEntityType = "post" | "project" | "developer";
@@ -67,40 +68,12 @@ export default function ImageUploadButton({
       >
         {isUploading ? (
           <>
-            <svg
-              className="animate-spin h-3.5 w-3.5"
-              viewBox="0 0 24 24"
-              fill="none"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-              />
-            </svg>
+            <Loader2 className="animate-spin h-3.5 w-3.5" />
             Uploading...
           </>
         ) : (
           <>
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="w-3.5 h-3.5"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="17 8 12 3 7 8" />
-              <line x1="12" y1="3" x2="12" y2="15" />
-            </svg>
+            <Upload className="w-3.5 h-3.5" />
             Upload
           </>
         )}

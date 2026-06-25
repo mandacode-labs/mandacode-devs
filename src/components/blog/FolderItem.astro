@@ -1,7 +1,11 @@
 ---
 import { Folder } from "lucide-react";
 import type { Lang } from "@/types";
-import { isPathActive, type FolderNode } from "@/lib/content/post-tree";
+import {
+  isPathActive,
+  isPathInBranch,
+  type FolderNode,
+} from "@/lib/content/post-tree";
 import FolderItem from "@/components/blog/FolderItem.astro";
 
 interface Props {
@@ -13,6 +17,7 @@ interface Props {
 
 const { node, lang, currentPath, depth } = Astro.props;
 const active = isPathActive(currentPath, node.path);
+const inBranch = isPathInBranch(currentPath, node.path);
 const indentClass = [
   "ml-0",
   "ml-3",
@@ -32,13 +37,15 @@ const textSize = depth === 1 ? "text-sm" : "text-xs";
     class={`group flex items-center justify-between gap-2 pl-2 pr-2 py-1 rounded-md transition-colors ${textSize} ${
       active
         ? "text-accent font-medium bg-accent-subtle"
-        : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
+        : inBranch
+          ? "text-accent font-medium hover:bg-bg-secondary"
+          : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
     }`}
   >
     <span class="flex items-center gap-1.5 min-w-0">
       <Folder
         size={depth === 1 ? 14 : 12}
-        className={`shrink-0 ${active ? "text-accent" : "text-text-muted group-hover:text-text-primary"}`}
+        className={`shrink-0 ${active || inBranch ? "text-accent" : "text-text-muted group-hover:text-text-primary"}`}
       />
       <span class="font-mono truncate">{node.name}</span>
     </span>

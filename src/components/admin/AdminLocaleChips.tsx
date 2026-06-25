@@ -34,13 +34,14 @@ interface AdminLocaleChipsProps {
     contentType: TranslationContentType,
     targetLocale: string,
   ) => void;
+  size?: "sm" | "md";
 }
 
 const outdatedRingClass =
   "ring-2 ring-orange-400 ring-offset-1 ring-offset-bg-primary";
 
 const chipBaseClass =
-  "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold uppercase tracking-wide border transition-colors cursor-pointer select-none";
+  "inline-flex items-center gap-1 font-semibold uppercase tracking-wide border transition-colors cursor-pointer select-none";
 
 function getChipClass(state: ChipState): string {
   switch (state.kind) {
@@ -178,6 +179,7 @@ interface ChipProps {
   errorMessage: string | null;
   canRegenerate: boolean;
   onRegenerate: (() => void) | null;
+  size?: "sm" | "md";
 }
 
 function Chip({
@@ -192,6 +194,7 @@ function Chip({
   errorMessage,
   canRegenerate,
   onRegenerate,
+  size = "md",
 }: ChipProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuRect, setMenuRect] = useState<DOMRect | null>(null);
@@ -232,7 +235,12 @@ function Chip({
   if (isOutdated) tooltipParts.push("원본 변경됨");
   const tooltip = tooltipParts.join(" · ");
 
-  const className = `${chipBaseClass} ${getChipClass(state)} ${
+  const sizeClass =
+    size === "sm"
+      ? "px-1.5 py-0.5 rounded text-[10px]"
+      : "px-2 py-1 rounded-md text-[11px]";
+
+  const className = `${chipBaseClass} ${sizeClass} ${getChipClass(state)} ${
     isOutdated ? outdatedRingClass : ""
   } ${!hasTranslation && !isTranslating ? "opacity-50" : ""}`;
 
@@ -285,6 +293,7 @@ export function AdminLocaleChips({
   locales,
   regenerating = false,
   onRegenerate,
+  size = "md",
 }: AdminLocaleChipsProps) {
   const ids = useMemo(() => [contentId], [contentId]);
   const { getStatus, getError } = useTranslationStatus({
@@ -299,7 +308,7 @@ export function AdminLocaleChips({
   );
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <div className="flex flex-wrap items-center gap-1">
       {sorted.map(
         ({
           locale,
@@ -335,6 +344,7 @@ export function AdminLocaleChips({
               jobStatus={status}
               errorMessage={errorMessage}
               canRegenerate={canRegenerate}
+              size={size}
               onRegenerate={
                 onRegenerate
                   ? () => onRegenerate(contentId, contentType, locale)
