@@ -1,4 +1,5 @@
 ---
+import { renderTiptapJson } from "@/lib/tiptap/render";
 import "highlight.js/styles/atom-one-dark.css";
 import "@/components/content-body/content-body.scss";
 
@@ -10,7 +11,7 @@ interface Props {
 
 const { content, html: preHtml, class: className } = Astro.props;
 
-const html = preHtml ?? (content ? content : null);
+const html = preHtml ?? (content ? renderTiptapJson(content) : null);
 ---
 
 <div class:list={["prose prose-neutral max-w-none content-body", className]}>
