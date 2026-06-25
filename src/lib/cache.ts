@@ -1,18 +1,30 @@
 import { getSiteUrl } from "@/lib/config/site";
 
+declare const __BUILD_ID__: string;
+
 function getCache(): Cache {
   return (caches as unknown as { default: Cache }).default;
 }
 
-export function getCacheKey(request: Request): string {
-  return request.url;
+export function getCacheKey(request: Request): Request {
+  // Prefix every cache entry with the per-build identifier baked in at
+  // build time (`__BUILD_ID__`). A new deployment changes the prefix,
+  // so old HTML/JSON responses become unreachable and won't serve
+  // stale content with broken asset references.
+  const buildId = typeof __BUILD_ID__ !== "undefined" ? __BUILD_ID__ : "dev";
+  const headers = new Headers(request.headers);
+  headers.set("x-build-id", buildId);
+  return new Request(request.url, {
+    method: request.method,
+    headers,
+  });
 }
 
 export async function getCachedResponse(
   request: Request,
 ): Promise<Response | undefined> {
   const cache = getCache();
-  const cached = await cache.match(request);
+  const cached = await cache.match(getCacheKey(request));
   return cached ?? undefined;
 }
 
@@ -21,7 +33,7 @@ export async function cacheResponse(
   response: Response,
 ): Promise<void> {
   const cache = getCache();
-  await cache.put(request, response.clone());
+  await cache.put(getCacheKey(request), response.clone());
 }
 
 export async function invalidateCache(path: string): Promise<void> {
