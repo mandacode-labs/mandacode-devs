@@ -34,47 +34,47 @@ const next = index > 0 ? (siblings[index - 1] ?? null) : null;
 ---
 
 <Layout title={title} description={description} ogImage={image ?? undefined}>
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+  <div
+    class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 relative overflow-x-clip"
+  >
     <BackButton label={t("blog.back")} />
 
-    <div class="lg:flex lg:gap-10">
-      <article class="flex-1 min-w-0 max-w-3xl">
-        {
-          image && (
-            <CoverImage
-              src={image}
-              alt={title}
-              class="flex w-full max-h-[30rem] rounded-xl mb-8"
-              fetchpriority="high"
-            />
-          )
-        }
-
-        <BlogHeader post={post} lang={lang} />
-
-        <ContentRenderer html={html} class="mt-12" />
-
-        <div class="mt-16 space-y-10">
-          <hr class="border-border" />
-
-          <PostNavCard
-            prev={prev}
-            next={next}
-            lang={lang}
-            prevLabel={t("blog.prevPost")}
-            nextLabel={t("blog.nextPost")}
+    <article>
+      {
+        image && (
+          <CoverImage
+            src={image}
+            alt={title}
+            class="flex w-full max-h-[30rem] rounded-xl mb-8"
+            fetchpriority="high"
           />
+        )
+      }
 
-          <RelatedPosts
-            posts={siblings}
-            currentId={post.id}
-            lang={lang}
-            heading={t("blog.relatedPosts")}
-          />
-        </div>
-      </article>
+      <BlogHeader post={post} lang={lang} />
 
-      <TableOfContents headings={headings} />
-    </div>
+      <ContentRenderer html={html} class="mt-12" />
+
+      <div class="mt-16 space-y-10">
+        <hr class="border-border" />
+
+        <PostNavCard
+          prev={prev}
+          next={next}
+          lang={lang}
+          prevLabel={t("blog.prevPost")}
+          nextLabel={t("blog.nextPost")}
+        />
+
+        <RelatedPosts
+          posts={siblings}
+          currentId={post.id}
+          lang={lang}
+          heading={t("blog.relatedPosts")}
+        />
+      </div>
+    </article>
+
+    <TableOfContents headings={headings} />
   </div>
 </Layout>
