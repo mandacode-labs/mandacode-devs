@@ -16,6 +16,23 @@ import type {
 } from "@/lib/content/types";
 import type { PaginatedResult } from "@/lib/db/translation-repo";
 import { type Language } from "@/lib/config/languages";
+import {
+  renderTiptapJson,
+  extractHeadings,
+  type HeadingInfo,
+} from "@/lib/tiptap/render";
+
+export interface RenderedBody {
+  html: string;
+  headings: HeadingInfo[];
+}
+
+export async function renderPostBody(
+  json: string | null | undefined,
+): Promise<RenderedBody> {
+  const html = json ? renderTiptapJson(json) : "";
+  return { html, headings: extractHeadings(html) };
+}
 
 export interface PostPage {
   posts: UnifiedPost[];

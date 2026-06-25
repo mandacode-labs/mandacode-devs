@@ -17,6 +17,28 @@
 
 .content-body,
 .tiptap.ProseMirror {
+  hr {
+    margin: 1rem 0;
+    border-color: var(--color-border, #e5e5e5);
+  }
+
+  h1,
+  h2,
+  h3 {
+    scroll-margin-top: 5rem;
+    position: relative;
+  }
+
+  h1:hover::before,
+  h2:hover::before,
+  h3:hover::before {
+    content: "#";
+    position: absolute;
+    left: -1.2em;
+    color: var(--color-accent, currentColor);
+    font-weight: 400;
+  }
+
   pre {
     background-color: #1e1e1e;
     color: #e6e6e6;
