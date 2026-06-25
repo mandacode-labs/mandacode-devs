@@ -2,7 +2,6 @@
 @import "./_keyframe-animations.css";
 
 @import "tailwindcss";
-@plugin "@tailwindcss/typography";
 
 @theme {
   --color-bg-primary: #ffffff;
@@ -169,35 +168,6 @@
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-}
-
-/* Prose overrides for blog content */
-.prose {
-  --tw-prose-headings: var(--color-text-primary);
-  --tw-prose-body: var(--color-text-primary);
-  --tw-prose-links: var(--color-accent);
-  --tw-prose-bold: var(--color-text-primary);
-  --tw-prose-counters: var(--color-text-muted);
-  --tw-prose-bullets: var(--color-text-muted);
-  --tw-prose-hr: var(--color-border);
-  --tw-prose-quotes: var(--color-text-secondary);
-  --tw-prose-quote-borders: var(--color-border);
-  --tw-prose-captions: var(--color-text-muted);
-  --tw-prose-code: var(--color-text-primary);
-  --tw-prose-pre-code: var(--color-text-primary);
-  --tw-prose-pre-bg: var(--color-bg-secondary);
-}
-
-.prose h2 {
-  font-size: 1.25rem;
-  margin-top: 2.5rem;
-  margin-bottom: 1rem;
-}
-
-.prose h3 {
-  font-size: 1.125rem;
-  margin-top: 2rem;
-  margin-bottom: 0.75rem;
 }
 
 /* Highlight mark fix */

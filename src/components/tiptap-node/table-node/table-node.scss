@@ -1,5 +1,3 @@
-@use "../../content-body/content-body";
-
 .tiptap.ProseMirror {
   table {
     .selectedCell {
@@ -37,7 +35,8 @@
   }
 }
 
-/* Table wrapper for better layout */
-.tiptap.ProseMirror > table {
-  display: table;
+/* Allow horizontal scroll for wide tables in the editor */
+.tableWrapper {
+  max-width: 100%;
+  overflow-x: auto;
 }

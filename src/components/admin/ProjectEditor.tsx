@@ -4,6 +4,8 @@ import ImageUploadButton from "@/components/editor/ImageUploadButton";
 import { AdminSection } from "@/components/admin/AdminSection";
 import { TranslationsSection } from "@/components/admin/TranslationsSection";
 import { StickyEditorActions } from "@/components/admin/StickyEditorActions";
+import { AdminDangerZone } from "@/components/admin/AdminDangerZone";
+import DeleteModal from "@/components/admin/DeleteModal";
 import BlogPostSelector from "@/components/admin/BlogPostSelector";
 import { LANGUAGE_CONFIGS } from "@/lib/config/languages";
 import { useAdminEditor } from "@/components/admin/use-admin-editor";
@@ -599,26 +601,39 @@ export default function ProjectEditor({
         runningLabel={t("admin.running", "진행 중...")}
       />
 
+      {isEditMode && (
+        <AdminDangerZone
+          title={t("admin.dangerZone", "Danger zone")}
+          description={t(
+            "admin.deleteProjectDescription",
+            "Deleting this project removes all its language versions. This action cannot be undone.",
+          )}
+          buttonLabel={t("admin.delete", "Delete")}
+          deleting={isDeleting}
+          onDelete={() => setShowDeleteModal(true)}
+        />
+      )}
+
       <StickyEditorActions
-        isEditMode={isEditMode}
         isSubmitting={isSubmitting}
-        isDeleting={isDeleting}
-        showDeleteModal={showDeleteModal}
         cancelHref="/admin/projects"
-        itemName={title || id}
-        locale={locale}
-        translations={translations}
-        onSubmit={() => {}}
-        onShowDelete={() => setShowDeleteModal(true)}
-        onHideDelete={() => setShowDeleteModal(false)}
-        onConfirmDelete={handleDelete}
-        deleteModalTitle={t("admin.deleteProject", "Delete project?")}
-        deleteButtonLabel={t("admin.delete", "Delete")}
         submitLabel={t("admin.updateProject", "Update Project")}
         saveLabel={t("admin.saveProject", "Save Project")}
         savingLabel={t("admin.saving", "Saving...")}
         cancelLabel={t("admin.cancel", "Cancel")}
+        onSubmit={() => {}}
       />
+
+      {showDeleteModal && (
+        <DeleteModal
+          title={t("admin.deleteProject", "Delete project?")}
+          itemName={title || id}
+          locale={locale}
+          translations={translations}
+          onConfirm={handleDelete}
+          onCancel={() => setShowDeleteModal(false)}
+        />
+      )}
     </form>
   );
 }

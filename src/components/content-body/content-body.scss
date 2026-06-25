@@ -1,26 +1,115 @@
-/* Rendered content body styles. Shared by ContentRenderer
-   (public/admin preview) and the Tiptap editor. Imported by
-   those two consumers, not by global.css, so styles do not leak
-   outside the rendered content.
-
-   The wrapper element on each consumer carries one of:
-     - .content-body       (ContentRenderer, public/admin)
-     - .tiptap.ProseMirror (Tiptap editor)
-   Selectors below are scoped to those roots.
-
-   Code block syntax highlighting is delegated to highlight.js's
-   atom-one-dark theme (imported alongside this file). The theme
-   applies a background to its outer .hljs wrapper span; we
-   neutralize that here so the pre's own background is the single
-   source of truth for the code block surface. The theme's token
-   colors (.hljs-keyword, .hljs-string, ...) are kept as-is. */
+/* Single source of truth for rendered Tiptap content styles.
+   Used by ContentRenderer (public/admin preview) and the Tiptap editor.
+   Imported by those consumers, not by global.css, so styles do not leak
+   outside the rendered content. */
 
 .content-body,
 .tiptap.ProseMirror,
 .simple-editor-content .tiptap.ProseMirror {
-  hr {
-    margin: 1rem 0 !important;
-    border-color: var(--color-border, #e5e5e5);
+  p {
+    margin: 0.25rem 0;
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    margin: 0.75rem 0;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  > h1:first-child,
+  > h2:first-child,
+  > h3:first-child,
+  > h4:first-child,
+  > .ProseMirror-widget + h1,
+  > .ProseMirror-widget + h2,
+  > .ProseMirror-widget + h3,
+  > .ProseMirror-widget + h4 {
+    margin-top: 0;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  h3 {
+    font-size: 1.125rem;
+  }
+
+  h4 {
+    font-size: 1rem;
+  }
+
+  ul,
+  ol {
+    margin: 0.5rem 0;
+    padding-left: 1.25rem;
+  }
+
+  li > ul,
+  li > ol {
+    margin: 0;
+  }
+
+  li {
+    margin: 0.25rem 0;
+  }
+
+  li p {
+    margin: 0;
+  }
+
+  blockquote {
+    margin: 0.75rem 0;
+    padding-left: 1rem;
+    border-left: 3px solid var(--color-border-hover, #d4d4d4);
+    font-style: italic;
+    color: var(--color-text-secondary, #525252);
+  }
+
+  img {
+    display: inline-block;
+    max-width: 100%;
+    height: auto;
+    margin: 0;
+    border-radius: var(--radius-sm, 0.375rem);
+  }
+
+  [data-text-align] img {
+    display: inline-block;
+  }
+
+  [data-text-align="left"] {
+    text-align: left;
+  }
+
+  [data-text-align="center"] {
+    text-align: center;
+  }
+
+  [data-text-align="right"] {
+    text-align: right;
+  }
+
+  [data-text-align="justify"] {
+    text-align: justify;
+  }
+
+  hr,
+  [data-type="horizontalRule"] {
+    margin: 0.5rem 0;
+    padding: 0;
+    border: none;
+    height: 1px;
+    background-color: var(--color-border, #e5e5e5);
+  }
   }
 
   h1,
@@ -63,10 +152,6 @@
     font-weight: inherit;
   }
 
-  pre .hljs {
-    background: transparent;
-  }
-
   code {
     background-color: var(--color-bg-secondary, #fafafa);
     border: 1px solid var(--color-border, #e5e5e5);
@@ -84,11 +169,11 @@
   table {
     border-collapse: collapse;
     margin: 0.75rem 0;
-    width: 100%;
-    table-layout: fixed;
+    max-width: 100%;
 
     th,
     td {
+      position: relative;
       border: 1px solid var(--color-border, #e5e5e5);
       padding: 0.25rem 0.5rem;
       vertical-align: top;
@@ -106,5 +191,11 @@
       margin: 0 !important;
       line-height: inherit !important;
     }
+  }
+
+  /* Wrap wide tables for horizontal scrolling on mobile */
+  .tableWrapper {
+    max-width: 100%;
+    overflow-x: auto;
   }
 }
