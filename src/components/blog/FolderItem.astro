@@ -1,4 +1,5 @@
 ---
+import { Folder } from "lucide-react";
 import type { Lang } from "@/types";
 import { isPathActive, type FolderNode } from "@/lib/content/post-tree";
 import FolderItem from "@/components/blog/FolderItem.astro";
@@ -24,24 +25,30 @@ const indentClass = [
 const textSize = depth === 1 ? "text-sm" : "text-xs";
 ---
 
-<li class={depth > 1 ? "" : ""}>
+<li>
   <a
     href={`/${lang}/blog${node.path}`}
     aria-current={active ? "page" : undefined}
-    class={`flex items-center justify-between gap-2 px-2 py-1 rounded-md transition-colors ${textSize} ${
+    class={`group flex items-center justify-between gap-2 pl-2 pr-2 py-1 rounded-md transition-colors ${textSize} ${
       active
-        ? "text-accent font-medium"
+        ? "text-accent font-medium bg-accent-subtle"
         : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
     }`}
   >
-    <span class="font-mono truncate">{node.name}</span>
-    <span class="shrink-0 text-text-muted">{node.count}</span>
+    <span class="flex items-center gap-1.5 min-w-0">
+      <Folder
+        size={depth === 1 ? 14 : 12}
+        className={`shrink-0 ${active ? "text-accent" : "text-text-muted group-hover:text-text-primary"}`}
+      />
+      <span class="font-mono truncate">{node.name}</span>
+    </span>
+    <span class="shrink-0 text-text-muted tabular-nums">{node.count}</span>
   </a>
 
   {
     node.children.length > 0 && (
       <ul
-        class={`mt-0.5 space-y-0.5 border-l border-border ${indentClass} pl-2`}
+        class={`mt-0.5 space-y-0.5 border-l border-border ${indentClass} pl-2 ml-[7px]`}
       >
         {node.children.map((child) => (
           <FolderItem

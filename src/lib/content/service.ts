@@ -123,6 +123,21 @@ function mapD1Developer(
   };
 }
 
+export async function getPostsInFolder(
+  lang: Language,
+  path: string,
+): Promise<UnifiedPost[]> {
+  const d1Posts = await postsRepo.getPostsInFolder(lang, path);
+  const unified = await Promise.all(
+    d1Posts.map((p) =>
+      tagsRepo.getPostTags(p.id).then((tags) => mapD1Post(p, lang, tags)),
+    ),
+  );
+  return unified
+    .filter((post) => !post.hidden)
+    .sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime());
+}
+
 export async function getPosts(
   lang: Language,
   options: { pathPrefix?: string } = {},

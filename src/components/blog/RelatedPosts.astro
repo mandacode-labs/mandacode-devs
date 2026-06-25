@@ -1,0 +1,46 @@
+---
+import { formatDate } from "@/lib/utils/date";
+import type { Lang } from "@/types";
+import type { UnifiedPost } from "@/lib/content/types";
+
+interface Props {
+  posts: UnifiedPost[];
+  currentId: string;
+  lang: Lang;
+  heading: string;
+}
+
+const { posts, currentId, lang, heading } = Astro.props;
+
+const others = posts.filter((p) => p.id !== currentId);
+---
+
+{
+  others.length > 0 && (
+    <section aria-labelledby="related-posts-heading">
+      <h3
+        id="related-posts-heading"
+        class="text-sm font-medium text-text-muted uppercase tracking-wider mb-3"
+      >
+        {heading}
+      </h3>
+      <ul class="divide-y divide-border border-y border-border">
+        {others.slice(0, 12).map((post) => (
+          <li>
+            <a
+              href={`/${lang}/blog/${post.id}`}
+              class="flex items-center justify-between gap-3 py-2.5 px-1 text-sm hover:text-accent transition-colors group"
+            >
+              <span class="truncate text-text-primary group-hover:text-accent">
+                {post.title}
+              </span>
+              <time class="shrink-0 text-xs text-text-muted tabular-nums">
+                {formatDate(post.pubDate, lang)}
+              </time>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}

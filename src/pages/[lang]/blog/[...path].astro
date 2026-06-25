@@ -45,7 +45,6 @@ if (rawSegments.length === 1) {
 
 interface FolderView {
   folderPath: string;
-  folderLabel: string;
   breadcrumbs: Array<{ name: string; path: string }>;
   pageResult: Awaited<ReturnType<typeof getPostsPaginated>>;
   paths: Awaited<ReturnType<typeof getPostPaths>>;
@@ -74,7 +73,6 @@ if (!post) {
   }));
   folderView = {
     folderPath,
-    folderLabel: folderPath === "/" ? t("blog.allPosts") : folderPath,
     breadcrumbs,
     pageResult,
     paths,
@@ -86,9 +84,9 @@ if (!post) {
   post ? (
     <BlogPostDetail post={post} lang={typedLang} />
   ) : (
-    <Layout title={`${folderView!.folderLabel} · ${t("blog.title")}`}>
+    <Layout title={`${t("blog.title")} · ${folderView!.folderPath}`}>
       <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        <nav class="mb-4 text-sm text-text-secondary flex flex-wrap items-center gap-x-1 gap-y-1">
+        <nav class="mb-8 text-sm text-text-secondary flex flex-wrap items-center gap-x-1 gap-y-1">
           <a href={`/${typedLang}/blog`} class="hover:text-text-primary">
             {t("blog.title")}
           </a>
@@ -104,10 +102,6 @@ if (!post) {
             </>
           ))}
         </nav>
-
-        <header class="mb-8">
-          <h2 class="mb-2 font-mono">{folderView!.folderLabel}</h2>
-        </header>
 
         <div class="grid grid-cols-1 md:grid-cols-[14rem_1fr] gap-8">
           <BlogSidebar

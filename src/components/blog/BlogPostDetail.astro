@@ -4,6 +4,9 @@ import CoverImage from "@/components/ui/CoverImage.astro";
 import BackButton from "@/components/shared/BackButton.astro";
 import BlogHeader from "@/components/blog/BlogHeader.astro";
 import ContentRenderer from "@/components/shared/ContentRenderer.astro";
+import PostNavCard from "@/components/blog/PostNavCard.astro";
+import RelatedPosts from "@/components/blog/RelatedPosts.astro";
+import { getPostsInFolder } from "@/lib/content/service";
 import { useTranslations } from "@/lib/i18n/utils";
 import type { Lang } from "@/types";
 import type { UnifiedPost } from "@/lib/content/types";
@@ -19,6 +22,11 @@ const t = useTranslations(lang);
 const title = post.title;
 const description = post.description ?? "";
 const image = post.coverImage;
+
+const siblings = await getPostsInFolder(lang, post.path);
+const index = siblings.findIndex((p) => p.id === post.id);
+const prev = index >= 0 ? (siblings[index + 1] ?? null) : null;
+const next = index > 0 ? (siblings[index - 1] ?? null) : null;
 ---
 
 <Layout title={title} description={description} ogImage={image ?? undefined}>
@@ -39,5 +47,24 @@ const image = post.coverImage;
     <BlogHeader post={post} lang={lang} />
 
     <ContentRenderer content={post.body} class="mt-12" />
+
+    <div class="mt-16 space-y-10">
+      <hr class="border-border" />
+
+      <PostNavCard
+        prev={prev}
+        next={next}
+        lang={lang}
+        prevLabel={t("blog.prevPost")}
+        nextLabel={t("blog.nextPost")}
+      />
+
+      <RelatedPosts
+        posts={siblings}
+        currentId={post.id}
+        lang={lang}
+        heading={t("blog.relatedPosts")}
+      />
+    </div>
   </div>
 </Layout>
