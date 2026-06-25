@@ -6,7 +6,8 @@ import BlogHeader from "@/components/blog/BlogHeader.astro";
 import ContentRenderer from "@/components/shared/ContentRenderer.astro";
 import PostNavCard from "@/components/blog/PostNavCard.astro";
 import RelatedPosts from "@/components/blog/RelatedPosts.astro";
-import { getPostsInFolder } from "@/lib/content/service";
+import TableOfContents from "@/components/blog/TableOfContents.astro";
+import { getPostsInFolder, renderPostBody } from "@/lib/content/service";
 import { useTranslations } from "@/lib/i18n/utils";
 import type { Lang } from "@/types";
 import type { UnifiedPost } from "@/lib/content/types";
@@ -23,48 +24,57 @@ const title = post.title;
 const description = post.description ?? "";
 const image = post.coverImage;
 
-const siblings = await getPostsInFolder(lang, post.path);
+const [siblings, { html, headings }] = await Promise.all([
+  getPostsInFolder(lang, post.path),
+  renderPostBody(post.body),
+]);
 const index = siblings.findIndex((p) => p.id === post.id);
 const prev = index >= 0 ? (siblings[index + 1] ?? null) : null;
 const next = index > 0 ? (siblings[index - 1] ?? null) : null;
 ---
 
 <Layout title={title} description={description} ogImage={image ?? undefined}>
-  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
     <BackButton label={t("blog.back")} />
 
-    {
-      image && (
-        <CoverImage
-          src={image}
-          alt={title}
-          class="flex w-full max-h-[30rem] rounded-xl mb-8"
-          fetchpriority="high"
-        />
-      )
-    }
+    <div class="lg:flex lg:gap-10">
+      <article class="flex-1 min-w-0 max-w-3xl">
+        {
+          image && (
+            <CoverImage
+              src={image}
+              alt={title}
+              class="flex w-full max-h-[30rem] rounded-xl mb-8"
+              fetchpriority="high"
+            />
+          )
+        }
 
-    <BlogHeader post={post} lang={lang} />
+        <BlogHeader post={post} lang={lang} />
 
-    <ContentRenderer content={post.body} class="mt-12" />
+        <ContentRenderer html={html} class="mt-12" />
 
-    <div class="mt-16 space-y-10">
-      <hr class="border-border" />
+        <div class="mt-16 space-y-10">
+          <hr class="border-border" />
 
-      <PostNavCard
-        prev={prev}
-        next={next}
-        lang={lang}
-        prevLabel={t("blog.prevPost")}
-        nextLabel={t("blog.nextPost")}
-      />
+          <PostNavCard
+            prev={prev}
+            next={next}
+            lang={lang}
+            prevLabel={t("blog.prevPost")}
+            nextLabel={t("blog.nextPost")}
+          />
 
-      <RelatedPosts
-        posts={siblings}
-        currentId={post.id}
-        lang={lang}
-        heading={t("blog.relatedPosts")}
-      />
+          <RelatedPosts
+            posts={siblings}
+            currentId={post.id}
+            lang={lang}
+            heading={t("blog.relatedPosts")}
+          />
+        </div>
+      </article>
+
+      <TableOfContents headings={headings} />
     </div>
   </div>
 </Layout>

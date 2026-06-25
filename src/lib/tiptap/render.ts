@@ -105,8 +105,54 @@ export function renderTiptapNode(node: JSONContent): string {
 export function renderTiptapJson(jsonString: string): string {
   try {
     const json = JSON.parse(jsonString) as JSONContent;
-    return renderTiptapNode(json);
+    return addHeadingIds(renderTiptapNode(json));
   } catch {
     return "";
   }
+}
+
+function slugify(text: string): string {
+  return text
+    .normalize("NFKC")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^A-Za-z0-9가-힣ㄱ-ㅎㅏ-ㅣぁ-んァ-ヶ一-龯\-_]+/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function addHeadingIds(html: string): string {
+  const seen = new Map<string, number>();
+  return html.replace(
+    /<h([1-3])(\b[^>]*)>([\s\S]*?)<\/h\1>/g,
+    (_match, level: string, attrs: string, inner: string) => {
+      const text = inner.replace(/<[^>]+>/g, "").trim();
+      if (!text) return _match;
+      const base = slugify(text) || `heading-${level}`;
+      const n = seen.get(base) ?? 0;
+      seen.set(base, n + 1);
+      const id = n === 0 ? base : `${base}-${n + 1}`;
+      const idAttr = ` id="${id}"`;
+      return `<h${level}${idAttr}${attrs}>${inner}</h${level}>`;
+    },
+  );
+}
+
+export interface HeadingInfo {
+  id: string;
+  level: number;
+  text: string;
+}
+
+export function extractHeadings(html: string): HeadingInfo[] {
+  const out: HeadingInfo[] = [];
+  const re = /<h([1-3])\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/h\1>/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html))) {
+    const level = Number(m[1]);
+    const id = m[2]!;
+    const text = m[3]!.replace(/<[^>]+>/g, "").trim();
+    out.push({ id, level, text });
+  }
+  return out;
 }
