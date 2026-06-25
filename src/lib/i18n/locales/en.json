@@ -21,6 +21,7 @@
   "blog.prevPage": "Previous",
   "blog.nextPage": "Next",
   "blog.paginationSummary": "{total} posts · page {page} of {totalPages}",
+  "blog.back": "Back",
   "footer.copyright": "© {year} Mandacode. All rights reserved.",
   "status.production": "In Production",
   "status.development": "In Development",

@@ -1,7 +1,7 @@
 ---
 import Layout from "@/components/layouts/Layout.astro";
 import CoverImage from "@/components/ui/CoverImage.astro";
-import BackLink from "@/components/shared/BackLink.astro";
+import BackButton from "@/components/shared/BackButton.astro";
 import BlogHeader from "@/components/blog/BlogHeader.astro";
 import ContentRenderer from "@/components/shared/ContentRenderer.astro";
 import { useTranslations } from "@/lib/i18n/utils";
@@ -11,22 +11,19 @@ import type { UnifiedPost } from "@/lib/content/types";
 interface Props {
   post: UnifiedPost;
   lang: Lang;
-  folderPath: string;
 }
 
-const { post, lang, folderPath } = Astro.props;
+const { post, lang } = Astro.props;
 const t = useTranslations(lang);
 
 const title = post.title;
 const description = post.description ?? "";
 const image = post.coverImage;
-const backHref = `/${lang}/blog${folderPath === "/" ? "" : folderPath}`;
-const backLabel = folderPath === "/" ? t("blog.title") : folderPath;
 ---
 
 <Layout title={title} description={description} ogImage={image ?? undefined}>
   <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-    <BackLink href={backHref} label={backLabel} />
+    <BackButton label={t("blog.back")} />
 
     {
       image && (

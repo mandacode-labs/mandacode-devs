@@ -21,6 +21,7 @@
   "blog.prevPage": "前へ",
   "blog.nextPage": "次へ",
   "blog.paginationSummary": "全 {total} 件 · {page}/{totalPages} ページ",
+  "blog.back": "戻る",
   "footer.copyright": "© {year} Mandacode. All rights reserved.",
   "status.production": "運用中",
   "status.development": "開発中",

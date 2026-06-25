@@ -94,7 +94,7 @@ if (!post) {
 
 {
   post ? (
-    <BlogPostDetail post={post} lang={typedLang} folderPath={post.path} />
+    <BlogPostDetail post={post} lang={typedLang} />
   ) : (
     <Layout title={`${folderView!.folderLabel} · ${t("blog.title")}`}>
       <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">

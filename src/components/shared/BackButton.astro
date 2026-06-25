@@ -1,0 +1,19 @@
+---
+import { ArrowLeft } from "lucide-react";
+
+interface Props {
+  label: string;
+  class?: string;
+}
+
+const { label, class: className = "" } = Astro.props;
+---
+
+<button
+  type="button"
+  onclick="history.length > 1 ? history.back() : null"
+  class={`inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors mb-8 cursor-pointer ${className}`}
+>
+  <ArrowLeft size={16} />
+  <span>{label}</span>
+</button>
