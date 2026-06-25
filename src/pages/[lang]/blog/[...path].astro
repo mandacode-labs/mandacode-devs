@@ -1,7 +1,16 @@
 ---
+import Layout from "@/components/layouts/Layout.astro";
+import BlogCard from "@/components/blog/BlogCard.astro";
+import BlogSidebar from "@/components/blog/BlogSidebar.astro";
 import BlogPostDetail from "@/components/blog/BlogPostDetail.astro";
-import BlogFolder from "@/components/blog/BlogFolder.astro";
-import { getPost, getPosts, getPostPaths } from "@/lib/content/service";
+import EmptyBlog from "@/components/blog/EmptyBlog.astro";
+import Pagination from "@/components/shared/Pagination.astro";
+import {
+  getPost,
+  getPostsPaginated,
+  getPostPaths,
+} from "@/lib/content/service";
+import { buildPostTree, getImmediateChildren } from "@/lib/content/post-tree";
 import { useTranslations } from "@/lib/i18n/utils";
 import { isValidLanguage, getLocaleFromRequest } from "@/lib/config/languages";
 import type { Lang } from "@/types";
@@ -15,35 +24,173 @@ if (!lang || !isValidLanguage(lang)) {
 
 const typedLang = lang as Lang;
 const t = useTranslations(typedLang);
+const PAGE_SIZE = 10;
 
-const rawSegments = path ?? "";
-const segments = rawSegments.split("/").filter(Boolean);
+const rawSegments = (path ?? "").split("/").filter(Boolean);
+const endsWithSlash = Astro.url.pathname.endsWith("/");
 
-const folderPath =
-  segments.length === 0
-    ? "/"
-    : "/" + segments.join("/") + (rawSegments.endsWith("/") ? "/" : "/");
-
-let post: Awaited<ReturnType<typeof getPost>> = null;
-if (segments.length > 0 && !rawSegments.endsWith("/")) {
-  post = await getPost(segments[segments.length - 1]!, typedLang);
+// Post detail: a single segment, e.g. /blog/<id> (with or without trailing
+// slash). If the post exists we render it; otherwise treat as folder.
+let post: Awaited<ReturnType<typeof getPost>> | null = null;
+if (rawSegments.length === 1) {
+  const candidate = await getPost(rawSegments[0]!, typedLang);
+  if (candidate) {
+    if (endsWithSlash) {
+      // Canonicalize: post detail URLs are always slash-less.
+      return Astro.redirect(`/${typedLang}/blog/${rawSegments[0]}`, 301);
+    }
+    post = candidate;
+  } else if (!endsWithSlash) {
+    return Astro.redirect(`/${typedLang}/blog`);
+  }
+  // else: single segment + trailing slash + no post → fall through to folder
+  // view (will show "empty folder").
 }
 
-const posts = post ? [] : await getPosts(typedLang, { pathPrefix: folderPath });
-const paths = await getPostPaths();
-const folderLabel = folderPath === "/" ? t("blog.allPosts") : folderPath;
+interface FolderView {
+  folderPath: string;
+  folderLabel: string;
+  breadcrumbs: Array<{ name: string; path: string }>;
+  pageResult: Awaited<ReturnType<typeof getPostsPaginated>>;
+  paths: Awaited<ReturnType<typeof getPostPaths>>;
+  tree: ReturnType<typeof buildPostTree>;
+  subfolders: ReturnType<typeof getImmediateChildren>;
+}
+
+let folderView: FolderView | null = null;
+
+if (!post) {
+  const folderPath =
+    rawSegments.length === 0 ? "/" : "/" + rawSegments.join("/") + "/";
+  const currentPage = Math.max(
+    1,
+    Number(Astro.url.searchParams.get("page")) || 1,
+  );
+  const [pageResult, paths] = await Promise.all([
+    getPostsPaginated(typedLang, {
+      pathPrefix: folderPath,
+      page: currentPage,
+      pageSize: PAGE_SIZE,
+    }),
+    getPostPaths(),
+  ]);
+  const tree = buildPostTree(paths);
+  const subfolders = getImmediateChildren(tree, folderPath);
+  const breadcrumbs = rawSegments.map((seg, i) => ({
+    name: seg,
+    path: "/" + rawSegments.slice(0, i + 1).join("/") + "/",
+  }));
+  folderView = {
+    folderPath,
+    folderLabel: folderPath === "/" ? t("blog.allPosts") : folderPath,
+    breadcrumbs,
+    pageResult,
+    paths,
+    tree,
+    subfolders,
+  };
+}
 ---
 
 {
   post ? (
-    <BlogPostDetail post={post} lang={typedLang} backPath={folderPath} />
+    <BlogPostDetail post={post} lang={typedLang} folderPath={post.path} />
   ) : (
-    <BlogFolder
-      lang={typedLang}
-      folderPath={folderPath}
-      folderLabel={folderLabel}
-      posts={posts}
-      paths={paths}
-    />
+    <Layout title={`${folderView!.folderLabel} · ${t("blog.title")}`}>
+      <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+        <nav class="mb-4 text-sm text-text-secondary flex flex-wrap items-center gap-x-1 gap-y-1">
+          <a href={`/${typedLang}/blog`} class="hover:text-text-primary">
+            {t("blog.title")}
+          </a>
+          {folderView!.breadcrumbs.map((crumb) => (
+            <>
+              <span class="mx-1 text-text-muted">/</span>
+              <a
+                href={`/${typedLang}/blog${crumb.path}`}
+                class="hover:text-text-primary font-mono"
+              >
+                {crumb.name}
+              </a>
+            </>
+          ))}
+        </nav>
+
+        <header class="mb-8">
+          <h2 class="mb-2 font-mono">{folderView!.folderLabel}</h2>
+        </header>
+
+        {folderView!.subfolders.length > 0 && (
+          <div class="mb-10">
+            <h3 class="text-sm font-medium text-text-muted uppercase tracking-wider mb-3">
+              {t("blog.folders")}
+            </h3>
+            <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {folderView!.subfolders.map((folder) => (
+                <li>
+                  <a
+                    href={`/${typedLang}/blog${folder.path}`}
+                    class="flex items-center justify-between gap-2 px-4 py-3 border border-border rounded-lg bg-bg-secondary hover:bg-bg-tertiary hover:border-accent transition-colors group"
+                  >
+                    <span class="flex items-center gap-2 truncate">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        class="w-4 h-4 text-text-muted group-hover:text-accent shrink-0"
+                      >
+                        <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
+                      </svg>
+                      <span class="font-mono truncate">{folder.name}</span>
+                    </span>
+                    <span class="shrink-0 text-xs text-text-muted">
+                      {folder.count}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div class="grid grid-cols-1 md:grid-cols-[14rem_1fr] gap-8">
+          <BlogSidebar
+            lang={typedLang}
+            currentPath={folderView!.folderPath}
+            paths={folderView!.paths}
+          />
+
+          <div>
+            <h3 class="text-sm font-medium text-text-muted uppercase tracking-wider mb-3">
+              {t("blog.posts")}
+            </h3>
+            {folderView!.pageResult.posts.length > 0 ? (
+              <>
+                <ul class="flex flex-col gap-6">
+                  {folderView!.pageResult.posts.map((post) => (
+                    <li>
+                      <BlogCard post={post} lang={typedLang} />
+                    </li>
+                  ))}
+                </ul>
+                <Pagination
+                  lang={typedLang}
+                  basePath={`/blog${folderView!.folderPath === "/" ? "" : folderView!.folderPath}`}
+                  currentPage={folderView!.pageResult.page}
+                  totalPages={folderView!.pageResult.totalPages}
+                  total={folderView!.pageResult.total}
+                />
+              </>
+            ) : folderView!.subfolders.length === 0 ? (
+              <EmptyBlog lang={typedLang} />
+            ) : (
+              <p class="text-sm text-text-secondary py-12 text-center">
+                {t("blog.emptyFolder")}
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+    </Layout>
   )
 }

@@ -8,7 +8,10 @@ const publishStatusSchema = z.enum(["draft", "published", "archived"]);
 
 export const postPathSchema = z
   .string()
-  .regex(/^\/(?:[\w-]+\/)*\/?$/, "Path must look like / or /foo or /foo/bar/");
+  .transform((v) => normalizePostPath(v))
+  .refine((v) => /^\/(?:[\w-]+\/)*$/.test(v), {
+    message: "Path must look like / or /foo/ or /foo/bar/",
+  });
 
 export function normalizePostPath(raw: string | undefined | null): string {
   if (!raw || raw.trim() === "") return "/";

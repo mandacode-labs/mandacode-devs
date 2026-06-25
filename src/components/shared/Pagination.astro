@@ -1,0 +1,104 @@
+---
+import type { Lang } from "@/types";
+import { useTranslations } from "@/lib/i18n/utils";
+
+interface Props {
+  lang: Lang;
+  basePath: string;
+  currentPage: number;
+  totalPages: number;
+  total: number;
+}
+
+const { lang, basePath, currentPage, totalPages, total } = Astro.props;
+const t = useTranslations(lang);
+
+if (totalPages <= 1) return null;
+
+function hrefFor(page: number): string {
+  const params = new URLSearchParams();
+  if (page > 1) params.set("page", String(page));
+  const qs = params.toString();
+  return `/${lang}${basePath}${qs ? "?" + qs : ""}`;
+}
+
+function pageRange(): (number | "...")[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+  const pages: (number | "...")[] = [1];
+  const start = Math.max(2, currentPage - 1);
+  const end = Math.min(totalPages - 1, currentPage + 1);
+  if (start > 2) pages.push("...");
+  for (let i = start; i <= end; i++) pages.push(i);
+  if (end < totalPages - 1) pages.push("...");
+  pages.push(totalPages);
+  return pages;
+}
+
+const items = pageRange();
+---
+
+<nav class="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+  <p class="text-sm text-text-muted">
+    {
+      t("blog.paginationSummary", {
+        total,
+        page: currentPage,
+        totalPages,
+      })
+    }
+  </p>
+
+  <ul class="flex items-center gap-1">
+    <li>
+      <a
+        href={currentPage > 1 ? hrefFor(currentPage - 1) : undefined}
+        aria-disabled={currentPage === 1}
+        class={`inline-flex items-center justify-center w-9 h-9 rounded-md border border-border text-sm ${
+          currentPage === 1
+            ? "text-text-muted opacity-50 pointer-events-none"
+            : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
+        }`}
+      >
+        <span aria-hidden="true">‹</span>
+        <span class="sr-only">{t("blog.prevPage")}</span>
+      </a>
+    </li>
+    {
+      items.map((item) =>
+        item === "..." ? (
+          <li class="px-2 text-text-muted select-none">…</li>
+        ) : (
+          <li>
+            <a
+              href={hrefFor(item)}
+              aria-current={item === currentPage ? "page" : undefined}
+              class={`inline-flex items-center justify-center w-9 h-9 rounded-md text-sm border ${
+                item === currentPage
+                  ? "bg-accent text-white border-accent"
+                  : "border-border text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
+              }`}
+            >
+              {item}
+            </a>
+          </li>
+        ),
+      )
+    }
+    <li>
+      <a
+        href={currentPage < totalPages ? hrefFor(currentPage + 1) : undefined}
+        aria-disabled={currentPage === totalPages}
+        class={`inline-flex items-center justify-center w-9 h-9 rounded-md border border-border text-sm ${
+          currentPage === totalPages
+            ? "text-text-muted opacity-50 pointer-events-none"
+            : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
+        }`}
+      >
+        <span aria-hidden="true">›</span>
+        <span class="sr-only">{t("blog.nextPage")}</span>
+      </a>
+    </li>
+  </ul>
+</nav>

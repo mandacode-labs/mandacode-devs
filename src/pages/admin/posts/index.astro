@@ -40,7 +40,7 @@ const items: AdminListItem[] = itemsWithLocales.map(
     title: post.title,
     href: `/admin/posts/edit/${post.id}?locale=${DEFAULT_LANGUAGE}`,
     viewHref: `/admin/posts/view/${post.id}?locale=${DEFAULT_LANGUAGE}`,
-    meta: `/${post.id}`,
+    meta: post.path === "/" ? `/${post.id}` : `${post.path}${post.id}`,
     originalLocale: post.original_locale,
     existingLocales,
     locales: [
