@@ -7,11 +7,6 @@ function getCache(): Cache {
 }
 
 export function getCacheKey(request: Request): Request {
-  // Cloudflare's Cache API matches entries by URL — setting extra
-  // headers on the Request does not change the key. To make each
-  // deploy's cache entries independent of previous deploys, append
-  // `?_b=<buildId>` to the URL. The user-facing request URL is
-  // unchanged (we never expose this), so existing links keep working.
   const buildId = typeof __BUILD_ID__ !== "undefined" ? __BUILD_ID__ : "dev";
   const url = new URL(request.url);
   url.searchParams.set("_b", buildId);

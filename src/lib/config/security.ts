@@ -7,15 +7,8 @@ export const SECURITY_HEADERS = {
     "camera=(), microphone=(), geolocation=(), interest-cohort=()",
 } as const;
 
-// HTML is never cached at Cloudflare's CDN edge — every request
-// hits the Worker, which serves the response. We still get the
-// benefit of the Worker Cache API internally (versioned by build id
-// in src/lib/cache.ts), so repeat hits within the same build are
-// fast. But content changes (and deploys) are visible immediately
-// without manual purge. Trade-off: every request crosses the
-// network edge, so a very high-traffic site would feel it.
 export const HTML_CACHE_CONTROL =
-  "public, max-age=0, s-maxage=0, must-revalidate";
+  "public, max-age=0, s-maxage=300, stale-while-revalidate=86400";
 
 export type SecurityHeaderName = keyof typeof SECURITY_HEADERS;
 

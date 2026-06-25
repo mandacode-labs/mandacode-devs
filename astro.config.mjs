@@ -8,13 +8,8 @@ import cloudflare from "@astrojs/cloudflare";
 
 import react from "@astrojs/react";
 
-// Per-build identifier baked into the Worker bundle. Used as the
-// cache-key prefix so a new deploy instantly orphans all previous
-// HTML entries in the Cache API. Without this, stale HTML from
-// earlier deployments can outlive their referenced assets.
 const BUILD_ID = process.env.BUILD_ID ?? Date.now().toString(36);
 
-// https://astro.build/config
 export default defineConfig({
   site: process.env.SITE_URL || "https://dev.mandacode.com",
   base: "/",
