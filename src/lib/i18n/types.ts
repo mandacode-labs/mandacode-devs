@@ -151,7 +151,6 @@ export type UIKey =
   | "admin.view"
   | "blog.comingSoon"
   | "blog.allPosts"
-  | "blog.posts"
   | "blog.sidebar"
   | "blog.prevPage"
   | "blog.nextPage"
