@@ -165,6 +165,19 @@ export async function getPostById(
   return getByIdWithTranslation(MAIN_CFG, TRANS_CFG, locale, id, mapPostRow);
 }
 
+export async function getPostsInFolder(
+  locale: string,
+  path: string,
+): Promise<PostWithTranslation[]> {
+  return getListWithTranslation(
+    MAIN_CFG,
+    TRANS_CFG,
+    locale,
+    { publishStatus: "published", pathPrefix: path, pathColumn: "path" },
+    mapPostRow,
+  );
+}
+
 export interface PostSearchResult {
   id: string;
   title: string;
