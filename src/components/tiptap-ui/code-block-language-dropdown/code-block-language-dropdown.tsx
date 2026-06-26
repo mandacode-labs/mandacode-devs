@@ -4,10 +4,7 @@ import { type Editor } from "@tiptap/react";
 
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor";
 
-import {
-  useCodeBlockLanguageDropdown,
-  CODE_BLOCK_LANGUAGE_OPTIONS,
-} from "@/components/tiptap-ui/code-block-language-dropdown";
+import { useCodeBlockLanguageDropdown } from "@/components/tiptap-ui/code-block-language-dropdown";
 
 import type { ButtonProps } from "@/components/tiptap-ui-primitive/button";
 import { Button } from "@/components/tiptap-ui-primitive/button";

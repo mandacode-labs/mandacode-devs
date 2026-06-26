@@ -17,3 +17,80 @@ const html = preHtml ?? (content ? renderTiptapJson(content) : null);
 <div class:list={["max-w-none content-body", className]}>
   {html ? <div set:html={html} /> : null}
 </div>
+
+<script>
+  import CopyIcon from "lucide/dist/esm/icons/copy.mjs";
+  import CheckIcon from "lucide/dist/esm/icons/check.mjs";
+  import createIconElement from "lucide/dist/esm/createElement.mjs";
+
+  const FEEDBACK_DURATION = 1500;
+
+  function setButtonIcon(button: HTMLButtonElement, iconNode: typeof CopyIcon) {
+    button.innerHTML = "";
+    button.appendChild(createIconElement(iconNode, { width: 16, height: 16 }));
+  }
+
+  function showFeedback(
+    el: HTMLElement,
+    message: string,
+    button?: HTMLButtonElement,
+  ) {
+    el.setAttribute("aria-label", message);
+    if (button) setButtonIcon(button, CheckIcon);
+
+    window.setTimeout(() => {
+      el.removeAttribute("aria-label");
+      if (button) setButtonIcon(button, CopyIcon);
+    }, FEEDBACK_DURATION);
+  }
+
+  async function copyText(
+    text: string,
+    trigger: HTMLElement,
+    button?: HTMLButtonElement,
+  ) {
+    try {
+      await navigator.clipboard.writeText(text);
+      trigger.setAttribute("data-copied", "true");
+      showFeedback(trigger, "Copied!", button);
+      window.setTimeout(
+        () => trigger.removeAttribute("data-copied"),
+        FEEDBACK_DURATION,
+      );
+    } catch {
+      showFeedback(trigger, "Copy failed", button);
+    }
+  }
+
+  function addCopyButton(pre: HTMLPreElement) {
+    if (pre.querySelector(".code-copy-button")) return;
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "code-copy-button";
+    button.setAttribute("aria-label", "Copy code");
+    setButtonIcon(button, CopyIcon);
+
+    button.addEventListener("click", () => {
+      const code = pre.querySelector("code");
+      const text = code ? (code.textContent ?? "") : (pre.textContent ?? "");
+      copyText(text, button, button);
+    });
+
+    pre.appendChild(button);
+  }
+
+  document
+    .querySelectorAll<HTMLPreElement>(".content-body pre")
+    .forEach(addCopyButton);
+
+  document
+    .querySelectorAll<HTMLElement>(".content-body code")
+    .forEach((code) => {
+      if (code.closest("pre")) return;
+      code.classList.add("code-copyable");
+      code.addEventListener("click", () => {
+        copyText(code.textContent ?? "", code);
+      });
+    });
+</script>
