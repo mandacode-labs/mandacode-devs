@@ -174,7 +174,9 @@ export default function TiptapEditor({
       },
     },
     extensions: [
-      ...tiptapExtensions,
+      ...tiptapExtensions.filter(
+        (ext) => !(ext as { name?: string }).name || ext.name !== "codeBlock",
+      ),
       MermaidCodeBlock.configure({
         lowlight,
         defaultLanguage: "plaintext",
