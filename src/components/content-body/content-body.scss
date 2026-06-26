@@ -7,13 +7,8 @@
 .tiptap.ProseMirror,
 .simple-editor-content .tiptap.ProseMirror {
   p {
-    margin: 0.75rem 0;
+    margin: 0.25rem 0;
     line-height: 1.75;
-  }
-
-  br {
-    display: block;
-    margin-bottom: 0.75em;
   }
 
   h1,
@@ -30,14 +25,14 @@
     margin-bottom: 1.5rem;
   }
 
-  > h1:first-child,
-  > h2:first-child,
-  > h3:first-child,
-  > h4:first-child,
-  > .ProseMirror-widget + h1,
-  > .ProseMirror-widget + h2,
-  > .ProseMirror-widget + h3,
-  > .ProseMirror-widget + h4 {
+  >h1:first-child,
+  >h2:first-child,
+  >h3:first-child,
+  >h4:first-child,
+  >.ProseMirror-widget+h1,
+  >.ProseMirror-widget+h2,
+  >.ProseMirror-widget+h3,
+  >.ProseMirror-widget+h4 {
     margin-top: 0;
   }
 
@@ -63,8 +58,8 @@
     padding-left: 1.5rem;
   }
 
-  li > ul,
-  li > ol {
+  li>ul,
+  li>ol {
     margin: 0.25rem 0;
   }
 
@@ -115,10 +110,7 @@
   hr,
   [data-type="horizontalRule"] {
     margin: 1.5rem 0;
-    padding: 0;
-    border: none;
-    height: 2px;
-    background-color: var(--color-border, #e5e5e5);
+    border-color: var(--color-border, #e5e5e5);
   }
 
   h1,
