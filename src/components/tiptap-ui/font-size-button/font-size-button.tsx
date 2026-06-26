@@ -1,9 +1,19 @@
 "use client";
 
-import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
+import { forwardRef, useCallback, useState, type ForwardedRef } from "react";
 import { Type } from "lucide-react";
-import { Button } from "@/components/tiptap-ui-primitive/button";
+import { type Editor } from "@tiptap/react";
+
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor";
+
+import type { ButtonProps } from "@/components/tiptap-ui-primitive/button";
+import { Button } from "@/components/tiptap-ui-primitive/button";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/tiptap-ui-primitive/dropdown-menu";
 
 const FONT_SIZES = [
   "12px",
@@ -16,21 +26,20 @@ const FONT_SIZES = [
   "36px",
 ];
 
-export interface FontSizeButtonProps {
-  editor?: ReturnType<typeof useTiptapEditor>["editor"];
+export interface FontSizeButtonProps extends Omit<ButtonProps, "type"> {
+  editor?: Editor;
 }
 
-export const FontSizeButton = forwardRef<
-  HTMLButtonElement,
-  FontSizeButtonProps
->(({ editor: providedEditor }, ref) => {
+function FontSizeButtonImpl(
+  { editor: providedEditor, ...props }: FontSizeButtonProps,
+  ref: ForwardedRef<HTMLButtonElement>,
+) {
   const { editor } = useTiptapEditor(providedEditor);
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
 
-  const activeSize = editor?.isActive("textStyle", { fontSize: /.*/ })
-    ? (editor.getAttributes("textStyle").fontSize as string | undefined)
-    : undefined;
+  const activeSize = editor?.getAttributes("textStyle").fontSize as
+    | string
+    | undefined;
 
   const handleSetSize = useCallback(
     (size: string) => {
@@ -40,60 +49,52 @@ export const FontSizeButton = forwardRef<
       } else {
         editor.chain().focus().setFontSize(size).run();
       }
-      setOpen(false);
+      setIsOpen(false);
     },
     [editor, activeSize],
   );
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        setOpen(false);
-      }
-    }
-    if (open) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [open]);
-
-  if (!editor) return null;
+  if (!editor) {
+    return null;
+  }
 
   return (
-    <div ref={containerRef} className="relative">
-      <Button
-        ref={ref}
-        type="button"
-        variant="ghost"
-        tooltip="Font size"
-        onClick={() => setOpen((v) => !v)}
-        data-active-state={activeSize ? "on" : "off"}
-      >
-        <Type className="tiptap-button-icon" />
-        <span className="tiptap-button-text">{activeSize || "16px"}</span>
-      </Button>
-      {open && (
-        <div className="absolute top-full left-0 mt-1 bg-bg-primary border border-border rounded shadow-lg p-1 z-50 min-w-[80px]">
-          {FONT_SIZES.map((size) => (
-            <button
-              key={size}
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          ref={ref}
+          type="button"
+          variant="ghost"
+          tooltip="Font size"
+          data-active-state={activeSize ? "on" : "off"}
+          {...props}
+        >
+          <Type className="tiptap-button-icon" />
+          <span className="tiptap-button-text">{activeSize || "16px"}</span>
+        </Button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="start">
+        {FONT_SIZES.map((size) => (
+          <DropdownMenuItem key={size} asChild>
+            <Button
               type="button"
-              className={`w-full text-left px-2 py-1 text-sm rounded hover:bg-bg-secondary ${activeSize === size ? "bg-bg-secondary" : ""}`}
+              variant="ghost"
+              className="w-full justify-start"
+              data-active-state={activeSize === size ? "on" : "off"}
+              aria-pressed={activeSize === size}
               onClick={() => handleSetSize(size)}
             >
-              {size}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+              <span className="tiptap-button-text">{size}</span>
+            </Button>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
-});
+}
+
+export const FontSizeButton = forwardRef(FontSizeButtonImpl);
 
 FontSizeButton.displayName = "FontSizeButton";
 
