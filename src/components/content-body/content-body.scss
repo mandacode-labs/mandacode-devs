@@ -236,11 +236,6 @@
         opacity 150ms ease,
         color 150ms ease,
         background-color 150ms ease;
-
-      &:hover {
-        color: var(--color-bg-primary, #ffffff);
-        background-color: rgba(255, 255, 255, 0.2);
-      }
     }
 
     &:hover .code-copy-button {
@@ -251,6 +246,11 @@
       all: unset;
       font: inherit;
       color: inherit;
+
+      &:hover {
+        background-color: transparent;
+        border-color: transparent;
+      }
     }
 
     span {
