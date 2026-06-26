@@ -8,7 +8,7 @@
 .simple-editor-content .tiptap.ProseMirror {
   p {
     margin: 0.25rem 0;
-    line-height: 1.75;
+    line-height: 1.5;
   }
 
   h1,
@@ -21,18 +21,18 @@
 
   h1,
   h2 {
-    border-bottom: 2px solid var(--color-border, #e5e5e5);
+    border-bottom: 1px solid var(--color-border, #e5e5e5);
     margin-bottom: 1.5rem;
   }
 
-  >h1:first-child,
-  >h2:first-child,
-  >h3:first-child,
-  >h4:first-child,
-  >.ProseMirror-widget+h1,
-  >.ProseMirror-widget+h2,
-  >.ProseMirror-widget+h3,
-  >.ProseMirror-widget+h4 {
+  > h1:first-child,
+  > h2:first-child,
+  > h3:first-child,
+  > h4:first-child,
+  > .ProseMirror-widget + h1,
+  > .ProseMirror-widget + h2,
+  > .ProseMirror-widget + h3,
+  > .ProseMirror-widget + h4 {
     margin-top: 0;
   }
 
@@ -58,8 +58,8 @@
     padding-left: 1.5rem;
   }
 
-  li>ul,
-  li>ol {
+  li > ul,
+  li > ol {
     margin: 0.25rem 0;
   }
 

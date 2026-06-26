@@ -60,7 +60,8 @@ Output rules:
   - Translate only the text field; leave marks unchanged
   - Return one entry per input segment in the segments array
   - Return one entry per input image in the alts array
-  - Do not add, remove, or reorder items`;
+  - Do not add, remove, merge, or reorder segments
+  - Preserve any line breaks within a segment as literal \\n characters`;
 
 function getOpenAIClient(): OpenAI {
   const { OPENAI_API_KEY } = env as Env & { OPENAI_API_KEY?: string };
