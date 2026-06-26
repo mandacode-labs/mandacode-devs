@@ -337,6 +337,52 @@ export interface ApplyResult {
   unknownAltIds: string[];
 }
 
+function splitTextNodeByNewlines(node: Record<string, unknown>): unknown[] {
+  const text = node.text as string;
+  const marks = node.marks;
+  const parts = text.split("\n");
+  const result: unknown[] = [];
+
+  parts.forEach((part, index) => {
+    if (part.length > 0) {
+      const textNode: Record<string, unknown> = { type: "text", text: part };
+      if (marks) {
+        textNode.marks = marks;
+      }
+      result.push(textNode);
+    }
+    if (index < parts.length - 1) {
+      result.push({ type: "hardBreak" });
+    }
+  });
+
+  return result;
+}
+
+function replaceNodeAtPath(
+  root: Record<string, unknown>,
+  path: number[],
+  replacements: unknown[],
+): boolean {
+  if (path.length === 0) return false;
+
+  const parentPath = path.slice(0, -1);
+  const index = path[path.length - 1];
+  const parent = getNodeAtPath(root, parentPath);
+
+  if (
+    !parent ||
+    !Array.isArray(parent.content) ||
+    index < 0 ||
+    index >= parent.content.length
+  ) {
+    return false;
+  }
+
+  parent.content.splice(index, 1, ...replacements);
+  return true;
+}
+
 export function applyTranslations(
   originalTiptapJson: string,
   originalSegments: TextNode[],
@@ -372,7 +418,13 @@ export function applyTranslations(
     if (translatedText === undefined) continue;
     const target = getNodeAtPath(root, segment.path);
     if (target && target.type === "text") {
-      target.text = translatedText;
+      if (translatedText.includes("\n")) {
+        target.text = translatedText;
+        const replacements = splitTextNodeByNewlines(target);
+        replaceNodeAtPath(root, segment.path, replacements);
+      } else {
+        target.text = translatedText;
+      }
     }
   }
 

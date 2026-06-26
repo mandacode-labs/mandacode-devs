@@ -7,13 +7,8 @@
 .tiptap.ProseMirror,
 .simple-editor-content .tiptap.ProseMirror {
   p {
-    margin: 0.75rem 0;
-    line-height: 1.75;
-  }
-
-  br {
-    display: block;
-    margin-bottom: 0.75em;
+    margin: 0.25rem 0;
+    line-height: 1.5;
   }
 
   h1,
@@ -26,7 +21,7 @@
 
   h1,
   h2 {
-    border-bottom: 2px solid var(--color-border, #e5e5e5);
+    border-bottom: 1px solid var(--color-border, #e5e5e5);
     margin-bottom: 1.5rem;
   }
 
@@ -115,10 +110,7 @@
   hr,
   [data-type="horizontalRule"] {
     margin: 1.5rem 0;
-    padding: 0;
-    border: none;
-    height: 2px;
-    background-color: var(--color-border, #e5e5e5);
+    border-color: var(--color-border, #e5e5e5);
   }
 
   h1,
