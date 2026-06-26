@@ -19,15 +19,13 @@ const html = preHtml ?? (content ? renderTiptapJson(content) : null);
 </div>
 
 <script>
-  import CopyIcon from "lucide/dist/esm/icons/copy.mjs";
-  import CheckIcon from "lucide/dist/esm/icons/check.mjs";
-  import createIconElement from "lucide/dist/esm/createElement.mjs";
+  import { Copy, Check, createElement } from "lucide";
 
   const FEEDBACK_DURATION = 1500;
 
-  function setButtonIcon(button: HTMLButtonElement, iconNode: typeof CopyIcon) {
+  function setButtonIcon(button: HTMLButtonElement, iconNode: typeof Copy) {
     button.innerHTML = "";
-    button.appendChild(createIconElement(iconNode, { width: 16, height: 16 }));
+    button.appendChild(createElement(iconNode, { width: 16, height: 16 }));
   }
 
   function showFeedback(
@@ -36,11 +34,11 @@ const html = preHtml ?? (content ? renderTiptapJson(content) : null);
     button?: HTMLButtonElement,
   ) {
     el.setAttribute("aria-label", message);
-    if (button) setButtonIcon(button, CheckIcon);
+    if (button) setButtonIcon(button, Check);
 
     window.setTimeout(() => {
       el.removeAttribute("aria-label");
-      if (button) setButtonIcon(button, CopyIcon);
+      if (button) setButtonIcon(button, Copy);
     }, FEEDBACK_DURATION);
   }
 
@@ -69,7 +67,7 @@ const html = preHtml ?? (content ? renderTiptapJson(content) : null);
     button.type = "button";
     button.className = "code-copy-button";
     button.setAttribute("aria-label", "Copy code");
-    setButtonIcon(button, CopyIcon);
+    setButtonIcon(button, Copy);
 
     button.addEventListener("click", () => {
       const code = pre.querySelector("code");
