@@ -28,11 +28,19 @@ const LANGUAGE_ALIASES: Record<string, string> = {
   yml: "yaml",
   md: "markdown",
   html: "xml",
+  "c++": "cpp",
+  golang: "go",
+  rb: "ruby",
+  rs: "rust",
+  kt: "kotlin",
+  objc: "objectivec",
+  cs: "csharp",
 };
 
 function resolveLanguage(lang: string): string | null {
   const normalized = lang.toLowerCase();
   const resolved = LANGUAGE_ALIASES[normalized] ?? normalized;
+  if (resolved === "plaintext" || resolved === "mermaid") return null;
   return lowlight.listLanguages().includes(resolved) ? resolved : null;
 }
 

@@ -3,20 +3,81 @@ import { type Editor } from "@tiptap/react";
 
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor";
 
-export const CODE_BLOCK_LANGUAGE_OPTIONS = [
-  { value: "plaintext", label: "Plain text" },
-  { value: "mermaid", label: "Mermaid" },
-  { value: "typescript", label: "TypeScript" },
-  { value: "javascript", label: "JavaScript" },
-  { value: "json", label: "JSON" },
-  { value: "html", label: "HTML" },
-  { value: "css", label: "CSS" },
-  { value: "python", label: "Python" },
-  { value: "bash", label: "Bash" },
-  { value: "sql", label: "SQL" },
-  { value: "yaml", label: "YAML" },
-  { value: "markdown", label: "Markdown" },
+export interface CodeBlockLanguageOption {
+  value: string;
+  label: string;
+}
+
+export interface CodeBlockLanguageGroup {
+  label: string;
+  options: CodeBlockLanguageOption[];
+}
+
+export const CODE_BLOCK_LANGUAGE_GROUPS: CodeBlockLanguageGroup[] = [
+  {
+    label: "Common",
+    options: [
+      { value: "plaintext", label: "Plain text" },
+      { value: "mermaid", label: "Mermaid" },
+      { value: "markdown", label: "Markdown" },
+    ],
+  },
+  {
+    label: "Web",
+    options: [
+      { value: "typescript", label: "TypeScript" },
+      { value: "javascript", label: "JavaScript" },
+      { value: "html", label: "HTML" },
+      { value: "css", label: "CSS" },
+      { value: "scss", label: "SCSS" },
+      { value: "less", label: "Less" },
+      { value: "json", label: "JSON" },
+      { value: "graphql", label: "GraphQL" },
+      { value: "xml", label: "XML" },
+    ],
+  },
+  {
+    label: "Systems",
+    options: [
+      { value: "go", label: "Go" },
+      { value: "rust", label: "Rust" },
+      { value: "c", label: "C" },
+      { value: "cpp", label: "C++" },
+      { value: "csharp", label: "C#" },
+      { value: "java", label: "Java" },
+      { value: "kotlin", label: "Kotlin" },
+      { value: "swift", label: "Swift" },
+      { value: "objectivec", label: "Objective-C" },
+      { value: "arduino", label: "Arduino" },
+    ],
+  },
+  {
+    label: "Scripting",
+    options: [
+      { value: "python", label: "Python" },
+      { value: "ruby", label: "Ruby" },
+      { value: "php", label: "PHP" },
+      { value: "perl", label: "Perl" },
+      { value: "lua", label: "Lua" },
+      { value: "bash", label: "Bash" },
+      { value: "shell", label: "Shell" },
+    ],
+  },
+  {
+    label: "Data & Config",
+    options: [
+      { value: "sql", label: "SQL" },
+      { value: "yaml", label: "YAML" },
+      { value: "ini", label: "INI" },
+      { value: "diff", label: "Diff" },
+      { value: "makefile", label: "Makefile" },
+      { value: "r", label: "R" },
+    ],
+  },
 ];
+
+export const CODE_BLOCK_LANGUAGE_OPTIONS: CodeBlockLanguageOption[] =
+  CODE_BLOCK_LANGUAGE_GROUPS.flatMap((group) => group.options);
 
 export interface UseCodeBlockLanguageDropdownConfig {
   editor?: Editor | null;
@@ -68,6 +129,7 @@ export function useCodeBlockLanguageDropdown({
     isVisible,
     language,
     options: CODE_BLOCK_LANGUAGE_OPTIONS,
+    groups: CODE_BLOCK_LANGUAGE_GROUPS,
     setCodeBlockLanguage,
   };
 }
