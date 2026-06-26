@@ -2,7 +2,6 @@ import { ChevronDown, Search, X } from "lucide-react";
 import {
   forwardRef,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -17,14 +16,12 @@ import { useCodeBlockLanguageDropdown } from "@/components/tiptap-ui/code-block-
 import type { ButtonProps } from "@/components/tiptap-ui-primitive/button";
 import { Button } from "@/components/tiptap-ui-primitive/button";
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-} from "@/components/tiptap-ui-primitive/dropdown-menu";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/tiptap-ui-primitive/popover";
+
+import "@/components/tiptap-ui/code-block-language-dropdown/code-block-language-dropdown.scss";
 
 export interface CodeBlockLanguageDropdownProps extends Omit<
   ButtonProps,
@@ -54,12 +51,6 @@ function CodeBlockLanguageDropdownImpl(
     if (!open) setQuery("");
   }, []);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const id = requestAnimationFrame(() => searchRef.current?.focus());
-    return () => cancelAnimationFrame(id);
-  }, [isOpen]);
-
   const filteredGroups = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return groups;
@@ -87,8 +78,8 @@ function CodeBlockLanguageDropdownImpl(
   }
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={handleOpenChange}>
-      <DropdownMenuTrigger asChild>
+    <Popover open={isOpen} onOpenChange={handleOpenChange}>
+      <PopoverTrigger asChild>
         <Button
           type="button"
           variant="ghost"
@@ -105,17 +96,18 @@ function CodeBlockLanguageDropdownImpl(
           <span className="text-xs">{currentLabel}</span>
           <ChevronDown className="tiptap-button-dropdown-small" />
         </Button>
-      </DropdownMenuTrigger>
+      </PopoverTrigger>
 
-      <DropdownMenuContent
+      <PopoverContent
         align="start"
+        sideOffset={4}
         className="tiptap-code-language-dropdown"
+        onOpenAutoFocus={(e) => {
+          e.preventDefault();
+          searchRef.current?.focus();
+        }}
       >
-        <div
-          className="tiptap-code-language-dropdown-search"
-          onKeyDown={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-        >
+        <div className="tiptap-code-language-dropdown-search">
           <Search className="tiptap-code-language-dropdown-search-icon" />
           <input
             ref={searchRef}
@@ -127,40 +119,49 @@ function CodeBlockLanguageDropdownImpl(
             spellCheck={false}
             autoComplete="off"
           />
-          {query && (
-            <button
-              type="button"
-              className="tiptap-code-language-dropdown-clear"
-              onClick={() => {
-                setQuery("");
-                searchRef.current?.focus();
-              }}
-              aria-label="Clear search"
-            >
-              <X />
-            </button>
-          )}
+          <button
+            type="button"
+            className="tiptap-code-language-dropdown-clear"
+            data-visible={query ? "true" : "false"}
+            onClick={() => {
+              setQuery("");
+              searchRef.current?.focus();
+            }}
+            aria-label="Clear search"
+            tabIndex={query ? 0 : -1}
+          >
+            <X />
+          </button>
         </div>
 
         <div className="tiptap-code-language-dropdown-list">
           {hasResults ? (
             filteredGroups.map((group, groupIndex) => (
-              <DropdownMenuGroup key={group.label}>
-                {groupIndex > 0 && <DropdownMenuSeparator />}
-                <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
+              <div
+                className="tiptap-code-language-dropdown-group"
+                key={group.label}
+              >
+                {groupIndex > 0 && (
+                  <div className="tiptap-code-language-dropdown-separator" />
+                )}
+                <div className="tiptap-code-language-dropdown-label">
+                  {group.label}
+                </div>
                 {group.options.map((option) => (
-                  <DropdownMenuItem
+                  <button
+                    type="button"
                     key={option.value}
+                    className="tiptap-code-language-dropdown-item"
+                    data-active={language === option.value ? "true" : undefined}
                     onClick={() => {
                       setCodeBlockLanguage(option.value);
                       setIsOpen(false);
                     }}
-                    data-active={language === option.value ? "true" : undefined}
                   >
                     <span className="text-sm">{option.label}</span>
-                  </DropdownMenuItem>
+                  </button>
                 ))}
-              </DropdownMenuGroup>
+              </div>
             ))
           ) : (
             <div className="tiptap-code-language-dropdown-empty">
@@ -168,8 +169,8 @@ function CodeBlockLanguageDropdownImpl(
             </div>
           )}
         </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </PopoverContent>
+    </Popover>
   );
 }
 
