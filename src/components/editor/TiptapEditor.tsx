@@ -15,7 +15,6 @@ import {
 } from "@/components/tiptap-ui-primitive/toolbar";
 
 import { ImageUploadNode } from "@/components/tiptap-node/image-upload-node/image-upload-node-extension";
-import "@/components/tiptap-node/list-node/list-node.scss";
 import "@/components/tiptap-node/image-node/image-node.scss";
 import "@/components/tiptap-node/paragraph-node/paragraph-node.scss";
 import "@/components/tiptap-node/table-node/table-node.scss";
