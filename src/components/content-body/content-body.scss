@@ -7,28 +7,32 @@
 .tiptap.ProseMirror,
 .simple-editor-content .tiptap.ProseMirror {
   p {
-    margin: 0.75rem 0;
-    line-height: 1.75;
+    margin: 0.25rem 0;
+    line-height: 1.5;
   }
 
   h1,
   h2,
   h3,
   h4 {
-    margin: 1.75rem 0 0.75rem;
-    font-weight: 600;
-    line-height: 1.3;
+    line-height: 2;
     color: var(--color-text-primary, #0a0a0a);
   }
 
-  > h1:first-child,
-  > h2:first-child,
-  > h3:first-child,
-  > h4:first-child,
-  > .ProseMirror-widget + h1,
-  > .ProseMirror-widget + h2,
-  > .ProseMirror-widget + h3,
-  > .ProseMirror-widget + h4 {
+  h1,
+  h2 {
+    border-bottom: 2px solid var(--color-border, #e5e5e5);
+    margin-bottom: 1.5rem;
+  }
+
+  >h1:first-child,
+  >h2:first-child,
+  >h3:first-child,
+  >h4:first-child,
+  >.ProseMirror-widget+h1,
+  >.ProseMirror-widget+h2,
+  >.ProseMirror-widget+h3,
+  >.ProseMirror-widget+h4 {
     margin-top: 0;
   }
 
@@ -54,8 +58,8 @@
     padding-left: 1.5rem;
   }
 
-  li > ul,
-  li > ol {
+  li>ul,
+  li>ol {
     margin: 0.25rem 0;
   }
 
@@ -105,10 +109,10 @@
 
   hr,
   [data-type="horizontalRule"] {
-    margin: 0.5rem 0;
+    margin: 1.5rem 0;
     padding: 0;
     border: none;
-    height: 1px;
+    height: 2px;
     background-color: var(--color-border, #e5e5e5);
   }
 
