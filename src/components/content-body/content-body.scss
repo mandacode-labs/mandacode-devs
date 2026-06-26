@@ -26,14 +26,14 @@
     margin-bottom: 1.5rem;
   }
 
-  > h1:first-child,
-  > h2:first-child,
-  > h3:first-child,
-  > h4:first-child,
-  > .ProseMirror-widget + h1,
-  > .ProseMirror-widget + h2,
-  > .ProseMirror-widget + h3,
-  > .ProseMirror-widget + h4 {
+  >h1:first-child,
+  >h2:first-child,
+  >h3:first-child,
+  >h4:first-child,
+  >.ProseMirror-widget+h1,
+  >.ProseMirror-widget+h2,
+  >.ProseMirror-widget+h3,
+  >.ProseMirror-widget+h4 {
     margin-top: 0;
   }
 
@@ -53,23 +53,69 @@
     font-size: 1rem;
   }
 
-  ul,
-  ol {
-    margin: 0.75rem 0;
-    padding-left: 1.5rem;
-  }
-
-  li > ul,
-  li > ol {
-    margin: 0.25rem 0;
-  }
-
   li {
     margin: 0.35rem 0;
   }
 
   li p {
     margin: 0;
+  }
+
+
+  ul,
+  ol {
+    margin: 0.75rem 0;
+    padding-left: 1.5rem;
+  }
+
+  ul {
+    list-style-type: disc;
+  }
+
+  ol {
+    list-style-type: decimal;
+  }
+
+  // checkbox lists
+  ul[data-type="taskList"] {
+    padding-left: 0.25em;
+
+    li {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 0.5rem;
+
+      &[data-checked="true"] {
+        >div>p {
+          opacity: 0.5;
+          text-decoration: line-through;
+        }
+
+        >div>p span {
+          text-decoration: line-through;
+        }
+      }
+
+      label {
+        input[type="checkbox"] {
+          display: inline-block;
+          width: 1em;
+          height: 1em;
+          margin-top: 0.5rem;
+          border: 1px solid var(--tt-checklist-border-color, #e5e5e5);
+          border-radius: var(--tt-radius-xs, 0.25rem);
+        }
+      }
+
+      div {
+        flex: 1;
+      }
+
+      div p {
+        margin: 0;
+      }
+    }
   }
 
   blockquote {
@@ -131,29 +177,6 @@
     font-weight: 400;
   }
 
-  pre {
-    background-color: #1e1e1e;
-    color: #e6e6e6;
-    border-radius: 0.5rem;
-    margin: 1rem 0;
-    padding: 0.75rem 1rem;
-    font-family: var(--font-mono);
-    font-size: 0.875em;
-    line-height: 1.5;
-    overflow-x: auto;
-  }
-
-  pre code,
-  pre code.hljs {
-    background: transparent;
-    padding: 0;
-    color: inherit;
-    border: none;
-    border-radius: 0;
-    font-size: inherit;
-    font-weight: inherit;
-  }
-
   code {
     background-color: var(--color-bg-secondary, #fafafa);
     border: 1px solid var(--color-border, #e5e5e5);
@@ -161,11 +184,40 @@
     padding: 0.1em 0.3em;
     font-family: var(--font-mono);
     font-size: 0.875em;
+
+    &::before,
+    &::after {
+      content: none;
+    }
   }
 
-  code::before,
-  code::after {
-    content: none;
+  pre {
+    background-color: #1e1e1e;
+    color: var(--color-text-primary, #f5f5f5);
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+    padding: 0.75rem 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    line-height: 1.5;
+    overflow-x: auto;
+
+    code {
+      all: unset;
+      font: inherit;
+      color: inherit;
+    }
+
+    span {
+      display: block;
+      white-space: pre;
+      background-color: transparent;
+    }
+
+    ::selection {
+      background-color: var(--color-bg-tertiary, #f0f0f0);
+      color: var(--color-accent, currentColor);
+    }
   }
 
   /* Wrap wide tables for horizontal scrolling on mobile */
@@ -194,32 +246,4 @@
       text-align: left;
     }
   }
-
-  // table td,
-  // table th {
-  //   border: 1px solid #ced4da;
-  //   box-sizing: border-box;
-  //   min-width: 1em;
-  //   padding: 6px 8px;
-  // }
-
-  // table {
-  //   margin: 0.75rem 0;
-  //   max-width: 100%;
-  //   border-collapse: collapse;
-  //
-  //   th,
-  //   td {
-  //     position: relative;
-  //     border: 1px solid var(--color-border, #e5e5e5);
-  //     padding: 0.25rem 0.5rem;
-  //     height: 2rem;
-  //   }
-  //
-  //   th {
-  //     font-weight: 600;
-  //     background-color: var(--color-bg-tertiary, #f0f0f0);
-  //     text-align: left;
-  //   }
-  // }
 }
