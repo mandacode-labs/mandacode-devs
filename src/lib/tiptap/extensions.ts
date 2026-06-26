@@ -15,7 +15,6 @@ import { createLowlight, common } from "lowlight";
 import { mergeAttributes } from "@tiptap/core";
 
 import { AlignedImage } from "@/components/tiptap-node/image-node/image-node-extension";
-import { TrailingNode } from "@tiptap/extensions";
 import { TextStyleKit } from "@tiptap/extension-text-style";
 
 export const lowlight = createLowlight(common);
@@ -50,6 +49,10 @@ export const tiptapExtensions = [
   StarterKit.configure({
     horizontalRule: false,
     codeBlock: false,
+    trailingNode: {
+      node: "paragraph",
+      notAfter: ["paragraph"],
+    },
   }),
   ServerCodeBlock,
   ServerHorizontalRule,
@@ -65,9 +68,5 @@ export const tiptapExtensions = [
   TableRow,
   TableCell,
   TableHeader,
-  TrailingNode.configure({
-    node: "paragraph",
-    notAfter: ["paragraph"],
-  }),
   TextStyleKit,
 ];
