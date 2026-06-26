@@ -8,8 +8,6 @@ import cloudflare from "@astrojs/cloudflare";
 
 import react from "@astrojs/react";
 
-const BUILD_ID = process.env.BUILD_ID ?? Date.now().toString(36);
-
 export default defineConfig({
   site: process.env.SITE_URL || "https://dev.mandacode.com",
   base: "/",
@@ -19,9 +17,6 @@ export default defineConfig({
     imageService: "passthrough",
   }),
   vite: {
-    define: {
-      __BUILD_ID__: JSON.stringify(BUILD_ID),
-    },
     plugins: [tailwindcss()],
     resolve: {
       alias: {

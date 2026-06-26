@@ -1,26 +1,22 @@
 import { getSiteUrl } from "@/lib/config/site";
 
-declare const __BUILD_ID__: string;
-
 function getCache(): Cache {
   return (caches as unknown as { default: Cache }).default;
 }
 
-export function getCacheKey(request: Request): Request {
-  const buildId = typeof __BUILD_ID__ !== "undefined" ? __BUILD_ID__ : "dev";
-  const url = new URL(request.url);
-  url.searchParams.set("_b", buildId);
-  return new Request(url.toString(), {
-    method: request.method,
-    headers: request.headers,
-  });
+function requestToKey(request: Request): Request {
+  return new Request(request.url, { method: "GET" });
+}
+
+function pathToKey(path: string): Request {
+  return new Request(new URL(path, getSiteUrl()).toString(), { method: "GET" });
 }
 
 export async function getCachedResponse(
   request: Request,
 ): Promise<Response | undefined> {
   const cache = getCache();
-  const cached = await cache.match(getCacheKey(request));
+  const cached = await cache.match(requestToKey(request));
   return cached ?? undefined;
 }
 
@@ -29,15 +25,13 @@ export async function cacheResponse(
   response: Response,
 ): Promise<void> {
   const cache = getCache();
-  await cache.put(getCacheKey(request), response.clone());
+  await cache.put(requestToKey(request), response.clone());
 }
 
 export async function invalidateCache(path: string): Promise<void> {
   const cache = getCache();
-  const url = new URL(path, getSiteUrl());
-
   try {
-    await cache.delete(new Request(url));
+    await cache.delete(pathToKey(path));
   } catch {
     // Ignore cache deletion errors
   }
