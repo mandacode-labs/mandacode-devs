@@ -25,14 +25,14 @@
     margin-bottom: 1.5rem;
   }
 
-  >h1:first-child,
-  >h2:first-child,
-  >h3:first-child,
-  >h4:first-child,
-  >.ProseMirror-widget+h1,
-  >.ProseMirror-widget+h2,
-  >.ProseMirror-widget+h3,
-  >.ProseMirror-widget+h4 {
+  > h1:first-child,
+  > h2:first-child,
+  > h3:first-child,
+  > h4:first-child,
+  > .ProseMirror-widget + h1,
+  > .ProseMirror-widget + h2,
+  > .ProseMirror-widget + h3,
+  > .ProseMirror-widget + h4 {
     margin-top: 0;
   }
 
@@ -58,8 +58,8 @@
     padding-left: 1.5rem;
   }
 
-  li>ul,
-  li>ol {
+  li > ul,
+  li > ol {
     margin: 0.25rem 0;
   }
 
@@ -170,36 +170,58 @@
     content: none;
   }
 
+  /* Wrap wide tables for horizontal scrolling on mobile */
+  .tableWrapper {
+    width: 100%;
+    overflow-x: auto;
+  }
+
   table {
-    border-collapse: collapse;
-    margin: 0.75rem 0;
-    max-width: 100%;
+    // border-collapse: collapse;
+    width: 100%;
+    margin: 0.75rem auto;
 
     th,
     td {
-      position: relative;
+      // position: relative;
       border: 1px solid var(--color-border, #e5e5e5);
+      box-sizing: border-box;
+      min-width: 1em;
       padding: 0.25rem 0.5rem;
-      vertical-align: top;
-      line-height: 2;
+      height: 2rem;
     }
 
     th {
-      font-weight: 600;
       background-color: var(--color-bg-tertiary, #f0f0f0);
       text-align: left;
     }
-
-    p,
-    li {
-      margin: 0 !important;
-      line-height: inherit !important;
-    }
   }
 
-  /* Wrap wide tables for horizontal scrolling on mobile */
-  .tableWrapper {
-    max-width: 100%;
-    overflow-x: auto;
-  }
+  // table td,
+  // table th {
+  //   border: 1px solid #ced4da;
+  //   box-sizing: border-box;
+  //   min-width: 1em;
+  //   padding: 6px 8px;
+  // }
+
+  // table {
+  //   margin: 0.75rem 0;
+  //   max-width: 100%;
+  //   border-collapse: collapse;
+  //
+  //   th,
+  //   td {
+  //     position: relative;
+  //     border: 1px solid var(--color-border, #e5e5e5);
+  //     padding: 0.25rem 0.5rem;
+  //     height: 2rem;
+  //   }
+  //
+  //   th {
+  //     font-weight: 600;
+  //     background-color: var(--color-bg-tertiary, #f0f0f0);
+  //     text-align: left;
+  //   }
+  // }
 }

@@ -104,7 +104,7 @@ const MainToolbarContent = () => {
 
       <ToolbarGroup>
         <TableDropdownMenu />
-        <ImageUploadButton text="Add image" />
+        <ImageUploadButton />
       </ToolbarGroup>
 
       <Spacer />

@@ -3,7 +3,6 @@ import { TaskItem, TaskList } from "@tiptap/extension-list";
 import { TextAlign } from "@tiptap/extension-text-align";
 import { Typography } from "@tiptap/extension-typography";
 import { Highlight } from "@tiptap/extension-highlight";
-import { Color } from "@tiptap/extension-color";
 import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
 import { Table } from "@tiptap/extension-table";
@@ -15,8 +14,9 @@ import TiptapHorizontalRule from "@tiptap/extension-horizontal-rule";
 import { createLowlight, common } from "lowlight";
 import { mergeAttributes } from "@tiptap/core";
 
-import { FontSize } from "@/lib/tiptap/font-size";
 import { AlignedImage } from "@/components/tiptap-node/image-node/image-node-extension";
+import { TrailingNode } from "@tiptap/extensions";
+import { TextStyleKit } from "@tiptap/extension-text-style";
 
 export const lowlight = createLowlight(common);
 
@@ -61,10 +61,13 @@ export const tiptapExtensions = [
   Typography,
   Superscript,
   Subscript,
-  FontSize,
-  Color.configure({ types: ["textStyle"] }),
   Table.configure({ resizable: true }),
   TableRow,
   TableCell,
   TableHeader,
+  TrailingNode.configure({
+    node: "paragraph",
+    notAfter: ["paragraph"],
+  }),
+  TextStyleKit,
 ];
