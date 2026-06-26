@@ -44,6 +44,7 @@ const MAIN_CFG: MainTableConfig = {
     "created_at",
     "updated_at",
   ],
+  orderBy: "p.project_order ASC, p.created_at DESC",
 };
 
 const TRANS_CFG: TransTableConfig = {
