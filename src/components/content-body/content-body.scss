@@ -7,8 +7,13 @@
 .tiptap.ProseMirror,
 .simple-editor-content .tiptap.ProseMirror {
   p {
-    margin: 0.25rem 0;
-    line-height: 1.5;
+    margin: 0.75rem 0;
+    line-height: 1.75;
+  }
+
+  br {
+    display: block;
+    margin-bottom: 0.75em;
   }
 
   h1,
