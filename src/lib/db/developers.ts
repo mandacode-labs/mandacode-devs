@@ -340,6 +340,7 @@ export function getDeveloperLocalesWithContent(id: string): Promise<
   Array<{
     locale: string;
     intro: string;
+    body: string;
     avatar_url: string | null;
   }>
 > {
@@ -348,11 +349,12 @@ export function getDeveloperLocalesWithContent(id: string): Promise<
     "developer_id",
     id,
     "intro",
-    ["avatar_url"],
+    ["body", "avatar_url"],
   ) as Promise<
     Array<{
       locale: string;
       intro: string;
+      body: string;
       avatar_url: string | null;
     }>
   >;

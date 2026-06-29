@@ -131,4 +131,5 @@ export const projectAdapter: AdminCrudAdapter<
   getImageUrls: (body) => ({
     cover_image_url: body.cover_image_url ?? null,
   }),
+  getTiptapFields: () => ["body"],
 };

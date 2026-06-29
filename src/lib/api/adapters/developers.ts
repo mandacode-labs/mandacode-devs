@@ -151,4 +151,5 @@ export const developerAdapter: AdminCrudAdapter<
   getImageUrls: (body) => ({
     avatar_url: body.avatar_url ?? null,
   }),
+  getTiptapFields: () => ["intro", "body"],
 };
