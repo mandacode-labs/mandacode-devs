@@ -70,7 +70,11 @@ function getOpenAIClient(): OpenAI {
     throw new ApiError("OPENAI_API_KEY is not configured", 500);
   }
 
-  return new OpenAI({ apiKey: OPENAI_API_KEY });
+  return new OpenAI({
+    apiKey: OPENAI_API_KEY,
+    timeout: 90 * 1000,
+    maxRetries: 1,
+  });
 }
 
 interface SegmentForPrompt {

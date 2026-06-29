@@ -1,6 +1,7 @@
 import {
   createTranslationJobs as createPersistedTranslationJobs,
   getTranslationJobById,
+  markAllStaleRunningJobsFailed,
   markStaleRunningJobsFailed,
   pruneOldTranslationJobs,
   resetTranslationJobForRetry,
@@ -26,19 +27,16 @@ export async function scheduleTranslations(
     return [];
   }
 
-  // Opportunistic 30-day retention sweep. Cheap when 0 rows match
-  // (common case) thanks to the created_at index. Keeps the jobs
-  // table from growing without bound.
   await pruneOldTranslationJobs(30);
-
-  // Clear orphaned "running" jobs from a previous worker that died
-  // mid-translation. Without this, those rows block new translation
-  // attempts because the frontend shows them as still in progress.
+  await markAllStaleRunningJobsFailed(
+    5,
+    "Worker terminated before completion (stale job superseded)",
+  );
   await markStaleRunningJobsFailed(
     contentType,
     id,
     5,
-    "Worker terminated before completion (stale job superseded)",
+    "Worker terminated before completion (stale job superseded for this content)",
   );
 
   const inputs = createTranslationJobInputs(
