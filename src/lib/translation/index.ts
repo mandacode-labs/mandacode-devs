@@ -204,6 +204,13 @@ async function executeTranslation(job: TranslationJobInput): Promise<void> {
   }
 }
 
+// Hard ceiling on a single translation job. The OpenAI client has its
+// own 10-minute default timeout, but a worker killed mid-call leaves
+// the DB row stuck at status='running' forever. Wrapping the whole job
+// in a timeout makes that state recoverable: the catch handler updates
+// the status to 'failed' and the retry path can re-schedule.
+const JOB_TIMEOUT_MS = 8 * 60 * 1000;
+
 export async function runTranslationJob(
   jobInput: TranslationJobInput,
   jobId?: string,
@@ -219,14 +226,30 @@ export async function runTranslationJob(
 
   await updateStatus("running");
 
+  let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
   try {
-    await executeTranslation(jobInput);
+    await Promise.race([
+      executeTranslation(jobInput),
+      new Promise<never>((_, reject) => {
+        timeoutHandle = setTimeout(
+          () =>
+            reject(
+              new Error(
+                `Translation timed out after ${JOB_TIMEOUT_MS / 1000}s`,
+              ),
+            ),
+          JOB_TIMEOUT_MS,
+        );
+      }),
+    ]);
     await updateStatus("completed");
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unknown translation error";
     await updateStatus("failed", message);
     throw error;
+  } finally {
+    if (timeoutHandle) clearTimeout(timeoutHandle);
   }
 }
 

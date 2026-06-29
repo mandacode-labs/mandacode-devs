@@ -1,6 +1,7 @@
 import {
   createTranslationJobs as createPersistedTranslationJobs,
   getTranslationJobById,
+  markStaleRunningJobsFailed,
   resetTranslationJobForRetry,
 } from "@/lib/db/translation-jobs";
 import {
@@ -23,6 +24,16 @@ export async function scheduleTranslations(
   if (targetLocales.length === 0) {
     return [];
   }
+
+  // Clear orphaned "running" jobs from a previous worker that died
+  // mid-translation. Without this, those rows block new translation
+  // attempts because the frontend shows them as still in progress.
+  await markStaleRunningJobsFailed(
+    contentType,
+    id,
+    5,
+    "Worker terminated before completion (stale job superseded)",
+  );
 
   const inputs = createTranslationJobInputs(
     contentType,
