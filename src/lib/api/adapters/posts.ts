@@ -114,6 +114,7 @@ export const postAdapter: AdminCrudAdapter<
   getImageUrls: (body) => ({
     cover_image_url: body.cover_image_url ?? null,
   }),
+  getTiptapFields: () => ["body"],
 };
 
 export function generatePostTranslationId(

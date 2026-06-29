@@ -33,6 +33,8 @@ interface UpdateBody {
   target_locales?: string[];
 }
 
+export type { UpdateBody };
+
 export interface AdminCrudAdapter<
   TCreate extends CreateBody,
   TUpdate extends UpdateBody,
@@ -56,6 +58,7 @@ export interface AdminCrudAdapter<
   delete(id: string, locale?: string): Promise<void>;
   deleteAllLocales(id: string): Promise<void>;
   getImageUrls(body: TUpdate): Record<string, string | null>;
+  getTiptapFields(): string[];
 }
 
 function safeWaitUntil(context: APIContext, promise: Promise<unknown>): void {
@@ -74,36 +77,29 @@ async function cleanupEntityAssets<
   adapter: AdminCrudAdapter<TCreate, TUpdate, TExisting>,
   id: string,
   locale: string,
-  tiptapJson: string | undefined,
+  body: TUpdate,
   imageUrls: Record<string, string | null>,
 ): Promise<void> {
+  const tiptapFields = adapter.getTiptapFields();
   const imageFields = Object.keys(imageUrls);
   const locales = await adapter.getLocalesWithContent(id);
   const usedUrls = new Set<string>();
 
   for (const row of locales) {
-    if (row.locale === locale) {
-      if (tiptapJson) {
-        for (const url of extractAssetUrlsFromTiptapJson(
-          tiptapJson as string,
-        )) {
+    const isCurrentLocale = row.locale === locale;
+    const source = isCurrentLocale ? body : row;
+
+    for (const field of tiptapFields) {
+      const value = (source as Record<string, unknown>)[field];
+      if (typeof value === "string" && value) {
+        for (const url of extractAssetUrlsFromTiptapJson(value)) {
           usedUrls.add(url);
         }
       }
-      for (const field of imageFields) {
-        const value = imageUrls[field];
-        if (value) usedUrls.add(value);
-      }
-    } else {
-      for (const url of extractAssetUrlsFromTiptapJson(
-        (row as { body?: string }).body ?? "",
-      )) {
-        usedUrls.add(url);
-      }
-      for (const field of imageFields) {
-        const value = row[field];
-        if (typeof value === "string") usedUrls.add(value);
-      }
+    }
+    for (const field of imageFields) {
+      const value = (source as Record<string, unknown>)[field];
+      if (typeof value === "string" && value) usedUrls.add(value);
     }
   }
 
@@ -209,7 +205,7 @@ export function createAdminPutHandler<
           adapter,
           id,
           locale,
-          body.intro,
+          body,
           adapter.getImageUrls(body),
         ),
       );
