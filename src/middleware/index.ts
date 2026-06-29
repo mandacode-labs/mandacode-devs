@@ -13,6 +13,10 @@ function shouldCache(context: APIContext): boolean {
   );
 }
 
+function shouldNoStore(pathname: string): boolean {
+  return pathname.startsWith("/admin") || pathname.startsWith("/api");
+}
+
 async function getLocalizedNotFound(
   context: APIContext,
   lang: string,
@@ -42,10 +46,12 @@ async function getLocalizedNotFound(
 }
 
 export const onRequest = defineMiddleware(async (context, next) => {
+  const noStore = shouldNoStore(context.url.pathname);
+
   if (shouldCache(context)) {
     const cached = await getCachedResponse(context.request);
     if (cached) {
-      return applySecurityHeaders(cached);
+      return applySecurityHeaders(cached, { noStore });
     }
   }
 
@@ -68,5 +74,5 @@ export const onRequest = defineMiddleware(async (context, next) => {
     );
   }
 
-  return applySecurityHeaders(response);
+  return applySecurityHeaders(response, { noStore });
 });

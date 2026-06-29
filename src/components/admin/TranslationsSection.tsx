@@ -1,13 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { RefreshCw } from "lucide-react";
 import { AdminSection } from "./AdminSection";
 import { LANGUAGE_CONFIGS } from "@/lib/config/languages";
 import { useAdminTranslations } from "./use-admin-translations";
 import { apiFetch } from "@/lib/api/client";
 import { interpolate } from "@/lib/utils/interpolate";
-import {
-  useTranslationStatus,
-  useWatchTranslationJobs,
-} from "@/hooks/use-translation-status";
+import { useTranslationStatus } from "@/hooks/use-translation-status";
 import type { AdminTranslations } from "./use-admin-translations";
 import type { TranslationContentType } from "@/lib/db/schema";
 
@@ -40,7 +38,17 @@ interface TranslationsSectionProps {
   successLabel?: string;
   failedLabel?: string;
   noopLabel?: string;
-  runningLabel?: string;
+  startedLabel?: string;
+  refreshLabel?: string;
+}
+
+function formatLastFetched(timestamp: number | null): string {
+  if (timestamp === null) return "";
+  const d = new Date(timestamp);
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  const ss = String(d.getSeconds()).padStart(2, "0");
+  return `${hh}:${mm}:${ss}`;
 }
 
 export function TranslationsSection({
@@ -72,7 +80,8 @@ export function TranslationsSection({
   successLabel = "성공",
   failedLabel = "실패",
   noopLabel = "처리할 항목이 없습니다",
-  runningLabel = "진행 중",
+  startedLabel = "번역이 시작되었습니다",
+  refreshLabel = "상태 새로고침",
 }: TranslationsSectionProps) {
   const t = useAdminTranslations({} as AdminTranslations);
   const [bulkAction, setBulkAction] = useState<
@@ -82,60 +91,20 @@ export function TranslationsSection({
     type: "success" | "error" | "info";
     message: string;
   } | null>(null);
-  const [watchJobIds, setWatchJobIds] = useState<string[]>([]);
-  const [expectedCount, setExpectedCount] = useState(0);
-  const reportedRef = useRef<string | null>(null);
 
-  const { jobs: watchedJobs, isPolling } = useWatchTranslationJobs({
-    contentType,
-    contentId,
-    jobIds: watchJobIds,
-  });
-
-  const { getStatus, getError } = useTranslationStatus({
-    contentType,
-    ids: useMemo(() => [contentId], [contentId]),
-    interval: 5000,
-  });
+  const { getStatus, getError, refetch, isLoading, lastFetched } =
+    useTranslationStatus({
+      contentType,
+      ids: useMemo(() => [contentId], [contentId]),
+    });
   const currentJobStatus = getStatus(contentId, locale);
   const currentJobError = getError(contentId, locale);
 
   useEffect(() => {
-    if (watchJobIds.length === 0 || isPolling) return;
-    if (watchedJobs.length === 0) return;
-    if (reportedRef.current === watchJobIds.join(",")) return;
-
-    const failed = watchedJobs.filter((j) => j.status === "failed");
-    const completed = watchedJobs.filter((j) => j.status === "completed");
-    reportedRef.current = watchJobIds.join(",");
-
-    if (failed.length > 0) {
-      const first = failed[0]!;
-      setToast({
-        type: "error",
-        message: `${failedLabel} (${first.target_locale}): ${first.error_message ?? "Unknown error"}`,
-      });
-    } else if (completed.length === expectedCount) {
-      setToast({
-        type: "success",
-        message: `${successLabel}: ${completed.length}`,
-      });
-    } else {
-      setToast({
-        type: "error",
-        message: `${failedLabel}: timed out (${completed.length}/${expectedCount})`,
-      });
-    }
-    setWatchJobIds([]);
-    setTimeout(() => setToast(null), 6000);
-  }, [
-    watchedJobs,
-    isPolling,
-    watchJobIds,
-    expectedCount,
-    successLabel,
-    failedLabel,
-  ]);
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   const translatableCount = existingLocales.filter(
     (l) => l !== originalLocale,
@@ -151,7 +120,6 @@ export function TranslationsSection({
       return;
     setBulkAction("regenerate-all");
     setToast(null);
-    reportedRef.current = null;
     try {
       const params = new URLSearchParams();
       params.set("content_type", contentType);
@@ -168,11 +136,9 @@ export function TranslationsSection({
         onAfterBulkAction();
         return;
       }
-      setExpectedCount(res.jobIds.length);
-      setWatchJobIds(res.jobIds);
       setToast({
         type: "info",
-        message: `${runningLabel} (${res.jobIds.length})`,
+        message: `${startedLabel} (${res.jobIds.length}개 언어). 완료 후 새로고침하세요.`,
       });
     } catch (error) {
       setToast({
@@ -212,7 +178,6 @@ export function TranslationsSection({
       });
     } finally {
       setBulkAction(null);
-      setTimeout(() => setToast(null), 4000);
     }
   }
 
@@ -304,6 +269,22 @@ export function TranslationsSection({
           >
             {publishAllLabel}
           </button>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            disabled={isLoading}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-border text-text-secondary hover:text-text-primary hover:bg-bg-tertiary disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RefreshCw
+              className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`}
+            />
+            {refreshLabel}
+          </button>
+          {lastFetched !== null && (
+            <span className="text-xs text-text-muted">
+              마지막 확인: {formatLastFetched(lastFetched)}
+            </span>
+          )}
           {toast && (
             <span
               className={`text-xs font-medium px-2 py-1 rounded-md ${

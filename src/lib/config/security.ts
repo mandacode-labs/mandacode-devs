@@ -10,9 +10,17 @@ export const SECURITY_HEADERS = {
 export const HTML_CACHE_CONTROL =
   "public, max-age=0, s-maxage=300, stale-while-revalidate=86400";
 
+// Admin and API responses must never be cached — list/editor views
+// show live data and stale entries from the CDN caused users to see
+// the pre-edit state after a save.
+export const NO_STORE_CACHE_CONTROL = "no-store, no-cache, must-revalidate";
+
 export type SecurityHeaderName = keyof typeof SECURITY_HEADERS;
 
-export function applySecurityHeaders(response: Response): Response {
+export function applySecurityHeaders(
+  response: Response,
+  options: { noStore?: boolean } = {},
+): Response {
   const headers = new Headers(response.headers);
 
   for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
@@ -21,7 +29,12 @@ export function applySecurityHeaders(response: Response): Response {
 
   const contentType = headers.get("content-type") ?? "";
   if (contentType.includes("text/html") && !headers.has("cache-control")) {
-    headers.set("Cache-Control", HTML_CACHE_CONTROL);
+    headers.set(
+      "Cache-Control",
+      options.noStore ? NO_STORE_CACHE_CONTROL : HTML_CACHE_CONTROL,
+    );
+  } else if (options.noStore && !headers.has("cache-control")) {
+    headers.set("Cache-Control", NO_STORE_CACHE_CONTROL);
   }
 
   return new Response(response.body, {

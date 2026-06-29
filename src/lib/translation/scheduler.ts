@@ -2,6 +2,7 @@ import {
   createTranslationJobs as createPersistedTranslationJobs,
   getTranslationJobById,
   markStaleRunningJobsFailed,
+  pruneOldTranslationJobs,
   resetTranslationJobForRetry,
 } from "@/lib/db/translation-jobs";
 import {
@@ -24,6 +25,11 @@ export async function scheduleTranslations(
   if (targetLocales.length === 0) {
     return [];
   }
+
+  // Opportunistic 30-day retention sweep. Cheap when 0 rows match
+  // (common case) thanks to the created_at index. Keeps the jobs
+  // table from growing without bound.
+  await pruneOldTranslationJobs(30);
 
   // Clear orphaned "running" jobs from a previous worker that died
   // mid-translation. Without this, those rows block new translation
