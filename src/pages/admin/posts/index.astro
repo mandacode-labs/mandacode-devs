@@ -10,9 +10,10 @@ import {
   getPostOriginalHash,
 } from "@/lib/db/posts";
 import { useTranslations } from "@/lib/i18n/utils";
+import { ui } from "@/lib/i18n";
 import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@/lib/config/languages";
 import { formatShortDate } from "@/lib/utils/date";
-import { Plus } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 import type { AdminListItem } from "@/components/admin/AdminList";
 
 requireAuth(Astro);
@@ -101,13 +102,23 @@ const translations: Record<string, string> = {};
         {posts.length} posts · {totalLocales} language versions
       </p>
     </div>
-    <a
-      href="/admin/posts/new"
-      class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover transition-colors"
-    >
-      <Icon icon={Plus} class="w-4 h-4" />
-      {t("admin.newPost")}
-    </a>
+    <div class="flex items-center gap-2">
+      <button
+        type="button"
+        onclick="location.reload()"
+        class="inline-flex items-center justify-center gap-2 px-3 py-2.5 border border-border text-text-secondary text-sm font-medium rounded-lg hover:text-text-primary hover:bg-bg-tertiary transition-colors"
+      >
+        <Icon icon={RefreshCw} class="w-4 h-4" />
+        새로고침
+      </button>
+      <a
+        href="/admin/posts/new"
+        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover transition-colors"
+      >
+        <Icon icon={Plus} class="w-4 h-4" />
+        {t("admin.newPost")}
+      </a>
+    </div>
   </div>
 
   <AdminList

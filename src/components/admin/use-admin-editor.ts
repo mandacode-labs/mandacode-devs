@@ -117,7 +117,7 @@ export function useAdminEditor(options: UseAdminEditorOptions) {
       });
 
       showSuccess("Saved successfully");
-      window.location.href = listPath;
+      window.location.replace(listPath);
     } catch (error) {
       showError(error instanceof Error ? error.message : "Failed to save");
     } finally {
@@ -140,7 +140,7 @@ export function useAdminEditor(options: UseAdminEditorOptions) {
         { method: "DELETE" },
       );
 
-      window.location.href = listPath;
+      window.location.replace(listPath);
     } catch (error) {
       setIsDeleting(false);
       setShowDeleteModal(false);

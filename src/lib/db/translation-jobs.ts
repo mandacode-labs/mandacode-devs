@@ -186,6 +186,24 @@ export async function markStaleRunningJobsFailed(
   return result.meta?.changes ?? 0;
 }
 
+// Delete completed/failed jobs older than `retentionDays` days. Called
+// opportunistically at the start of `scheduleTranslations`; cheap when
+// 0 rows match (the common case) thanks to the `created_at` index.
+export async function pruneOldTranslationJobs(
+  retentionDays: number,
+): Promise<number> {
+  const db = getDatabase();
+  const result = await db
+    .prepare(
+      `DELETE FROM translation_jobs
+       WHERE status IN ('completed', 'failed')
+         AND created_at < datetime('now', ?)`,
+    )
+    .bind(`-${retentionDays} days`)
+    .run();
+  return result.meta?.changes ?? 0;
+}
+
 export async function resetTranslationJobForRetry(id: string): Promise<void> {
   const db = getDatabase();
   await db

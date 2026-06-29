@@ -606,7 +606,8 @@ export default function DeveloperEditor({
           "admin.publishAllConfirm",
           "{count}개 언어를 published로 변경하시겠어요?",
         )}
-        runningLabel={t("admin.running", "진행 중...")}
+        startedLabel={t("admin.translationsStarted", "번역이 시작되었습니다")}
+        refreshLabel={t("admin.refreshStatus", "상태 새로고침")}
       />
 
       {isEditMode && (

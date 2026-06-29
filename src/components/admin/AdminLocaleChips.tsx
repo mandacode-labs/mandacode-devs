@@ -299,7 +299,6 @@ export function AdminLocaleChips({
   const { getStatus, getError } = useTranslationStatus({
     contentType,
     ids,
-    interval: 5000,
   });
 
   const sorted = useMemo(
