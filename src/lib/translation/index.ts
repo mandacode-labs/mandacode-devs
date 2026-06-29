@@ -2,7 +2,10 @@ import { translateFields } from "@/lib/openai/translation";
 import * as postsRepo from "@/lib/db/posts";
 import * as projectsRepo from "@/lib/db/projects";
 import * as developersRepo from "@/lib/db/developers";
-import { updateTranslationJobStatus } from "@/lib/db/translation-jobs";
+import {
+  markAllStaleRunningJobsFailed,
+  updateTranslationJobStatus,
+} from "@/lib/db/translation-jobs";
 import { hashContent } from "@/lib/hash";
 import type { Language } from "@/lib/config/languages";
 import type { TranslationContentType } from "@/lib/db/schema";
@@ -204,12 +207,9 @@ async function executeTranslation(job: TranslationJobInput): Promise<void> {
   }
 }
 
-// Hard ceiling on a single translation job. The OpenAI client has its
-// own 10-minute default timeout, but a worker killed mid-call leaves
-// the DB row stuck at status='running' forever. Wrapping the whole job
-// in a timeout makes that state recoverable: the catch handler updates
-// the status to 'failed' and the retry path can re-schedule.
-const JOB_TIMEOUT_MS = 8 * 60 * 1000;
+// Under Cloudflare's ~5 min waitUntil wall time, with buffer for
+// catch handler to flush the status update.
+const JOB_TIMEOUT_MS = 4 * 60 * 1000;
 
 export async function runTranslationJob(
   jobInput: TranslationJobInput,
@@ -247,6 +247,11 @@ export async function runTranslationJob(
     const message =
       error instanceof Error ? error.message : "Unknown translation error";
     await updateStatus("failed", message);
+    // If our own job hit a wall-time kill, siblings likely did too.
+    await markAllStaleRunningJobsFailed(
+      5,
+      "Worker terminated before completion (swept after sibling failure)",
+    );
     throw error;
   } finally {
     if (timeoutHandle) clearTimeout(timeoutHandle);

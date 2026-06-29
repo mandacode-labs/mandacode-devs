@@ -160,9 +160,8 @@ export async function updateTranslationJobStatus(
 
 // Mark in-flight jobs as failed when their worker is presumed dead. A job
 // left at status='running' for more than `staleMinutes` minutes indicates
-// the `waitUntil` background task was killed (e.g., worker redeploy or
-// instance recycle) before it could update the final status. Returns the
-// number of jobs marked stale.
+// the `waitUntil` background task was killed before it could update the
+// final status.
 export async function markStaleRunningJobsFailed(
   contentType: TranslationContentType,
   contentId: string,
@@ -182,6 +181,27 @@ export async function markStaleRunningJobsFailed(
         AND updated_at < datetime('now', ?)`,
     )
     .bind(reason, contentType, contentId, `-${staleMinutes} minutes`)
+    .run();
+  return result.meta?.changes ?? 0;
+}
+
+// Mark stale running jobs across ALL content as failed. Used as a
+// safety net when our own worker hit a wall-time limit.
+export async function markAllStaleRunningJobsFailed(
+  staleMinutes: number,
+  reason: string,
+): Promise<number> {
+  const db = getDatabase();
+  const result = await db
+    .prepare(
+      `UPDATE translation_jobs SET
+        status = 'failed',
+        error_message = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE status = 'running'
+        AND updated_at < datetime('now', ?)`,
+    )
+    .bind(reason, `-${staleMinutes} minutes`)
     .run();
   return result.meta?.changes ?? 0;
 }
